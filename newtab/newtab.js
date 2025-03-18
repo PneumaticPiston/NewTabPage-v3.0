@@ -35,7 +35,7 @@ const GROUPS = [// link groups
     {// link group
         type: 'stack',
         x: 0,
-        y: 0,
+        y: 50,
         title: 'Search',
         links: [
             {
@@ -52,12 +52,13 @@ const GROUPS = [// link groups
 
 const newGroup = {
     stack: function(links, x, y) {
-        let group = document.createElement('div');
+        let group = document.createElement('li');
         links.forEach(async link => {
-            const favicon = await getFavicon(link.url);
+            let favicon = getFavicon(link.url);
             group.innerHTML += newLink.stack(link.title, link.url, favicon);
         });
-        group.classList.add('link-stack');
+        group.classList.add('group');
+        group.classList.add('stack');
         group.style.top = y + 'px';
         group.style.left = x + 'px';
         return group;
@@ -67,10 +68,9 @@ const newGroup = {
 const newLink = {
     stack: function(title, url, favicon) {
         return `
-            <a href="${url}">
-                <img src="${favicon || ''}" alt="${title}"/>
-                <p>${title}</p>
-            </a>
+            <li href="${url}" class="link-stack">
+                <a href="${url}"><img src="${favicon}"/>${title}</a>
+            </li>
         `;
     },
     grid: function(title, url) {
@@ -85,27 +85,11 @@ const newLink = {
 
 container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y));
 
-async function getFavicon(url) {
+function getFavicon(url) {
     try {
         const domain = new URL(url).hostname;
-        const cachedIcon = localStorage.getItem(`favicon_${domain}`);
-        
-        if (cachedIcon) {
-            return cachedIcon;
-        }
-
-        const response = await fetch(`https://www.google.com/s2/favicons?domain=${domain}`);
-        const blob = await response.blob();
-        const base64 = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-        });
-
-        localStorage.setItem(`favicon_${domain}`, base64);
-        return base64;
-    } catch (error) {
-        console.error('Error fetching favicon:' + url + " ", error);
-        return null;
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    } catch (e) {
+        return ''; // Return empty string if URL is invalid
     }
 }
