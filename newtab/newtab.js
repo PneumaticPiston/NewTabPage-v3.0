@@ -30,12 +30,30 @@
  * 
  */
 const container = document.getElementById('groups-container');
+const shortcuts = document.getElementById('shortcuts-container');
+
+const settings = {
+    showShortcuts: true,
+    showSearch: true,
+    showSettings: true
+}
+
+const SHORTCUTS = [
+    {
+        title: 'Google',
+        url: 'https://www.google.com'
+    },
+    {
+        title: 'Youtube',
+        url: 'https://www.youtube.com'
+    }
+];
 
 const GROUPS = [// link groups
     {// link group
         type: 'stack',
-        x: 0,
-        y: 50,
+        x: 10,
+        y: 250,
         title: 'Search',
         links: [
             {
@@ -62,7 +80,31 @@ const newGroup = {
         group.style.top = y + 'px';
         group.style.left = x + 'px';
         return group;
-    } 
+    },
+    grid: function(links, x, y, rows, columns) {
+        let group = document.createElement('div');
+        links.forEach(async link => {
+            let favicon = getFavicon(link.url);
+            group.innerHTML += newLink.grid(link.title, link.url, favicon);
+        });
+        group.classList.add('group');
+        group.classList.add('grid');
+        group.style.top = y + 'px';
+        group.style.left = x + 'px';
+        group.style.gridAutoColumns = columns + '1fr';
+        group.style.gridAutoRows = rows + '1fr';
+        return group;
+    },
+    single: function(link, x, y) {
+        let group = document.createElement('div');
+        let favicon = getFavicon(link.url);
+        group.innerHTML += newLink.single(link.title, link.url, favicon);
+        group.classList.add('group');
+        group.classList.add('single');
+        group.style.top = y + 'px';
+        group.style.left = x + 'px';
+        return group;
+    },
 }
 
 const newLink = {
@@ -73,15 +115,19 @@ const newLink = {
             </li>
         `;
     },
-    grid: function(title, url) {
+    grid: function(title, url, favicon) {
         return `
-            <div class="link-grid" href="${url}">
-                <p>${title}</p>
-
+            <div href="${url}" class="link-grid" href="${url}">
+                <img src="${favicon}"/>
+                <a>${title}</a>
             </div>
-        `
+        `;
     }
 };
+
+SHORTCUTS.forEach(group => {
+    shortcuts.appendChild(newGroup.grid(group.link, 10, 10, 1, 2));
+});
 
 container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y));
 
