@@ -12,6 +12,8 @@
  * App drawer: button to open app drawer at the top right corner similar to the current new tab page
  *  - Allows the user to add and remove apps
  * 
+ * Create a bar at the middle that containes a list of quick links
+ * 
  * linkGroup: 
  *  - Configurable label at the top
  *  - Configurable x and y position
@@ -27,25 +29,83 @@
  * getFavicon(url): returns the cached favicon of the url
  * 
  */
-const container = document.getElementById('stacks-container');
+const container = document.getElementById('groups-container');
 
-// const linkGroup = {
-//     create: function(type, posx, posy, linksArray) {
-//         return {
-//             type: type,
-//             posx: posx,
-//             posy: posy,
-//             linksArray: linksArray
-//         };
-//     }
-// };
+const GROUPS = [// link groups
+    {// link group
+        type: 'stack',
+        x: 0,
+        y: 0,
+        title: 'Search',
+        links: [
+            {
+                title: 'Google',
+                url: 'https://www.google.com'
+            },
+            {
+                title: 'Youtube',
+                url: 'https://www.youtube.com'
+            }
+        ]
+    }
+];
 
-// var groups = [
-//     new linkGroup('stack', 0, 0, ["https://www.google.com", "https://www.youtube.com", "https://www.reddit.com"]),
-//     new linkGroup('row', 0, 0, ["https://www.google.com", "https://www.youtube.com", "https://www.reddit.com"]),
-// ];
+const newGroup = {
+    stack: function(links, x, y) {
+        let group = document.createElement('div');
+        links.forEach(async link => {
+            const favicon = await getFavicon(link.url);
+            group.innerHTML += newLink.stack(link.title, link.url, favicon);
+        });
+        group.classList.add('link-stack');
+        group.style.top = y + 'px';
+        group.style.left = x + 'px';
+        return group;
+    } 
+}
 
+const newLink = {
+    stack: function(title, url, favicon) {
+        return `
+            <a href="${url}">
+                <img src="${favicon || ''}" alt="${title}"/>
+                <p>${title}</p>
+            </a>
+        `;
+    },
+    grid: function(title, url) {
+        return `
+            <div class="link-grid" href="${url}">
+                <p>${title}</p>
 
-document.getElementById('settings-button').addEventListener('click', function() {
-    window.location.href = '../settings/settings.html';
-});
+            </div>
+        `
+    }
+};
+
+container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y));
+
+async function getFavicon(url) {
+    try {
+        const domain = new URL(url).hostname;
+        const cachedIcon = localStorage.getItem(`favicon_${domain}`);
+        
+        if (cachedIcon) {
+            return cachedIcon;
+        }
+
+        const response = await fetch(`https://www.google.com/s2/favicons?domain=${domain}`);
+        const blob = await response.blob();
+        const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+
+        localStorage.setItem(`favicon_${domain}`, base64);
+        return base64;
+    } catch (error) {
+        console.error('Error fetching favicon:' + url + " ", error);
+        return null;
+    }
+}
