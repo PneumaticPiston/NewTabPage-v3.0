@@ -52,7 +52,7 @@ const GROUPS = [// link groups
 
 const newGroup = {
     stack: function(links, x, y) {
-        let group = document.createElement('li');
+        let group = document.createElement('ul');
         links.forEach(async link => {
             let favicon = getFavicon(link.url);
             group.innerHTML += newLink.stack(link.title, link.url, favicon);
