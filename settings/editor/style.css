@@ -1,0 +1,9 @@
+header {
+    top: 0px;
+    left: 0px;
+    height: 10%;
+    width: 100%;
+    display: flex;
+    position: absolute;
+    justify-content: last baseline;
+}
