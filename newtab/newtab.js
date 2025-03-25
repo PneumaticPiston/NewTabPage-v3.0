@@ -35,7 +35,10 @@ const shortcuts = document.getElementById('shortcuts-container');
 const settings = {
     showShortcuts: true,
     showSearch: true,
-    showSettings: true
+    showSettings: true,
+    backgroundRGB: '255, 255, 255',
+    backgroundURL: '',
+    searchEngine: 'google'
 }
 
 const SHORTCUTS = [
@@ -105,6 +108,9 @@ const newGroup = {
         group.style.left = x + 'px';
         return group;
     },
+    bookmark: function(link) {
+        
+    }
 }
 
 const newLink = {
@@ -124,10 +130,6 @@ const newLink = {
         `;
     }
 };
-
-SHORTCUTS.forEach(group => {
-    shortcuts.appendChild(newGroup.grid(group.link, 10, 10, 1, 2));
-});
 
 container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y));
 
