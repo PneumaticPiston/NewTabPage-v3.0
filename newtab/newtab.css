@@ -24,7 +24,7 @@ header {
     height: 10%;
     width: 100%;
     display: flex;
-    justify-content: last baseline;
+    justify-content: last;
 }
 
 .groups-container {
@@ -71,18 +71,20 @@ header {
 .link-stack {
     height: auto;
     width: 100%;
-    padding-bottom: 0;
+    padding: 0px;  /* Changed from padding-bottom: 0 */
     margin-bottom: 5px;
-    list-style: none; /* Remove bullet points */
-    display: flex; /* Enable flexbox */
+    list-style: none;
+    display: flex;
+    border: 2px solid transparent;  /* Add transparent border by default */
+    border-radius: 5px;
 }
 
 .link-stack:hover {
     background-color: rgb(123, 123, 123);
     text-decoration: none;
-    padding: 0px;
+    border: 2px solid darkgray;
+    border-radius: 5px;
 }
-
 
 .link-stack a {
     font-size: 15pt;
@@ -94,7 +96,7 @@ header {
     background-color: rgb(123, 123, 123);
     padding: 5px;
     width: 100%;
-    border-radius: 5px;
+    border-radius: 3px;  /* Slightly reduced to account for parent border */
 }
 
 .link-stack img {
