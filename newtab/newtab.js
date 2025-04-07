@@ -72,34 +72,63 @@ const GROUPS = [// link groups
 ];
 
 const newGroup = {
-    stack: function(links, x, y) {
-        let group = document.createElement('ul');
-        links.forEach(async link => {
-            let favicon = getFavicon(link.url);
-            group.innerHTML += newLink.stack(link.title, link.url, favicon);
-        });
+    stack: function(links, x, y, title) {
+        let group = document.createElement('div');
         group.classList.add('group');
         group.classList.add('stack');
-        group.style.top = y + 'px';
-        group.style.left = x + 'px';
-        return group;
-    },
-    grid: function(links, x, y, rows, columns) {
-        let group = document.createElement('div');
+        
+        // Add header
+        let header = document.createElement('div');
+        header.classList.add('group-header');
+        header.textContent = title;
+        group.appendChild(header);
+
+        // Create link container
+        let linkContainer = document.createElement('ul');
         links.forEach(async link => {
             let favicon = getFavicon(link.url);
-            group.innerHTML += newLink.grid(link.title, link.url, favicon);
+            linkContainer.innerHTML += newLink.stack(link.title, link.url, favicon);
         });
-        group.classList.add('group');
-        group.classList.add('grid');
+        group.appendChild(linkContainer);
+
         group.style.top = y + 'px';
         group.style.left = x + 'px';
-        group.style.gridAutoColumns = columns + '1fr';
-        group.style.gridAutoRows = rows + '1fr';
         return group;
     },
-    single: function(link, x, y) {
+    grid: function(links, x, y, rows, columns, title) {
         let group = document.createElement('div');
+        
+        // Add header
+        let header = document.createElement('div');
+        header.classList.add('group-header');
+        header.textContent = title;
+        group.appendChild(header);
+
+        // Create grid container
+        let gridContainer = document.createElement('div');
+        gridContainer.classList.add('grid');
+        links.forEach(async link => {
+            let favicon = getFavicon(link.url);
+            gridContainer.innerHTML += newLink.grid(link.title, link.url, favicon);
+        });
+        group.appendChild(gridContainer);
+
+        group.classList.add('group');
+        group.style.top = y + 'px';
+        group.style.left = x + 'px';
+        gridContainer.style.gridAutoColumns = columns + '1fr';
+        gridContainer.style.gridAutoRows = rows + '1fr';
+        return group;
+    },
+    single: function(link, x, y, title) {
+        let group = document.createElement('div');
+        
+        // Add header
+        let header = document.createElement('div');
+        header.classList.add('group-header');
+        header.textContent = title;
+        group.appendChild(header);
+
         let favicon = getFavicon(link.url);
         group.innerHTML += newLink.single(link.title, link.url, favicon);
         group.classList.add('group');
@@ -107,11 +136,8 @@ const newGroup = {
         group.style.top = y + 'px';
         group.style.left = x + 'px';
         return group;
-    },
-    bookmark: function(link) {
-        
     }
-}
+};
 
 const newLink = {
     stack: function(title, url, favicon) {
@@ -131,7 +157,38 @@ const newLink = {
     }
 };
 
-container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y));
+container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y, GROUPS[0].title));
+
+// Function to load groups from storage
+async function loadGroups() {
+    try {
+        const result = await chrome.storage.sync.get(['groups']);
+        if (result.groups) {
+            result.groups.forEach(group => {
+                let groupElement;
+                switch (group.type) {
+                    case 'stack':
+                        groupElement = newGroup.stack(group.links, group.x, group.y, group.title);
+                        break;
+                    case 'grid':
+                        groupElement = newGroup.grid(group.links, group.x, group.y, group.rows || 1, group.columns || 1, group.title);
+                        break;
+                    case 'single':
+                        groupElement = newGroup.single(group.links[0], group.x, group.y, group.title);
+                        break;
+                }
+                if (groupElement) {
+                    container.appendChild(groupElement);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading groups:', error);
+    }
+}
+
+// Load groups when page loads
+document.addEventListener('DOMContentLoaded', loadGroups);
 
 function getFavicon(url) {
     try {

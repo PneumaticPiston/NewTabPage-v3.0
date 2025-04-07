@@ -9,7 +9,54 @@
 <body>
     <header>
         <h1>Edit - New Tab</h1>
-        <p><a href="../newtab.html">Return to settings</a></p>
-    <script src="script.js"></script>
+        <p><a href="../settings.html">Return to settings</a></p>
+    </header>
+
+    <div id="groups-editor-container" class="groups-editor-container">
+        <!-- Groups will be loaded here -->
+    </div>
+
+    <button id="new-group-btn" class="action-button">Add New Group</button>
+    <button id="save-changes-btn" class="save-button">Save Changes</button>
+
+    <!-- Popup for editing group links -->
+    <div id="edit-group-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit Group Links</h2>
+            <div id="group-links-editor">
+                <!-- Link editor form will be here -->
+            </div>
+            <button id="add-link-btn">Add New Link</button>
+            <button id="save-group-btn">Save Group</button>
+            <button id="close-popup-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Popup for creating new group -->
+    <div id="new-group-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Create New Group</h2>
+            <input type="text" id="new-group-title" placeholder="Group Title">
+            <div class="position-controls">
+                <label>X: <input type="number" id="new-group-x" value="10"></label>
+                <label>Y: <input type="number" id="new-group-y" value="10"></label>
+            </div>
+            <select id="new-group-type">
+                <option value="stack">Stack</option>
+                <option value="grid">Grid</option>
+                <option value="single">Single</option>
+            </select>
+            <div id="new-group-links">
+                <!-- New links will be added here -->
+            </div>
+            <button id="add-new-group-link-btn">Add Link</button>
+            <div class="popup-buttons">
+                <button class="secondary" id="cancel-new-group-btn">Cancel</button>
+                <button class="primary" id="create-new-group-btn">Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="editor.js"></script>
 </body>
 </html>
