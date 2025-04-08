@@ -60,7 +60,7 @@ header {
     flex-direction: column;
     width: fit-content;
     min-width: 150px;
-    max-width: 500px;
+    max-width: 100%;
 }
 
 .group-header {
@@ -78,9 +78,9 @@ header {
 }
 
 .grid {
-    padding: 10px;
+    padding: 5px;
     display: grid; /* Use grid layout */
-    gap: calc(10px * var(--spacing-scale)); /* Scale gap based on settings */
+    gap: calc(8px * var(--spacing-scale)); /* Scale gap based on settings */
     align-items: stretch; /* Stretch items to allow bottom text alignment */
     justify-items: center;
     grid-template-columns: repeat(1, 1fr); /* Default to 1 column */
@@ -90,8 +90,8 @@ header {
 
 .link-grid {
     width: 70px;
-    height: 90px;
-    padding: 8px;
+    height: 80px;
+    padding: 6px;
     border-radius: 5px;
     display: flex;
     flex-direction: column;
@@ -100,6 +100,10 @@ header {
     position: relative; /* For absolute positioning of text */
     text-decoration: none;
     color: inherit;
+}
+.link-grid:hover {
+    background-color: rgba(0,0,0, 0.25);
+    transition: background-color 0.1s ease;
 }
 
 .stack {
@@ -112,7 +116,7 @@ header {
     height: auto;
     width: 100%;
     padding: 0;
-    margin: 2px 0;  /* Reduced margin */
+    margin: 0;  /* Removed margin */
     list-style: none;
     display: flex;
     border: 2px solid transparent;

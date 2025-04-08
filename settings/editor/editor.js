@@ -30,6 +30,43 @@ const defaultSettings = {
 };
 
 // Load groups and settings when page loads
+// Apply theme colors to body
+function applyThemeToEditor() {
+    if (currentSettings && currentSettings.theme) {
+        const theme = currentSettings.theme || 'light';
+        const isCustomTheme = theme.startsWith('custom-');
+        
+        // Add theme class to body
+        document.body.className = '';
+        document.body.classList.add(`theme-${theme.split('-')[0]}`);
+        
+        if (isCustomTheme && currentSettings.customThemes) {
+            // Find the custom theme
+            const customTheme = currentSettings.customThemes.find(t => t.id === theme);
+            if (customTheme) {
+                document.documentElement.style.setProperty('--all-background-color', customTheme.background);
+                document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
+                document.documentElement.style.setProperty('--text-color', customTheme.text);
+                document.documentElement.style.setProperty('--accent-color', customTheme.accent);
+                document.documentElement.style.setProperty('--primary-color', customTheme.primary);
+            }
+        } else if (theme === 'custom') {
+            // Default values
+            document.documentElement.style.setProperty('--all-background-color', '#f1faee');
+            document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
+            document.documentElement.style.setProperty('--text-color', '#1d3557');
+            document.documentElement.style.setProperty('--accent-color', '#e63946');
+            document.documentElement.style.setProperty('--primary-color', '#457b9d');
+        } else {
+            document.documentElement.style.setProperty('--all-background-color', `var(--${theme}-background, #f1faee)`);
+            document.documentElement.style.setProperty('--group-background-color', `var(--${theme}-secondary, #a8dadc)`);
+            document.documentElement.style.setProperty('--text-color', `var(--${theme}-text, #1d3557)`);
+            document.documentElement.style.setProperty('--accent-color', `var(--${theme}-accent, #e63946)`);
+            document.documentElement.style.setProperty('--primary-color', `var(--${theme}-primary, #457b9d)`);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Check if chrome.storage is available (running as extension)
@@ -47,6 +84,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentSettings = savedSettings ? JSON.parse(savedSettings) : {...defaultSettings};
         }
         
+        // Apply theme to editor
+        applyThemeToEditor();
+
         // Initialize search bar position
         if (currentSettings.searchBarPosition) {
             searchEditor.style.top = `${currentSettings.searchBarPosition.y}px`;
@@ -557,6 +597,8 @@ if (document.getElementById('add-group-button')) {
     document.getElementById('add-group-button').addEventListener('click', function() {
         // Opens the group editor dialog
         document.getElementById('new-group-popup').style.display = 'flex';
+        // Hide add options menu
+        document.getElementById('add-options').style.display = 'none';
     });
 }
 
@@ -568,21 +610,34 @@ if (document.getElementById('add-widget-button')) {
             widgetMenu.style.display = 'none';
         } else {
             widgetMenu.style.display = 'block';
+            // Hide add options menu
+            document.getElementById('add-options').style.display = 'none';
         }
     });
 }
 
-// Add button functionality
-if (document.getElementById('add-button')) {
-    document.getElementById('add-button').addEventListener('click', function() {
-        const optionsMenu = document.getElementById('add-options');
-        if (optionsMenu.style.display === 'flex') {
-            optionsMenu.style.display = 'none';
-        } else {
-            optionsMenu.style.display = 'flex';
-        }
-    });
-}
+// Handle closing menus when clicking elsewhere
+document.addEventListener('click', function(event) {
+    const widgetMenu = document.getElementById('widget-menu');
+    const addOptions = document.getElementById('add-options');
+    const newGroupBtn = document.getElementById('new-group-btn');
+    const addWidgetButton = document.getElementById('add-widget-button');
+    const addGroupButton = document.getElementById('add-group-button');
+    
+    // Close widget menu if click is outside the menu and not on its toggle button
+    if (widgetMenu && widgetMenu.style.display === 'block' && 
+        !widgetMenu.contains(event.target) && 
+        event.target !== addWidgetButton) {
+        widgetMenu.style.display = 'none';
+    }
+    
+    // Close add options if click is outside the menu and not on its toggle button
+    if (addOptions && addOptions.style.display === 'flex' &&
+        !addOptions.contains(event.target) &&
+        event.target !== newGroupBtn) {
+        addOptions.style.display = 'none';
+    }
+});
 
 // New group button functionality
 newGroupBtn.addEventListener('click', function() {
@@ -638,16 +693,23 @@ const gridOverlay = document.createElement('div');
 gridOverlay.className = 'grid-overlay';
 document.body.appendChild(gridOverlay);
 
+// Create rule of thirds overlay
+const ruleOfThirdsOverlay = document.createElement('div');
+ruleOfThirdsOverlay.className = 'rule-of-thirds';
+document.body.appendChild(ruleOfThirdsOverlay);
+
 // Toggle drag mode
 toggleDragBtn.addEventListener('click', () => {
     dragEnabled = !dragEnabled;
-    toggleDragBtn.textContent = dragEnabled ? 'Disable Drag' : 'Toggle Drag';
+    toggleDragBtn.innerHTML = '<i>⫝̸</i>'; // Maintain the same icon regardless of state
     
     // Apply visual indicator for active state
     if (dragEnabled) {
         toggleDragBtn.classList.add('toggle-active');
+        ruleOfThirdsOverlay.style.display = 'block';
     } else {
         toggleDragBtn.classList.remove('toggle-active');
+        ruleOfThirdsOverlay.style.display = 'none';
     }
     
     // Refresh to apply drag mode
@@ -721,8 +783,9 @@ function handleMouseUp(e) {
     activeGroup.classList.remove('dragging');
     document.body.style.userSelect = '';
     
-    // Hide grid overlay
+    // Hide grid overlay, but keep rule of thirds if drag is enabled
     gridOverlay.style.display = 'none';
+    ruleOfThirdsOverlay.style.display = dragEnabled ? 'block' : 'none';
     
     // Update position in data (already snapped to grid)
     const index = parseInt(activeGroup.dataset.index);
