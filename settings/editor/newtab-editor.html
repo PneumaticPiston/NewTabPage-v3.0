@@ -16,41 +16,27 @@
         <!-- Groups will be loaded here -->
     </div>
 
-    <button id="new-group-btn" class="action-button">Add New Group</button>
-    <button id="save-changes-btn" class="save-button">Save Changes</button>
-
-    <!-- Popup for editing group links -->
-    <div id="edit-group-popup" class="popup" style="display: none;">
-        <div class="popup-content">
-            <h2>Edit Group Links</h2>
-            <div id="group-links-editor">
-                <!-- Link editor form will be here -->
-            </div>
-            <button id="add-link-btn">Add New Link</button>
-            <button id="save-group-btn">Save Group</button>
-            <button id="close-popup-btn">Close</button>
-        </div>
+    <div class="bottom-controls">
+        <button id="new-group-btn" class="action-button">Add New Group</button>
+        <button id="toggle-drag-btn" class="action-button">Toggle Drag</button>
+        <button id="save-changes-btn" class="save-button">Save Changes</button>
     </div>
 
-    <!-- Popup for creating new group -->
+    <!-- Combined popup for creating/editing groups -->
     <div id="new-group-popup" class="popup" style="display: none;">
         <div class="popup-content">
-            <h2>Create New Group</h2>
+            <h2>Group Settings</h2>
             <input type="text" id="new-group-title" placeholder="Group Title">
-            <div class="position-controls">
-                <label>X: <input type="number" id="new-group-x" value="10"></label>
-                <label>Y: <input type="number" id="new-group-y" value="10"></label>
-            </div>
             <select id="new-group-type">
                 <option value="stack">Stack</option>
                 <option value="grid">Grid</option>
                 <option value="single">Single</option>
             </select>
             <div id="new-group-links">
-                <!-- New links will be added here -->
+                <!-- Links will be added here -->
             </div>
-            <button id="add-new-group-link-btn">Add Link</button>
             <div class="popup-buttons">
+                <button id="add-new-group-link-btn">Add Link</button>
                 <button class="secondary" id="cancel-new-group-btn">Cancel</button>
                 <button class="primary" id="create-new-group-btn">Create Group</button>
             </div>

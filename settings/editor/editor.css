@@ -14,14 +14,21 @@ header {
 .groups-editor-container {
     margin-top: 80px;
     padding: 20px;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
 }
 
 .editor-group {
     position: relative;
-    background-color: #f5f5f5;
-    border-radius: 8px;
+    background-color: rgb(187, 187, 187);
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px 0px black;
     padding: 15px;
     margin-bottom: 20px;
+    width: fit-content;
+    min-width: 150px;
+    max-width: 500px;
 }
 
 .group-header {
@@ -29,11 +36,45 @@ header {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.group-title {
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    background: transparent;
+    padding: 5px;
+    width: auto;
+    min-width: 50px;
+    max-width: 300px;
 }
 
 .group-controls {
     display: flex;
     gap: 10px;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 5px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .action-button, .save-button {
@@ -45,18 +86,32 @@ header {
     color: white;
 }
 
-.save-button {
+.bottom-controls {
     position: fixed;
     bottom: 20px;
     right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.draggable {
+    cursor: move;
+}
+
+.dragging {
+    opacity: 0.8;
+    border: 2px dashed #2196F3;
+    z-index: 100;
 }
 
 .remove-group-btn {
     background-color: #f44336;
+    color: #f44336;
 }
 
 .edit-group-btn {
     background-color: #2196F3;
+    color: #2196F3;
 }
 
 .popup {
@@ -121,6 +176,9 @@ header {
 }
 
 .link-editor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 10px;
     padding: 10px;
     border: 1px solid #ddd;
@@ -128,9 +186,10 @@ header {
 }
 
 .link-editor input {
-    width: 100%;
-    margin-bottom: 5px;
+    flex: 1;
     padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 .position-controls {
@@ -141,4 +200,75 @@ header {
 
 .position-controls input {
     width: 60px;
+}
+
+/* Link preview styles */
+.stack {
+    width: fit-content;
+    height: fit-content;
+    padding: 5px;
+}
+
+.link-stack {
+    height: auto;
+    width: 100%;
+    padding: 0;
+    margin: 2px 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    border: 2px solid transparent;
+    border-radius: 5px;
+}
+
+.link-stack:hover {
+    background-color: rgba(123, 123, 123, 0.5);
+    border: 2px solid darkgray;
+}
+
+.link-stack img {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-right: 8px;
+    object-fit: contain;
+}
+
+.link-stack span {
+    font-size: 15pt;
+    color: inherit;
+}
+
+.grid {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.link-grid {
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.link-grid img {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 5px;
+    object-fit: contain;
+}
+
+.link-grid span {
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }

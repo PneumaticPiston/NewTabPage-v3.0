@@ -51,7 +51,7 @@ const SHORTCUTS = [
         url: 'https://www.youtube.com'
     }
 ];
-
+/* 
 const GROUPS = [// link groups
     {// link group
         type: 'stack',
@@ -70,7 +70,8 @@ const GROUPS = [// link groups
         ]
     }
 ];
-
+*/
+// Remove the hardcoded GROUPS array since we're loading from storage
 const newGroup = {
     stack: function(links, x, y, title) {
         let group = document.createElement('div');
@@ -149,21 +150,33 @@ const newLink = {
     },
     grid: function(title, url, favicon) {
         return `
-            <div href="${url}" class="link-grid" href="${url}">
+            <a href="${url}" class="link-grid">
                 <img src="${favicon}"/>
-                <a>${title}</a>
-            </div>
+                <span>${title}</span>
+            </a>
+        `;
+    },
+    single: function(title, url, favicon) {
+        return `
+            <a href="${url}" class="link-single">
+                <img src="${favicon}"/>
+                <span>${title}</span>
+            </a>
         `;
     }
 };
 
-container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y, GROUPS[0].title));
+// Remove this line that creates a hardcoded group
+// container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y, GROUPS[0].title));
 
 // Function to load groups from storage
 async function loadGroups() {
     try {
         const result = await chrome.storage.sync.get(['groups']);
-        if (result.groups) {
+        if (result.groups && result.groups.length > 0) {
+            // Clear container first to avoid duplicates
+            container.innerHTML = '';
+            
             result.groups.forEach(group => {
                 let groupElement;
                 switch (group.type) {
@@ -174,13 +187,17 @@ async function loadGroups() {
                         groupElement = newGroup.grid(group.links, group.x, group.y, group.rows || 1, group.columns || 1, group.title);
                         break;
                     case 'single':
-                        groupElement = newGroup.single(group.links[0], group.x, group.y, group.title);
+                        if (group.links && group.links.length > 0) {
+                            groupElement = newGroup.single(group.links[0], group.x, group.y, group.title);
+                        }
                         break;
                 }
                 if (groupElement) {
                     container.appendChild(groupElement);
                 }
             });
+        } else {
+            console.log('No groups found in storage');
         }
     } catch (error) {
         console.error('Error loading groups:', error);

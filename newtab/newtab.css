@@ -44,6 +44,9 @@ header {
     box-shadow: 0px 0px 10px 0px var(--group-shadow-color);
     display: flex;
     flex-direction: column;
+    width: fit-content;
+    min-width: 150px;
+    max-width: 500px;
 }
 
 .group-header {
@@ -53,6 +56,11 @@ header {
     color: inherit;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     margin-bottom: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .grid {
@@ -116,6 +124,29 @@ header {
     padding: 0;
     margin-right: 8px;  /* Changed padding-right to margin-right */
     object-fit: contain;
+}
+
+.link-single {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: inherit;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.link-single img {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 5px;
+    object-fit: contain;
+}
+
+.link-single span {
+    font-size: 14px;
+    text-align: center;
 }
 
 .settings-button {
