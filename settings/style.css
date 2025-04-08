@@ -7,6 +7,10 @@
     --border-radius: 6px;
     --transition-speed: 0.3s;
     --container-width: 800px;
+    --base-font-size: 16px;
+    --text-scale: 1;
+    --element-scale: 1;
+    --spacing-multiplier: 1;
 }
 
 * {
@@ -21,6 +25,7 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     padding: 20px;
+    font-size: var(--base-font-size, 16px);
 }
 
 .settings-container {

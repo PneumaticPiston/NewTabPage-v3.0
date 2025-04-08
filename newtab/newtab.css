@@ -43,7 +43,10 @@ header {
     --base-font-size: 16px;
     --group-scale: 1;
     --spacing-scale: 1;
-    font-size: var(--base-font-size);
+    --text-scale: 1;
+    --element-scale: 1;
+    --spacing-multiplier: 1;
+    font-size: calc(var(--base-font-size) * var(--text-scale));
 }
 
 .group {
@@ -189,9 +192,9 @@ header {
 
 .search-container {
     position: absolute;
-    top: 120px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     width: 600px;
     max-width: 90%;
     z-index: 10;
@@ -268,9 +271,9 @@ header {
 
 .shortcuts-container {
     position: absolute;
-    top: 200px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, 80px);
     width: 80%;
     max-width: 800px;
     display: flex;
@@ -293,9 +296,13 @@ header {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s, transform 0.2s;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .settings-button:hover {
     background-color: var(--accent-color);
     transform: scale(1.1);
 }
+

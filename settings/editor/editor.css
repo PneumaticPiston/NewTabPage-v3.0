@@ -66,7 +66,7 @@ header {
     border: none;
     background: transparent;
     padding: 5px;
-    width: auto;
+    width: fit-content;
     min-width: 50px;
     max-width: 300px;
 }
@@ -107,7 +107,132 @@ header {
     bottom: 20px;
     right: 20px;
     display: flex;
+    flex-direction: column;
     gap: 10px;
+}
+
+.action-button i, .save-button i {
+    font-style: normal;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-button {
+    position: absolute;
+    bottom: 2%;
+    left: 2%;
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s, transform 0.2s;
+    font-size: 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-button:hover {
+    background-color: var(--accent-color);
+    transform: scale(1.1);
+}
+
+.add-options {
+    position: absolute;
+    bottom: calc(2% + 45px);
+    left: 2%;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.widget-menu {
+    position: absolute;
+    bottom: 80px;
+    left: 80px;
+    width: 300px;
+    max-height: 400px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+}
+
+.widget-group {
+    margin-bottom: 20px;
+}
+
+.widget-group-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.widget-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.widget-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 6px;
+    background-color: #f5f5f5;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-align: center;
+}
+
+.widget-item:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.widget-icon {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.widget-name {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.option-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s, transform 0.2s;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.option-button:hover {
+    background-color: var(--accent-color);
+    transform: scale(1.1);
 }
 
 .draggable {

@@ -530,8 +530,11 @@ function applyThemeToPage(themeId) {
 function updateFontSizeDisplay() {
     const value = fontSizeSlider.value;
     fontSizeValue.textContent = `${value}px`;
-    // Apply change to the page for preview
+    // Apply change to the page for preview - now relative to base
     document.documentElement.style.setProperty('--base-font-size', `${value}px`);
+    // Apply scaling to all text elements
+    document.documentElement.style.setProperty('--text-scale', value / 16);
+    document.documentElement.style.fontSize = `${value}px`;
 }
 
 // Update group scale display
@@ -540,6 +543,8 @@ function updateGroupScaleDisplay() {
     groupScaleValue.textContent = `${value}%`;
     // Apply change to the page for preview
     document.documentElement.style.setProperty('--group-scale', value / 100);
+    // Apply to all elements' transform scale
+    document.documentElement.style.setProperty('--element-scale', value / 100);
 }
 
 // Update spacing scale display
@@ -548,4 +553,6 @@ function updateSpacingScaleDisplay() {
     spacingScaleValue.textContent = `${value}%`;
     // Apply change to the page for preview
     document.documentElement.style.setProperty('--spacing-scale', value / 100);
+    // Apply to all margins and paddings
+    document.documentElement.style.setProperty('--spacing-multiplier', value / 100);
 }

@@ -2,7 +2,7 @@ const groupsContainer = document.getElementById('groups-editor-container');
 const newGroupBtn = document.getElementById('new-group-btn');
 const saveChangesBtn = document.getElementById('save-changes-btn');
 const toggleDragBtn = document.getElementById('toggle-drag-btn');
-const addSearchBtn = document.getElementById('add-search-btn');
+// const addSearchBtn = document.getElementById('add-search-btn');
 const searchEditor = document.getElementById('search-editor');
 const editPopup = document.getElementById('edit-group-popup');
 const newGroupPopup = document.getElementById('new-group-popup');
@@ -552,16 +552,46 @@ function stopMoveSearchBar() {
     currentSettings.searchBarPosition = { x: left, y: top };
 }
 
-// Toggle search bar visibility
-addSearchBtn.addEventListener('click', () => {
-    currentSettings.showSearch = !currentSettings.showSearch;
-    searchEditor.style.display = currentSettings.showSearch ? 'block' : 'none';
-    
-    // Update button text
-    addSearchBtn.textContent = currentSettings.showSearch ? 'Hide Search' : 'Show Search';
-    
-    // Toggle active class for visual indication
-    addSearchBtn.classList.toggle('toggle-active', currentSettings.showSearch);
+// Add widget menu functionality
+if (document.getElementById('add-group-button')) {
+    document.getElementById('add-group-button').addEventListener('click', function() {
+        // Opens the group editor dialog
+        document.getElementById('new-group-popup').style.display = 'flex';
+    });
+}
+
+if (document.getElementById('add-widget-button')) {
+    document.getElementById('add-widget-button').addEventListener('click', function() {
+        // Open widget menu
+        const widgetMenu = document.getElementById('widget-menu');
+        if (widgetMenu.style.display === 'block') {
+            widgetMenu.style.display = 'none';
+        } else {
+            widgetMenu.style.display = 'block';
+        }
+    });
+}
+
+// Add button functionality
+if (document.getElementById('add-button')) {
+    document.getElementById('add-button').addEventListener('click', function() {
+        const optionsMenu = document.getElementById('add-options');
+        if (optionsMenu.style.display === 'flex') {
+            optionsMenu.style.display = 'none';
+        } else {
+            optionsMenu.style.display = 'flex';
+        }
+    });
+}
+
+// New group button functionality
+newGroupBtn.addEventListener('click', function() {
+    const optionsMenu = document.getElementById('add-options');
+    if (optionsMenu.style.display === 'flex') {
+        optionsMenu.style.display = 'none';
+    } else {
+        optionsMenu.style.display = 'flex';
+    }
 });
 
 // Save button - Save groups and settings

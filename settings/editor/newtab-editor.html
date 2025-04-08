@@ -12,7 +12,7 @@
         <h1>Edit - New Tab</h1>
         <p><a href="../settings.html">Return to settings</a></p>
     </header>
-
+    
     <!-- Search Bar Component - Only visible when enabled in settings -->
     <div id="search-editor" class="search-editor draggable">
         <div class="editor-handle">Search Bar</div>
@@ -28,10 +28,78 @@
     </div>
 
     <div class="bottom-controls">
-        <button id="new-group-btn" class="action-button">Add New Group</button>
-        <button id="toggle-drag-btn" class="action-button">Toggle Drag</button>
-        <button id="add-search-btn" class="action-button">Toggle Search</button>
-        <button id="save-changes-btn" class="save-button">Save Changes</button>
+        <button id="new-group-btn" class="action-button"><i>+</i></button>
+        <button id="toggle-drag-btn" class="action-button"><i>⫝̸</i></button>
+        <button id="save-changes-btn" class="save-button"><i>💾</i></button>
+    </div>
+    
+    <div id="add-options" class="add-options">
+        <button id="add-group-button" class="option-button" title="Add New Group">
+            📁
+        </button>
+        <button id="add-widget-button" class="option-button" title="Add Widget">
+            🔧
+        </button>
+    </div>
+
+    <div id="widget-menu" class="widget-menu">
+        <div class="widget-group">
+            <div class="widget-group-title">Clock & Weather</div>
+            <div class="widget-list">
+                <div class="widget-item" data-widget="analog-clock">
+                    <div class="widget-icon">🕒</div>
+                    <div class="widget-name">Analog Clock</div>
+                </div>
+                <div class="widget-item" data-widget="digital-clock">
+                    <div class="widget-icon">⌚</div>
+                    <div class="widget-name">Digital Clock</div>
+                </div>
+                <div class="widget-item" data-widget="weather">
+                    <div class="widget-icon">☁️</div>
+                    <div class="widget-name">Weather</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-group">
+            <div class="widget-group-title">Productivity</div>
+            <div class="widget-list">
+                <div class="widget-item" data-widget="todo">
+                    <div class="widget-icon">✓</div>
+                    <div class="widget-name">To-Do List</div>
+                </div>
+                <div class="widget-item" data-widget="notes">
+                    <div class="widget-icon">📝</div>
+                    <div class="widget-name">Notes</div>
+                </div>
+                <div class="widget-item" data-widget="calendar">
+                    <div class="widget-icon">📅</div>
+                    <div class="widget-name">Calendar</div>
+                </div>
+                <div class="widget-item" data-widget="timer">
+                    <div class="widget-icon">⏱️</div>
+                    <div class="widget-name">Timer</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-group">
+            <div class="widget-group-title">Information</div>
+            <div class="widget-list">
+                <div class="widget-item" data-widget="news">
+                    <div class="widget-icon">📰</div>
+                    <div class="widget-name">News</div>
+                </div>
+                <div class="widget-item" data-widget="stocks">
+                    <div class="widget-icon">📈</div>
+                    <div class="widget-name">Stocks</div>
+                </div>
+                <div class="widget-item" data-widget="quote">
+                    <div class="widget-icon">💬</div>
+                    <div class="widget-name">Quote</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Combined popup for creating/editing groups -->
