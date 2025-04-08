@@ -12,7 +12,54 @@ const defaultSettings = {
     groupScale: 100,
     spacingScale: 100,
     highContrast: false,
-    customThemes: []
+    customThemes: [],
+    apps: [
+        {
+            name: 'Account',
+            icon: 'https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_32dp.png',
+            url: 'https://myaccount.google.com/'
+        },
+        {
+            name: 'Search',
+            icon: 'https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png',
+            url: 'https://www.google.com/'
+        },
+        {
+            name: 'Maps',
+            icon: 'https://maps.gstatic.com/mapfiles/maps_lite/favicon_maps.ico',
+            url: 'https://maps.google.com/'
+        },
+        {
+            name: 'YouTube',
+            icon: 'https://www.youtube.com/s/desktop/1c3bfd26/img/favicon_32x32.png',
+            url: 'https://youtube.com/'
+        },
+        {
+            name: 'Play',
+            icon: 'https://www.gstatic.com/images/branding/product/1x/play_round_32dp.png',
+            url: 'https://play.google.com/'
+        },
+        {
+            name: 'Gmail',
+            icon: 'https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico',
+            url: 'https://mail.google.com/'
+        },
+        {
+            name: 'Drive',
+            icon: 'https://ssl.gstatic.com/images/branding/product/1x/drive_32dp.png',
+            url: 'https://drive.google.com/'
+        },
+        {
+            name: 'Calendar',
+            icon: 'https://ssl.gstatic.com/calendar/images/favicon_v2021_32.ico',
+            url: 'https://calendar.google.com/'
+        },
+        {
+            name: 'Photos',
+            icon: 'https://ssl.gstatic.com/images/branding/product/1x/photos_32dp.png',
+            url: 'https://photos.google.com/'
+        }
+    ]
 };
 
 // Current settings
@@ -217,9 +264,12 @@ async function saveSettings() {
         const activeThemeCard = document.querySelector('.theme-card.active');
         const themeId = activeThemeCard ? activeThemeCard.dataset.themeId : 'light';
         
+        // Make a deep copy of currentSettings to avoid reference issues
+        const settingsCopy = JSON.parse(JSON.stringify(currentSettings));
+        
         // Update current settings from form values
-        currentSettings = {
-            ...currentSettings, // Preserve custom themes
+        const updatedSettings = {
+            ...settingsCopy, // Preserve custom themes and other settings
             theme: themeId,
             useCustomBackground: useCustomBgToggle.checked,
             backgroundURL: customBgInput.value,
@@ -227,18 +277,43 @@ async function saveSettings() {
             showSearch: showSearchToggle.checked,
             showShortcuts: showShortcutsToggle.checked,
             searchEngine: searchEngineSelect.value,
-            searchBarPosition: currentSettings.searchBarPosition || { x: 10, y: 120 },
-            fontSize: parseInt(fontSizeSlider.value),
-            groupScale: parseInt(groupScaleSlider.value),
-            spacingScale: parseInt(spacingScaleSlider.value),
+            searchBarPosition: settingsCopy.searchBarPosition || { x: 10, y: 120 },
+            fontSize: parseInt(fontSizeSlider.value) || 16,
+            groupScale: parseInt(groupScaleSlider.value) || 100,
+            spacingScale: parseInt(spacingScaleSlider.value) || 100,
             highContrast: highContrastToggle.checked
         };
         
+        // Ensure critical properties exist
+        if (!updatedSettings.customThemes) {
+            updatedSettings.customThemes = [];
+        }
+        
+        if (!updatedSettings.headerLinks) {
+            updatedSettings.headerLinks = defaultSettings.headerLinks;
+        }
+        
+        if (!updatedSettings.apps) {
+            updatedSettings.apps = defaultSettings.apps;
+        }
+        
+        // Update the current settings
+        currentSettings = updatedSettings;
+        
         // Save to Chrome storage or localStorage as fallback
         if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-            await chrome.storage.sync.set({ settings: currentSettings });
+            try {
+                await chrome.storage.sync.set({ settings: currentSettings });
+                console.log('Settings saved to Chrome storage:', currentSettings);
+            } catch (chromeError) {
+                console.error('Error saving to Chrome storage:', chromeError);
+                // Try localStorage as fallback
+                localStorage.setItem('settings', JSON.stringify(currentSettings));
+                console.log('Settings saved to localStorage (fallback):', currentSettings);
+            }
         } else {
             localStorage.setItem('settings', JSON.stringify(currentSettings));
+            console.log('Settings saved to localStorage:', currentSettings);
         }
         
         // Show success message
@@ -246,11 +321,10 @@ async function saveSettings() {
         setTimeout(() => {
             saveButton.textContent = 'Save Settings';
         }, 2000);
-        
-        console.log('Settings saved:', currentSettings);
     } catch (error) {
         console.error('Error saving settings:', error);
         alert('Error saving settings. Please try again.');
+        saveButton.textContent = 'Save Settings';
     }
 }
 

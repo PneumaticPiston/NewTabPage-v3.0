@@ -6,12 +6,29 @@
     <title>Edit - New Tab</title>
     <link rel="stylesheet" href="editor.css">
     <link rel="stylesheet" href="../../theme/themes.css">
+    <link rel="stylesheet" href="../../newtab/newtab.css">
 </head>
 <body>
     <header>
         <h1>Edit - New Tab</h1>
         <p><a href="../settings.html">Return to settings</a></p>
     </header>
+    
+    <!-- Chrome Header Component -->
+    <div id="chrome-header-editor" class="chrome-header-editor draggable">
+        <div class="editor-handle">Header Nav Bar</div>
+        <div class="header-nav-mock">
+            <div class="nav-link-mock">Gmail</div>
+            <div class="nav-link-mock">Photos</div>
+            <div class="nav-link-mock">Search Labs</div>
+            <div class="apps-toggle-mock">
+                <svg class="apps-icon" viewBox="0 0 24 24">
+                    <path d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"></path>
+                </svg>
+            </div>
+            <button id="edit-header-btn" class="edit-header-btn">Edit Header</button>
+        </div>
+    </div>
     
     <!-- Search Bar Component - Only visible when enabled in settings -->
     <div id="search-editor" class="search-editor draggable">
@@ -140,14 +157,93 @@
 
     <script src="editor.js"></script>
     
-    <!-- Inline script for direct DOM interactions -->
-    <script>
-        // Ensure toggleGridSettings is available in global scope
-        window.toggleGridSettings = toggleGridSettings || function() {
-            const groupType = document.getElementById('new-group-type').value;
-            const gridSettings = document.getElementById('grid-settings');
-            gridSettings.style.display = groupType === 'grid' ? 'block' : 'none';
-        };
-    </script>
+    <!-- App management popup -->
+    <div id="apps-manager-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Manage Apps</h2>
+            <p>Customize the apps that appear in your apps grid dropdown.</p>
+            
+            <div id="apps-list-container">
+                <!-- Apps will be added here -->
+            </div>
+            
+            <div class="popup-buttons">
+                <button id="add-app-btn">Add App</button>
+                <button class="secondary" id="cancel-apps-btn">Cancel</button>
+                <button class="primary" id="save-apps-btn">Save Apps</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App edit form popup -->
+    <div id="app-edit-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit App</h2>
+            
+            <div class="form-group">
+                <label for="app-name">App Name:</label>
+                <input type="text" id="app-name" placeholder="e.g. Gmail">
+            </div>
+            
+            <div class="form-group">
+                <label for="app-url">URL:</label>
+                <input type="url" id="app-url" placeholder="e.g. https://mail.google.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="app-icon">Icon URL:</label>
+                <input type="url" id="app-icon" placeholder="e.g. https://example.com/icon.png">
+                <p class="help-text">Enter a URL to an icon image (preferred size: 32x32px)</p>
+            </div>
+            
+            <div class="popup-buttons">
+                <button class="secondary" id="cancel-app-edit-btn">Cancel</button>
+                <button class="primary" id="save-app-edit-btn">Save App</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header Links Editor Popup -->
+    <div id="header-editor-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit Header Links</h2>
+            <p>Customize the links in your header navigation bar.</p>
+            
+            <div id="header-links-container">
+                <!-- Header links will be added here -->
+            </div>
+            
+            <div class="popup-buttons">
+                <button id="add-header-link-btn">Add Link</button>
+                <button class="secondary" id="cancel-header-btn">Cancel</button>
+                <button class="primary" id="save-header-btn">Save Header</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header Link Edit Form Popup -->
+    <div id="header-link-edit-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit Header Link</h2>
+            
+            <div class="form-group">
+                <label for="header-link-name">Link Text:</label>
+                <input type="text" id="header-link-name" placeholder="e.g. Gmail">
+            </div>
+            
+            <div class="form-group">
+                <label for="header-link-url">URL:</label>
+                <input type="url" id="header-link-url" placeholder="e.g. https://mail.google.com">
+            </div>
+            
+            <div class="popup-buttons">
+                <button class="secondary" id="cancel-header-link-edit-btn">Cancel</button>
+                <button class="primary" id="save-header-link-edit-btn">Save Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Use script from file instead of inline -->
+    <script src="editor-utils.js"></script>
 </body>
 </html>

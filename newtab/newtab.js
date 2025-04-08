@@ -43,7 +43,59 @@ const defaultSettings = {
     showSearch: true,
     showShortcuts: true,
     searchEngine: 'google',
-    searchBarPosition: { x: 10, y: 120 }
+    searchBarPosition: { x: 10, y: 120 },
+    headerLinks: [
+        { name: 'Gmail', url: 'https://mail.google.com' },
+        { name: 'Photos', url: 'https://photos.google.com' },
+        { name: 'Search Labs', url: 'https://labs.google.com' }
+    ],
+    apps: [
+        {
+            name: 'Account',
+            icon: 'https://www.gstatic.com/images/branding/product/1x/avatar_square_blue_32dp.png',
+            url: 'https://myaccount.google.com/'
+        },
+        {
+            name: 'Search',
+            icon: 'https://www.gstatic.com/images/branding/product/1x/googleg_32dp.png',
+            url: 'https://www.google.com/'
+        },
+        {
+            name: 'Maps',
+            icon: 'https://maps.gstatic.com/mapfiles/maps_lite/favicon_maps.ico',
+            url: 'https://maps.google.com/'
+        },
+        {
+            name: 'YouTube',
+            icon: 'https://www.youtube.com/s/desktop/1c3bfd26/img/favicon_32x32.png',
+            url: 'https://youtube.com/'
+        },
+        {
+            name: 'Play',
+            icon: 'https://www.gstatic.com/images/branding/product/1x/play_round_32dp.png',
+            url: 'https://play.google.com/'
+        },
+        {
+            name: 'Gmail',
+            icon: 'https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico',
+            url: 'https://mail.google.com/'
+        },
+        {
+            name: 'Drive',
+            icon: 'https://ssl.gstatic.com/images/branding/product/1x/drive_32dp.png',
+            url: 'https://drive.google.com/'
+        },
+        {
+            name: 'Calendar',
+            icon: 'https://ssl.gstatic.com/calendar/images/favicon_v2021_32.ico',
+            url: 'https://calendar.google.com/'
+        },
+        {
+            name: 'Photos',
+            icon: 'https://ssl.gstatic.com/images/branding/product/1x/photos_32dp.png',
+            url: 'https://photos.google.com/'
+        }
+    ]
 };
 
 // Current settings
@@ -88,13 +140,32 @@ function calculatePosition(x, y) {
     const screenHeight = window.innerHeight;
     
     // Calculate center-relative coordinates
-    // Convert stored position from old coordinate system to center-relative
     const centerX = screenWidth / 2;
     const centerY = screenHeight / 2;
     
+    // Handle percentage-based positions (backward compatibility)
+    let absX = x;
+    let absY = y;
+    
+    if (typeof x === 'string' && x.endsWith('%')) {
+        absX = (parseFloat(x) / 100) * screenWidth;
+    }
+    
+    if (typeof y === 'string' && y.endsWith('%')) {
+        absY = (parseFloat(y) / 100) * screenHeight;
+    }
+    
+    // Convert to numbers if they're strings but not percentages
+    if (typeof absX === 'string') absX = parseFloat(absX);
+    if (typeof absY === 'string') absY = parseFloat(absY);
+    
+    // Handle NaN values
+    if (isNaN(absX)) absX = centerX;
+    if (isNaN(absY)) absY = centerY;
+    
     // Convert from absolute to center-relative
-    const relX = x - centerX;
-    const relY = y - centerY;
+    const relX = absX - centerX;
+    const relY = absY - centerY;
     
     // Calculate scaled percentage position
     const percentX = relX / centerX; // -1 to 1
@@ -353,13 +424,29 @@ function applyTheme() {
     // Set CSS variables for colors
     if (isCustomTheme) {
         // Find the custom theme
-        const customTheme = currentSettings.customThemes.find(t => t.id === theme);
-        if (customTheme) {
-            document.documentElement.style.setProperty('--all-background-color', customTheme.background);
-            document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
-            document.documentElement.style.setProperty('--text-color', customTheme.text);
-            document.documentElement.style.setProperty('--accent-color', customTheme.accent);
-            document.documentElement.style.setProperty('--primary-color', customTheme.primary);
+        if (currentSettings.customThemes) {
+            const customTheme = currentSettings.customThemes.find(t => t.id === theme);
+            if (customTheme) {
+                document.documentElement.style.setProperty('--all-background-color', customTheme.background);
+                document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
+                document.documentElement.style.setProperty('--text-color', customTheme.text);
+                document.documentElement.style.setProperty('--accent-color', customTheme.accent);
+                document.documentElement.style.setProperty('--primary-color', customTheme.primary);
+            } else {
+                // Fallback to default theme if custom theme not found
+                document.documentElement.style.setProperty('--all-background-color', '#f1faee');
+                document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
+                document.documentElement.style.setProperty('--text-color', '#1d3557');
+                document.documentElement.style.setProperty('--accent-color', '#e63946');
+                document.documentElement.style.setProperty('--primary-color', '#457b9d');
+            }
+        } else {
+            // Fallback if customThemes array doesn't exist
+            document.documentElement.style.setProperty('--all-background-color', '#f1faee');
+            document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
+            document.documentElement.style.setProperty('--text-color', '#1d3557');
+            document.documentElement.style.setProperty('--accent-color', '#e63946');
+            document.documentElement.style.setProperty('--primary-color', '#457b9d');
         }
     } else if (theme === 'custom') {
         // Apply colors from current custom color values
@@ -430,31 +517,56 @@ function setupImageDrop() {
     const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
     
+    // Ensure the search container exists
+    if (!searchContainer) {
+        console.error('Search container element not found');
+        return;
+    }
+    
     // Create drop indicator
     const dropIndicator = document.createElement('div');
     dropIndicator.className = 'drop-indicator';
     dropIndicator.textContent = 'Drop image here to search';
     dropIndicator.style.display = 'none';
+    dropIndicator.style.position = 'absolute';
+    dropIndicator.style.top = '0';
+    dropIndicator.style.left = '0';
+    dropIndicator.style.width = '100%';
+    dropIndicator.style.height = '100%';
+    dropIndicator.style.display = 'none';
+    dropIndicator.style.alignItems = 'center';
+    dropIndicator.style.justifyContent = 'center';
+    dropIndicator.style.backgroundColor = 'rgba(0,0,0,0.1)';
+    dropIndicator.style.borderRadius = '24px';
+    dropIndicator.style.fontWeight = 'bold';
+    dropIndicator.style.zIndex = '10';
     searchContainer.appendChild(dropIndicator);
+    
+    // Track whether drag is active
+    let dragActive = false;
     
     // Handle dragover
     document.addEventListener('dragover', (e) => {
         e.preventDefault();
         
         // Check if file is being dragged
-        if (e.dataTransfer.types.includes('Files')) {
+        if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
+            dragActive = true;
             searchContainer.classList.add('drop-active');
+            if (searchForm) searchForm.style.display = 'none';
             dropIndicator.style.display = 'flex';
-            searchForm.style.display = 'none';
         }
     });
     
     // Handle dragleave
     document.addEventListener('dragleave', (e) => {
+        // Only deactivate if leaving to an element outside the search container
+        // or if leaving to null (outside the document)
         if (!e.relatedTarget || !searchContainer.contains(e.relatedTarget)) {
+            dragActive = false;
             searchContainer.classList.remove('drop-active');
+            if (searchForm) searchForm.style.display = 'flex';
             dropIndicator.style.display = 'none';
-            searchForm.style.display = 'flex';
         }
     });
     
@@ -462,73 +574,232 @@ function setupImageDrop() {
     document.addEventListener('drop', (e) => {
         e.preventDefault();
         
+        // Reset state
+        dragActive = false;
         searchContainer.classList.remove('drop-active');
+        if (searchForm) searchForm.style.display = 'flex';
         dropIndicator.style.display = 'none';
-        searchForm.style.display = 'flex';
         
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-            const file = files[0];
+        // Process the dropped file
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
             
             // Check if it's an image
-            if (file.type.startsWith('image/')) {
+            if (file.type && file.type.startsWith('image/')) {
                 performImageSearch(file);
+            } else {
+                console.warn('Dropped file is not an image:', file.type);
             }
+        }
+    });
+    
+    // Add fallback for drag end (in case dragleave doesn't fire)
+    document.addEventListener('dragend', () => {
+        if (dragActive) {
+            dragActive = false;
+            searchContainer.classList.remove('drop-active');
+            if (searchForm) searchForm.style.display = 'flex';
+            dropIndicator.style.display = 'none';
         }
     });
 }
 
 // Perform image search
 function performImageSearch(imageFile) {
-    const searchEngine = currentSettings.searchEngine || 'google';
-    const reader = new FileReader();
+    if (!imageFile) {
+        console.error('No image file provided for search');
+        return;
+    }
     
-    reader.onload = function(e) {
-        const base64Image = e.target.result;
+    try {
+        const searchEngine = currentSettings.searchEngine || 'google';
+        const reader = new FileReader();
         
-        // Build URL for image search based on search engine
-        let searchUrl;
+        reader.onerror = function(error) {
+            console.error('Error reading image file:', error);
+            alert('There was an error processing your image. Please try again.');
+        };
         
-        switch (searchEngine) {
-            case 'google':
-                // For Google, we need to redirect to Google Images
-                // We'd need to upload the image to a temporary location to do this properly
-                // But for now, we'll just redirect to Google Images
-                searchUrl = 'https://images.google.com/';
-                break;
+        reader.onload = function(e) {
+            try {
+                const base64Image = e.target.result;
                 
-            case 'bing':
-                // Bing supports drag and drop on their image search page
-                searchUrl = 'https://www.bing.com/images/';
-                break;
+                // Build URL for image search based on search engine
+                let searchUrl;
                 
-            default:
-                // Default to Google
-                searchUrl = 'https://images.google.com/';
-        }
+                switch (searchEngine) {
+                    case 'google':
+                        // For Google, we need to redirect to Google Images
+                        searchUrl = 'https://images.google.com/';
+                        break;
+                        
+                    case 'bing':
+                        // Bing supports drag and drop on their image search page
+                        searchUrl = 'https://www.bing.com/images/search?view=detailv2&iss=sbiupload';
+                        break;
+                    
+                    case 'yandex':
+                        // Yandex image search
+                        searchUrl = 'https://yandex.com/images/search';
+                        break;
+                        
+                    default:
+                        // Default to Google
+                        searchUrl = 'https://images.google.com/';
+                }
+                
+                // Open in a new tab to avoid losing user's current state
+                window.open(searchUrl, '_blank');
+            } catch (urlError) {
+                console.error('Error navigating to search URL:', urlError);
+                // Fallback to Google Images if there's an error
+                window.open('https://images.google.com/', '_blank');
+            }
+        };
         
-        // Navigate to the search URL
-        window.location.href = searchUrl;
-    };
-    
-    reader.readAsDataURL(imageFile);
+        // Start reading the file
+        reader.readAsDataURL(imageFile);
+    } catch (error) {
+        console.error('Error in image search functionality:', error);
+        alert('There was an error processing your image search. Please try again.');
+    }
 }
 
 // Load everything when page loads
+// Initialize header links
+function initializeHeaderLinks() {
+    const headerNav = document.querySelector('.header-nav');
+    const appsDropdownContainer = headerNav.querySelector('.apps-dropdown-container');
+    
+    // Clear current links (keeping the apps dropdown)
+    while (headerNav.firstChild) {
+        if (headerNav.firstChild === appsDropdownContainer) {
+            break;
+        }
+        headerNav.removeChild(headerNav.firstChild);
+    }
+    
+    // Add header links from settings
+    if (currentSettings.headerLinks && currentSettings.headerLinks.length > 0) {
+        // Insert links before the apps dropdown
+        currentSettings.headerLinks.forEach(link => {
+            const linkElement = document.createElement('a');
+            linkElement.href = link.url;
+            linkElement.className = 'nav-link';
+            linkElement.textContent = link.name;
+            
+            headerNav.insertBefore(linkElement, appsDropdownContainer);
+        });
+    }
+}
+
+// Initialize apps dropdown
+function initializeAppsDropdown() {
+    const appsToggle = document.getElementById('apps-toggle');
+    const appsDropdown = document.getElementById('apps-dropdown');
+    const appsGrid = document.querySelector('.apps-grid');
+    
+    // Toggle dropdown visibility
+    appsToggle.addEventListener('click', function() {
+        appsDropdown.style.display = appsDropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!appsToggle.contains(event.target) && !appsDropdown.contains(event.target)) {
+            appsDropdown.style.display = 'none';
+        }
+    });
+    
+    // Populate apps grid
+    if (currentSettings.apps && currentSettings.apps.length > 0) {
+        appsGrid.innerHTML = ''; // Clear any existing apps
+        
+        currentSettings.apps.forEach(app => {
+            const appItem = document.createElement('a');
+            appItem.href = app.url;
+            appItem.className = 'app-item';
+            
+            const appIcon = document.createElement('img');
+            appIcon.src = app.icon;
+            appIcon.alt = app.name;
+            appIcon.className = 'app-icon';
+            
+            const appName = document.createElement('span');
+            appName.textContent = app.name;
+            appName.className = 'app-name';
+            
+            appItem.appendChild(appIcon);
+            appItem.appendChild(appName);
+            appsGrid.appendChild(appItem);
+        });
+        
+        // Add the customize apps option (only visible in editor)
+        if (window.location.href.includes('editor')) {
+            const footer = document.createElement('div');
+            footer.className = 'apps-footer';
+            
+            const customizeLink = document.createElement('a');
+            customizeLink.href = '#';
+            customizeLink.className = 'customize-apps';
+            customizeLink.textContent = 'Customize apps';
+            customizeLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Open the apps manager if we're in the editor
+                if (typeof openAppsManager === 'function') {
+                    openAppsManager();
+                }
+            });
+            
+            footer.appendChild(customizeLink);
+            appsDropdown.appendChild(footer);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Load settings first
         if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-            const result = await chrome.storage.sync.get(['settings']);
-            if (result.settings) {
-                currentSettings = result.settings;
+            try {
+                const result = await chrome.storage.sync.get(['settings']);
+                if (result.settings) {
+                    currentSettings = result.settings;
+                } else {
+                    console.warn('No settings found in Chrome storage, using defaults');
+                    currentSettings = {...defaultSettings};
+                }
+            } catch (storageError) {
+                console.error('Error accessing Chrome storage:', storageError);
+                currentSettings = {...defaultSettings};
             }
         } else {
             // Fallback for development
-            const savedSettings = localStorage.getItem('settings');
-            if (savedSettings) {
-                currentSettings = JSON.parse(savedSettings);
+            try {
+                const savedSettings = localStorage.getItem('settings');
+                if (savedSettings) {
+                    currentSettings = JSON.parse(savedSettings);
+                } else {
+                    console.warn('No settings found in localStorage, using defaults');
+                    currentSettings = {...defaultSettings};
+                }
+            } catch (localStorageError) {
+                console.error('Error accessing localStorage:', localStorageError);
+                currentSettings = {...defaultSettings};
             }
+        }
+        
+        // Ensure critical settings properties exist
+        if (!currentSettings.apps) {
+            currentSettings.apps = [...defaultSettings.apps];
+        }
+        
+        if (!currentSettings.headerLinks) {
+            currentSettings.headerLinks = [...defaultSettings.headerLinks];
+        }
+        
+        if (!currentSettings.searchBarPosition) {
+            currentSettings.searchBarPosition = {...defaultSettings.searchBarPosition};
         }
         
         // Apply theme
@@ -536,6 +807,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Initialize search
         initializeSearch();
+        
+        // Initialize header links
+        initializeHeaderLinks();
+        
+        // Initialize apps dropdown
+        initializeAppsDropdown();
         
         // Set up image drop functionality
         setupImageDrop();
@@ -549,7 +826,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Error initializing new tab page:', error);
         // Continue with defaults
-        loadGroups();
+        currentSettings = {...defaultSettings};
+        try {
+            applyTheme();
+            initializeSearch();
+            initializeHeaderLinks();
+            initializeAppsDropdown();
+            loadGroups();
+            window.addEventListener('resize', handleWindowResize);
+        } catch (fallbackError) {
+            console.error('Critical error in fallback initialization:', fallbackError);
+            // Display error message to user
+            const errorDiv = document.createElement('div');
+            errorDiv.style.padding = '20px';
+            errorDiv.style.margin = '20px auto';
+            errorDiv.style.maxWidth = '500px';
+            errorDiv.style.backgroundColor = '#ffdddd';
+            errorDiv.style.border = '1px solid #ff0000';
+            errorDiv.style.borderRadius = '5px';
+            errorDiv.innerHTML = `
+                <h3>Error Loading New Tab Page</h3>
+                <p>There was a problem loading your new tab page settings. Try refreshing the page.</p>
+                <p>If the problem persists, try resetting your settings from the settings page.</p>
+            `;
+            document.body.appendChild(errorDiv);
+        }
     }
 });
 
@@ -583,6 +884,7 @@ function getFavicon(url) {
         return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
     } catch (e) {
         console.warn('Error getting favicon for URL:', url, e);
-        return ''; // Return empty string if URL is invalid
+        // Return a default icon instead of empty string
+        return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
     }
 }

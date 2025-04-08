@@ -26,7 +26,12 @@ const defaultSettings = {
     showSearch: true,
     showShortcuts: true,
     searchEngine: 'google',
-    searchBarPosition: { x: 10, y: 120 }
+    searchBarPosition: { x: 10, y: 120 },
+    headerLinks: [
+        { name: 'Gmail', url: 'https://mail.google.com' },
+        { name: 'Photos', url: 'https://photos.google.com' },
+        { name: 'Search Labs', url: 'https://labs.google.com' }
+    ]
 };
 
 // Load groups and settings when page loads
@@ -84,6 +89,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentSettings = savedSettings ? JSON.parse(savedSettings) : {...defaultSettings};
         }
         
+        // Ensure headerLinks exists
+        if (!currentSettings.headerLinks) {
+            currentSettings.headerLinks = defaultSettings.headerLinks;
+        }
+        
         // Apply theme to editor
         applyThemeToEditor();
 
@@ -101,6 +111,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Show/hide search bar based on settings
         searchEditor.style.display = currentSettings.showSearch ? 'block' : 'none';
+        
+        // Initialize header editor
+        const headerEditor = document.getElementById('chrome-header-editor');
+        if (headerEditor) {
+            // Initialize drag events for header
+            const headerHandle = headerEditor.querySelector('.editor-handle');
+            if (headerHandle) {
+                headerHandle.addEventListener('mousedown', function(e) {
+                    if (!dragEnabled) return;
+                    
+                    e.preventDefault();
+                    
+                    // Initial positions
+                    initialX = e.clientX;
+                    initialY = e.clientY;
+                    
+                    // Current position
+                    const style = window.getComputedStyle(headerEditor);
+                    offsetX = parseInt(style.left) || 0;
+                    offsetY = parseInt(style.top) || 0;
+                    
+                    // Make sure it's using absolute positioning
+                    headerEditor.style.position = 'absolute';
+                    headerEditor.style.transform = 'none';
+                    
+                    // Add mousemove and mouseup event listeners
+                    document.addEventListener('mousemove', moveHeaderBar);
+                    document.addEventListener('mouseup', stopMoveHeaderBar);
+                });
+            }
+        }
+        
+        function moveHeaderBar(e) {
+            e.preventDefault();
+            
+            // Calculate new position
+            const dx = e.clientX - initialX;
+            const dy = e.clientY - initialY;
+            
+            headerEditor.style.top = `${offsetY + dy}px`;
+            headerEditor.style.left = `${offsetX + dx}px`;
+        }
+        
+        function stopMoveHeaderBar() {
+            // Remove event listeners
+            document.removeEventListener('mousemove', moveHeaderBar);
+            document.removeEventListener('mouseup', stopMoveHeaderBar);
+        }
         
         // Initialize drag events for search bar
         initSearchBarDrag();
@@ -152,9 +210,29 @@ function calculatePosition(x, y) {
     const centerX = screenWidth / 2;
     const centerY = screenHeight / 2;
     
+    // Handle percentage-based positions (backward compatibility)
+    let absX = x;
+    let absY = y;
+    
+    if (typeof x === 'string' && x.endsWith('%')) {
+        absX = (parseFloat(x) / 100) * screenWidth;
+    }
+    
+    if (typeof y === 'string' && y.endsWith('%')) {
+        absY = (parseFloat(y) / 100) * screenHeight;
+    }
+    
+    // Convert to numbers if they're strings but not percentages
+    if (typeof absX === 'string') absX = parseFloat(absX);
+    if (typeof absY === 'string') absY = parseFloat(absY);
+    
+    // Handle NaN values
+    if (isNaN(absX)) absX = centerX;
+    if (isNaN(absY)) absY = centerY;
+    
     // Convert from absolute to center-relative
-    const relX = x - centerX;
-    const relY = y - centerY;
+    const relX = absX - centerX;
+    const relY = absY - centerY;
     
     // Calculate scaled percentage position
     const percentX = relX / centerX; // -1 to 1
@@ -939,3 +1017,496 @@ function getFavicon(url) {
         return ''; // Return empty string if URL is invalid
     }
 }
+
+// Apps management
+let editingAppIndex = -1;
+
+// Function to open the apps manager popup
+function openAppsManager() {
+    const appsManagerPopup = document.getElementById('apps-manager-popup');
+    appsManagerPopup.style.display = 'flex';
+    
+    // Initialize the apps list
+    renderAppsList();
+}
+
+// Function to render the apps list in the manager
+function renderAppsList() {
+    const appsListContainer = document.getElementById('apps-list-container');
+    appsListContainer.innerHTML = '';
+    
+    if (!currentSettings.apps || currentSettings.apps.length === 0) {
+        if (!currentSettings.apps) {
+            currentSettings.apps = [];
+        }
+        
+        // If no apps, show a message
+        const noAppsMessage = document.createElement('div');
+        noAppsMessage.className = 'no-apps-message';
+        noAppsMessage.textContent = 'No apps added yet. Click "Add App" to get started.';
+        noAppsMessage.style.padding = '16px';
+        noAppsMessage.style.textAlign = 'center';
+        appsListContainer.appendChild(noAppsMessage);
+        return;
+    }
+    
+    // Add each app to the list
+    currentSettings.apps.forEach((app, index) => {
+        const appItem = document.createElement('div');
+        appItem.className = 'app-list-item';
+        
+        const appIcon = document.createElement('img');
+        appIcon.src = app.icon || getFavicon(app.url);
+        appIcon.alt = app.name;
+        appIcon.className = 'app-list-icon';
+        
+        const appDetails = document.createElement('div');
+        appDetails.className = 'app-list-details';
+        
+        const appName = document.createElement('div');
+        appName.className = 'app-list-name';
+        appName.textContent = app.name;
+        
+        const appUrl = document.createElement('div');
+        appUrl.className = 'app-list-url';
+        appUrl.textContent = app.url;
+        
+        appDetails.appendChild(appName);
+        appDetails.appendChild(appUrl);
+        
+        const appActions = document.createElement('div');
+        appActions.className = 'app-list-actions';
+        
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'app-edit-btn';
+        editBtn.innerHTML = '✎'; // pencil icon
+        editBtn.title = 'Edit app';
+        editBtn.addEventListener('click', () => openAppEditor(index));
+        
+        // Move up button (disabled for first item)
+        const moveUpBtn = document.createElement('button');
+        moveUpBtn.className = 'app-move-up-btn';
+        moveUpBtn.innerHTML = '↑'; // up arrow
+        moveUpBtn.title = 'Move up';
+        moveUpBtn.disabled = index === 0;
+        moveUpBtn.style.opacity = index === 0 ? '0.5' : '1';
+        moveUpBtn.addEventListener('click', () => moveApp(index, -1));
+        
+        // Move down button (disabled for last item)
+        const moveDownBtn = document.createElement('button');
+        moveDownBtn.className = 'app-move-down-btn';
+        moveDownBtn.innerHTML = '↓'; // down arrow
+        moveDownBtn.title = 'Move down';
+        moveDownBtn.disabled = index === currentSettings.apps.length - 1;
+        moveDownBtn.style.opacity = index === currentSettings.apps.length - 1 ? '0.5' : '1';
+        moveDownBtn.addEventListener('click', () => moveApp(index, 1));
+        
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'app-remove-btn';
+        removeBtn.innerHTML = '✕'; // x icon
+        removeBtn.title = 'Remove app';
+        removeBtn.addEventListener('click', () => {
+            if (confirm(`Are you sure you want to remove "${app.name}"?`)) {
+                removeApp(index);
+            }
+        });
+        
+        // Add buttons to actions container
+        appActions.appendChild(moveUpBtn);
+        appActions.appendChild(moveDownBtn);
+        appActions.appendChild(editBtn);
+        appActions.appendChild(removeBtn);
+        
+        // Add all elements to the app item
+        appItem.appendChild(appIcon);
+        appItem.appendChild(appDetails);
+        appItem.appendChild(appActions);
+        
+        // Add app item to the container
+        appsListContainer.appendChild(appItem);
+    });
+}
+
+// Function to move app up or down in the list
+function moveApp(index, direction) {
+    // Check bounds
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= currentSettings.apps.length) {
+        return;
+    }
+    
+    // Swap the apps
+    const temp = currentSettings.apps[index];
+    currentSettings.apps[index] = currentSettings.apps[newIndex];
+    currentSettings.apps[newIndex] = temp;
+    
+    // Re-render the list
+    renderAppsList();
+}
+
+// Function to remove an app from the list
+function removeApp(index) {
+    currentSettings.apps.splice(index, 1);
+    renderAppsList();
+}
+
+// Function to open the app editor
+function openAppEditor(index = -1) {
+    const appEditPopup = document.getElementById('app-edit-popup');
+    appEditPopup.style.display = 'flex';
+    
+    const nameInput = document.getElementById('app-name');
+    const urlInput = document.getElementById('app-url');
+    const iconInput = document.getElementById('app-icon');
+    
+    editingAppIndex = index;
+    
+    if (index >= 0 && index < currentSettings.apps.length) {
+        // Editing existing app
+        const app = currentSettings.apps[index];
+        nameInput.value = app.name || '';
+        urlInput.value = app.url || '';
+        iconInput.value = app.icon || '';
+    } else {
+        // Adding new app
+        nameInput.value = '';
+        urlInput.value = '';
+        iconInput.value = '';
+    }
+}
+
+// Function to save app changes
+function saveAppChanges() {
+    const nameInput = document.getElementById('app-name');
+    const urlInput = document.getElementById('app-url');
+    const iconInput = document.getElementById('app-icon');
+    
+    const name = nameInput.value.trim();
+    const url = urlInput.value.trim();
+    const icon = iconInput.value.trim() || getFavicon(url);
+    
+    // Validation
+    if (!name) {
+        alert('Please enter an app name');
+        return;
+    }
+    
+    if (!url) {
+        alert('Please enter a URL');
+        return;
+    }
+    
+    // Ensure URL has protocol
+    let validUrl = url;
+    if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
+        validUrl = 'https://' + validUrl;
+    }
+    
+    const app = {
+        name,
+        url: validUrl,
+        icon: icon || getFavicon(validUrl)
+    };
+    
+    if (editingAppIndex >= 0 && editingAppIndex < currentSettings.apps.length) {
+        // Update existing app
+        currentSettings.apps[editingAppIndex] = app;
+    } else {
+        // Add new app
+        if (!currentSettings.apps) {
+            currentSettings.apps = [];
+        }
+        currentSettings.apps.push(app);
+    }
+    
+    // Close popup and refresh apps list
+    document.getElementById('app-edit-popup').style.display = 'none';
+    renderAppsList();
+}
+
+// Header Links Management
+let editingHeaderLinkIndex = -1;
+
+// Function to open the header links editor
+function openHeaderEditor() {
+    const headerEditorPopup = document.getElementById('header-editor-popup');
+    headerEditorPopup.style.display = 'flex';
+    
+    // Initialize the header links list
+    renderHeaderLinksList();
+}
+
+// Function to render the header links list
+function renderHeaderLinksList() {
+    const headerLinksContainer = document.getElementById('header-links-container');
+    headerLinksContainer.innerHTML = '';
+    
+    if (!currentSettings.headerLinks || currentSettings.headerLinks.length === 0) {
+        if (!currentSettings.headerLinks) {
+            currentSettings.headerLinks = [];
+        }
+        
+        // If no links, show a message
+        const noLinksMessage = document.createElement('div');
+        noLinksMessage.className = 'no-links-message';
+        noLinksMessage.textContent = 'No header links added yet. Click "Add Link" to get started.';
+        noLinksMessage.style.padding = '16px';
+        noLinksMessage.style.textAlign = 'center';
+        headerLinksContainer.appendChild(noLinksMessage);
+        return;
+    }
+    
+    // Add each link to the list
+    currentSettings.headerLinks.forEach((link, index) => {
+        const linkItem = document.createElement('div');
+        linkItem.className = 'header-link-item';
+        
+        const linkDetails = document.createElement('div');
+        linkDetails.className = 'app-list-details';
+        
+        const linkName = document.createElement('div');
+        linkName.className = 'app-list-name';
+        linkName.textContent = link.name;
+        
+        const linkUrl = document.createElement('div');
+        linkUrl.className = 'app-list-url';
+        linkUrl.textContent = link.url;
+        
+        linkDetails.appendChild(linkName);
+        linkDetails.appendChild(linkUrl);
+        
+        const linkActions = document.createElement('div');
+        linkActions.className = 'app-list-actions';
+        
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'app-edit-btn';
+        editBtn.innerHTML = '✎'; // pencil icon
+        editBtn.title = 'Edit link';
+        editBtn.addEventListener('click', () => openHeaderLinkEditor(index));
+        
+        // Move up button (disabled for first item)
+        const moveUpBtn = document.createElement('button');
+        moveUpBtn.className = 'app-move-up-btn';
+        moveUpBtn.innerHTML = '↑'; // up arrow
+        moveUpBtn.title = 'Move up';
+        moveUpBtn.disabled = index === 0;
+        moveUpBtn.style.opacity = index === 0 ? '0.5' : '1';
+        moveUpBtn.addEventListener('click', () => moveHeaderLink(index, -1));
+        
+        // Move down button (disabled for last item)
+        const moveDownBtn = document.createElement('button');
+        moveDownBtn.className = 'app-move-down-btn';
+        moveDownBtn.innerHTML = '↓'; // down arrow
+        moveDownBtn.title = 'Move down';
+        moveDownBtn.disabled = index === currentSettings.headerLinks.length - 1;
+        moveDownBtn.style.opacity = index === currentSettings.headerLinks.length - 1 ? '0.5' : '1';
+        moveDownBtn.addEventListener('click', () => moveHeaderLink(index, 1));
+        
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'app-remove-btn';
+        removeBtn.innerHTML = '✕'; // x icon
+        removeBtn.title = 'Remove link';
+        removeBtn.addEventListener('click', () => {
+            if (confirm(`Are you sure you want to remove "${link.name}"?`)) {
+                removeHeaderLink(index);
+            }
+        });
+        
+        // Add buttons to actions container
+        linkActions.appendChild(moveUpBtn);
+        linkActions.appendChild(moveDownBtn);
+        linkActions.appendChild(editBtn);
+        linkActions.appendChild(removeBtn);
+        
+        // Add all elements to the link item
+        linkItem.appendChild(linkDetails);
+        linkItem.appendChild(linkActions);
+        
+        // Add link item to the container
+        headerLinksContainer.appendChild(linkItem);
+    });
+}
+
+// Function to move header link up or down in the list
+function moveHeaderLink(index, direction) {
+    // Check bounds
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= currentSettings.headerLinks.length) {
+        return;
+    }
+    
+    // Swap the links
+    const temp = currentSettings.headerLinks[index];
+    currentSettings.headerLinks[index] = currentSettings.headerLinks[newIndex];
+    currentSettings.headerLinks[newIndex] = temp;
+    
+    // Re-render the list
+    renderHeaderLinksList();
+}
+
+// Function to remove a header link from the list
+function removeHeaderLink(index) {
+    currentSettings.headerLinks.splice(index, 1);
+    renderHeaderLinksList();
+}
+
+// Function to open the header link editor
+function openHeaderLinkEditor(index = -1) {
+    const headerLinkEditPopup = document.getElementById('header-link-edit-popup');
+    headerLinkEditPopup.style.display = 'flex';
+    
+    const nameInput = document.getElementById('header-link-name');
+    const urlInput = document.getElementById('header-link-url');
+    
+    editingHeaderLinkIndex = index;
+    
+    if (index >= 0 && index < currentSettings.headerLinks.length) {
+        // Editing existing link
+        const link = currentSettings.headerLinks[index];
+        nameInput.value = link.name || '';
+        urlInput.value = link.url || '';
+    } else {
+        // Adding new link
+        nameInput.value = '';
+        urlInput.value = '';
+    }
+}
+
+// Function to save header link changes
+function saveHeaderLinkChanges() {
+    const nameInput = document.getElementById('header-link-name');
+    const urlInput = document.getElementById('header-link-url');
+    
+    const name = nameInput.value.trim();
+    const url = urlInput.value.trim();
+    
+    // Validation
+    if (!name) {
+        alert('Please enter a link name');
+        return;
+    }
+    
+    if (!url) {
+        alert('Please enter a URL');
+        return;
+    }
+    
+    // Ensure URL has protocol
+    let validUrl = url;
+    if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
+        validUrl = 'https://' + validUrl;
+    }
+    
+    const link = {
+        name,
+        url: validUrl
+    };
+    
+    if (editingHeaderLinkIndex >= 0 && editingHeaderLinkIndex < currentSettings.headerLinks.length) {
+        // Update existing link
+        currentSettings.headerLinks[editingHeaderLinkIndex] = link;
+    } else {
+        // Add new link
+        if (!currentSettings.headerLinks) {
+            currentSettings.headerLinks = [];
+        }
+        currentSettings.headerLinks.push(link);
+    }
+    
+    // Close popup and refresh links list
+    document.getElementById('header-link-edit-popup').style.display = 'none';
+    renderHeaderLinksList();
+}
+
+// Initialize header editor and apps manager functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Event handler for the Edit Header button
+    const editHeaderBtn = document.getElementById('edit-header-btn');
+    if (editHeaderBtn) {
+        editHeaderBtn.addEventListener('click', function() {
+            openHeaderEditor();
+        });
+    }
+    
+    // Event handlers for the header editor popup
+    const cancelHeaderBtn = document.getElementById('cancel-header-btn');
+    const saveHeaderBtn = document.getElementById('save-header-btn');
+    const addHeaderLinkBtn = document.getElementById('add-header-link-btn');
+    
+    if (cancelHeaderBtn) {
+        cancelHeaderBtn.addEventListener('click', function() {
+            document.getElementById('header-editor-popup').style.display = 'none';
+        });
+    }
+    
+    if (saveHeaderBtn) {
+        saveHeaderBtn.addEventListener('click', function() {
+            document.getElementById('header-editor-popup').style.display = 'none';
+            // No need to save here - links are already updated in currentSettings
+            // They'll be saved when the main Save Changes button is clicked
+        });
+    }
+    
+    if (addHeaderLinkBtn) {
+        addHeaderLinkBtn.addEventListener('click', function() {
+            openHeaderLinkEditor(); // Open the header link editor for a new link
+        });
+    }
+    
+    // Event handlers for header link edit popup
+    const cancelHeaderLinkEditBtn = document.getElementById('cancel-header-link-edit-btn');
+    const saveHeaderLinkEditBtn = document.getElementById('save-header-link-edit-btn');
+    
+    if (cancelHeaderLinkEditBtn) {
+        cancelHeaderLinkEditBtn.addEventListener('click', function() {
+            document.getElementById('header-link-edit-popup').style.display = 'none';
+        });
+    }
+    
+    if (saveHeaderLinkEditBtn) {
+        saveHeaderLinkEditBtn.addEventListener('click', saveHeaderLinkChanges);
+    }
+    
+    // Event handler for apps management
+    const cancelAppsBtn = document.getElementById('cancel-apps-btn');
+    const saveAppsBtn = document.getElementById('save-apps-btn');
+    const addAppBtn = document.getElementById('add-app-btn');
+    
+    if (cancelAppsBtn) {
+        cancelAppsBtn.addEventListener('click', function() {
+            document.getElementById('apps-manager-popup').style.display = 'none';
+        });
+    }
+    
+    if (saveAppsBtn) {
+        saveAppsBtn.addEventListener('click', function() {
+            document.getElementById('apps-manager-popup').style.display = 'none';
+            // No need to save here - apps are already updated in currentSettings
+            // They'll be saved when the main Save Changes button is clicked
+        });
+    }
+    
+    if (addAppBtn) {
+        addAppBtn.addEventListener('click', function() {
+            openAppEditor(); // Open the app editor for a new app
+        });
+    }
+    
+    // Event handlers for app edit popup
+    const cancelAppEditBtn = document.getElementById('cancel-app-edit-btn');
+    const saveAppEditBtn = document.getElementById('save-app-edit-btn');
+    
+    if (cancelAppEditBtn) {
+        cancelAppEditBtn.addEventListener('click', function() {
+            document.getElementById('app-edit-popup').style.display = 'none';
+        });
+    }
+    
+    if (saveAppEditBtn) {
+        saveAppEditBtn.addEventListener('click', saveAppChanges);
+    }
+});

@@ -165,6 +165,12 @@ header {
     flex-direction: column;
     gap: 10px;
 }
+.bottom-controls * {
+    border-radius: 100%;
+    height: fit-content;
+    width: fit-content;
+    color: var(--text-color);
+}
 
 .action-button i, .save-button i {
     font-style: normal;
@@ -307,10 +313,60 @@ header {
     color: white;
 }
 
+/* Chrome Header editor styles */
+.chrome-header-editor {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    width: 500px;
+    background-color: #f5f5f5;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 5px;
+    z-index: 100;
+}
+
+.header-nav-mock {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background-color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.nav-link-mock {
+    background-color: #f0f0f0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.apps-toggle-mock {
+    width: 40px;
+    height: 40px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+}
+
+.edit-header-btn {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
 /* Search bar editor styles */
 .search-editor {
     position: absolute;
-    top: 120px;
+    top: 180px;
     left: 50%;
     transform: translateX(-50%);
     width: 600px;
@@ -588,4 +644,115 @@ header {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Apps management styles */
+#apps-list-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 16px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: var(--all-background-color, #f5f5f5);
+}
+
+.app-list-item, .header-link-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.app-list-item:last-child, .header-link-item:last-child {
+    border-bottom: none;
+}
+
+.app-list-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    object-fit: contain;
+}
+
+.app-list-details {
+    flex: 1;
+}
+
+.app-list-name {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.app-list-url {
+    font-size: 12px;
+    color: #555;
+}
+
+.app-list-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.app-edit-btn {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-remove-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-move-up-btn,
+.app-move-down-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
 }
