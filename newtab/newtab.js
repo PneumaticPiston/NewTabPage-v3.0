@@ -331,8 +331,13 @@ function initializeSearch() {
     
     // Position search according to settings
     if (currentSettings.searchBarPosition) {
-        searchContainer.style.top = `${currentSettings.searchBarPosition.y}px`;
-        searchContainer.style.left = `${currentSettings.searchBarPosition.x}px`;
+        // Use the same positioning calculation as groups
+        const pos = calculatePosition(
+            currentSettings.searchBarPosition.x,
+            currentSettings.searchBarPosition.y
+        );
+        searchContainer.style.top = `${pos.y}px`;
+        searchContainer.style.left = `${pos.x}px`;
         searchContainer.style.transform = 'none'; // Remove default centering
     }
     
@@ -538,12 +543,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Load groups
         loadGroups();
         
+        // Add window resize handler
+        window.addEventListener('resize', handleWindowResize);
+        
     } catch (error) {
         console.error('Error initializing new tab page:', error);
         // Continue with defaults
         loadGroups();
     }
 });
+
+// Handle window resize
+function handleWindowResize() {
+    // Redraw all elements with updated positions
+    loadGroups();
+    
+    // Reposition search
+    if (currentSettings.searchBarPosition) {
+        const pos = calculatePosition(
+            currentSettings.searchBarPosition.x,
+            currentSettings.searchBarPosition.y
+        );
+        searchContainer.style.top = `${pos.y}px`;
+        searchContainer.style.left = `${pos.x}px`;
+    }
+}
 
 function getFavicon(url) {
     try {

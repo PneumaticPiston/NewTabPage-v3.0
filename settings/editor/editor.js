@@ -89,8 +89,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Initialize search bar position
         if (currentSettings.searchBarPosition) {
-            searchEditor.style.top = `${currentSettings.searchBarPosition.y}px`;
-            searchEditor.style.left = `${currentSettings.searchBarPosition.x}px`;
+            // Use the same positioning calculation as groups
+            const pos = calculatePosition(
+                currentSettings.searchBarPosition.x,
+                currentSettings.searchBarPosition.y
+            );
+            searchEditor.style.top = `${pos.y}px`;
+            searchEditor.style.left = `${pos.x}px`;
             searchEditor.style.transform = 'none'; // Remove default centering
         }
         
@@ -102,6 +107,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Render groups
         renderGroups();
+        
+        // Add window resize handler
+        window.addEventListener('resize', handleWindowResize);
     } catch (error) {
         console.error('Error loading data:', error);
         currentGroups = [];
@@ -109,6 +117,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderGroups(); // Still render UI even if loading fails
     }
 });
+
+// Handle window resize
+function handleWindowResize() {
+    // Redraw all elements with updated positions
+    renderGroups();
+    
+    // Reposition search editor
+    if (currentSettings.searchBarPosition) {
+        const pos = calculatePosition(
+            currentSettings.searchBarPosition.x,
+            currentSettings.searchBarPosition.y
+        );
+        searchEditor.style.top = `${pos.y}px`;
+        searchEditor.style.left = `${pos.x}px`;
+    }
+}
 
 function renderGroups() {
     groupsContainer.innerHTML = '';
@@ -118,15 +142,43 @@ function renderGroups() {
     });
 }
 
+// Function to position elements relative to center of screen (matching newtab.js)
+function calculatePosition(x, y) {
+    // Get screen dimensions
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Calculate center-relative coordinates
+    const centerX = screenWidth / 2;
+    const centerY = screenHeight / 2;
+    
+    // Convert from absolute to center-relative
+    const relX = x - centerX;
+    const relY = y - centerY;
+    
+    // Calculate scaled percentage position
+    const percentX = relX / centerX; // -1 to 1
+    const percentY = relY / centerY; // -1 to 1
+    
+    // Calculate absolute position based on current screen size
+    const newX = centerX + (percentX * centerX);
+    const newY = centerY + (percentY * centerY);
+    
+    return { x: newX, y: newY };
+}
+
 function createGroupElement(group, index) {
     const div = document.createElement('div');
     div.className = 'editor-group';
     div.dataset.index = index;
     
+    // Use the same positioning logic as newtab.js
+    const pos = calculatePosition(group.x || 10, group.y || 10);
+    
     // Always use absolute positioning to match the new tab page
     div.style.position = 'absolute';
-    div.style.top = `${group.y || 10}px`;
-    div.style.left = `${group.x || 10}px`;
+    div.style.top = `${pos.y}px`;
+    div.style.left = `${pos.x}px`;
     
     // Add draggable class and event only if drag is enabled
     if (dragEnabled) {
@@ -175,6 +227,12 @@ function createGroupElement(group, index) {
     // Add preview of links based on group type
     const linksPreview = document.createElement('div');
     linksPreview.className = group.type === 'grid' ? 'grid' : 'stack';
+    
+    // Apply grid rows and columns if it's a grid type
+    if (group.type === 'grid' && group.rows && group.columns) {
+        linksPreview.style.gridTemplateColumns = `repeat(${group.columns}, 1fr)`;
+        linksPreview.style.gridTemplateRows = `repeat(${group.rows}, 1fr)`;
+    }
     
     group.links.forEach(link => {
         const favicon = getFavicon(link.url);
@@ -588,8 +646,22 @@ function stopMoveSearchBar() {
     const left = parseInt(searchEditor.style.left);
     const top = parseInt(searchEditor.style.top);
     
-    // Update settings with new position
-    currentSettings.searchBarPosition = { x: left, y: top };
+    // Get screen dimensions
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const centerX = screenWidth / 2;
+    const centerY = screenHeight / 2;
+    
+    // Calculate relative position to screen center
+    const relX = left - centerX;
+    const relY = top - centerY; 
+    
+    // Update settings with new position in absolute coordinates
+    // This ensures consistency between newtab and editor pages
+    currentSettings.searchBarPosition = { 
+        x: centerX + relX, 
+        y: centerY + relY 
+    };
 }
 
 // Add widget menu functionality
@@ -839,13 +911,15 @@ function updateGroupPosition(index, x, y) {
     const centerX = screenWidth / 2;
     const centerY = screenHeight / 2;
     
-    // Calculate relative position to screen center (as percentages from -1 to 1)
-    // Then save absolute x,y based on a standard display size
-    // This ensures the true position is saved, not the adapted one
+    // Calculate relative position to screen center
+    // Convert from screen-absolute to center-relative coordinates
+    const relX = numX - centerX;
+    const relY = numY - centerY;
     
-    // Update the group's position
-    currentGroups[index].x = numX;
-    currentGroups[index].y = numY;
+    // Store the exact coordinates from center, which will be properly
+    // recalculated when displayed in either the newtab or editor page
+    currentGroups[index].x = centerX + relX;
+    currentGroups[index].y = centerY + relY;
 }
 
 function getFavicon(url) {
