@@ -19,16 +19,31 @@ header {
     position: relative;
 }
 
+/* Grid overlay for snap-to-grid */
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(to right, rgba(128, 128, 128, 0.1) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(128, 128, 128, 0.1) 1px, transparent 1px);
+    background-size: 10px 10px;
+    pointer-events: none;
+    z-index: 5;
+    display: none; /* Hidden by default, shown when dragging */
+}
+
 .editor-group {
-    position: relative;
-    background-color: rgb(187, 187, 187);
+    position: absolute; /* Keep consistent positioning with the new tab page */
+    background-color: var(--group-background-color, rgb(187, 187, 187));
     border-radius: 10px;
-    box-shadow: 0px 0px 10px 0px black;
-    padding: 15px;
-    margin-bottom: 20px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.3);
+    padding: 5px; /* Match the newtab.css padding */
     width: fit-content;
     min-width: 150px;
     max-width: 500px;
+    z-index: 10; /* To help with overlapping groups */
 }
 
 .group-header {
@@ -40,7 +55,8 @@ header {
     font-weight: bold;
     padding: 5px 10px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    width: 100%;
+    width: fit-content;
+    min-width: 100%;
     box-sizing: border-box;
 }
 
@@ -95,7 +111,7 @@ header {
 }
 
 .draggable {
-    cursor: move;
+    cursor: move !important;
 }
 
 .dragging {
@@ -104,14 +120,84 @@ header {
     z-index: 100;
 }
 
+/* Style for the active toggle button */
+.toggle-active {
+    background-color: #f44336 !important;
+    color: white;
+}
+
+/* Search bar editor styles */
+.search-editor {
+    position: absolute;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    max-width: 90%;
+    background-color: #f5f5f5;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 5px;
+    z-index: 100;
+}
+
+.editor-handle {
+    background-color: #2196F3;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    cursor: move;
+    text-align: center;
+}
+
+.search-form-mock {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 24px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 5px 15px;
+}
+
+.search-icon-mock {
+    width: 24px;
+    height: 24px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.search-input-mock {
+    flex: 1;
+    height: 36px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.search-button-mock {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
 .remove-group-btn {
     background-color: #f44336;
-    color: #f44336;
+    color: white;
+    width: 28px;
+    height: 28px;
 }
 
 .edit-group-btn {
     background-color: #2196F3;
-    color: #2196F3;
+    color: white;
+    width: 28px;
+    height: 28px;
 }
 
 .popup {
@@ -183,6 +269,12 @@ header {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    background-color: #f9f9f9;
+    transition: background-color 0.2s;
+}
+
+.link-editor:hover {
+    background-color: #f0f0f0;
 }
 
 .link-editor input {
@@ -190,6 +282,38 @@ header {
     padding: 5px;
     border: 1px solid #ddd;
     border-radius: 4px;
+}
+
+.link-index {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+}
+
+.link-title {
+    min-width: 120px;
+}
+
+.link-url {
+    min-width: 180px;
+}
+
+.remove-link-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-link-btn:hover {
+    background-color: #d32f2f;
 }
 
 .position-controls {

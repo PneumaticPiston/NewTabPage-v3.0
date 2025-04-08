@@ -1,28 +1,37 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Tab</title>
     <link rel="stylesheet" type="text/css" href="newtab.css">
+    <link rel="stylesheet" type="text/css" href="../theme/themes.css">
 </head>
 <body>
     <header>
         <h1>New Tab</h1>
     </header>
-    <!--
+    
+    <div id="search-container" class="search-container">
+        <form id="search-form" class="search-form">
+            <img id="search-icon" class="search-icon" src="" alt="Search">
+            <input type="text" id="search-input" class="search-input" placeholder="Search the web">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
+    
     <div id="shortcuts-container" class="shortcuts-container">
-        <div class="group grid">
-            <div href="${url}" class="link-grid" href="${url}">
-                <img src="${favicon}"/>
-                <a></a>
-            </div>
-        </div>
+        <!-- Shortcuts will be added here -->
     </div>
-    -->
+    
     <div id="groups-container" class="groups-container">
-
+        <!-- Groups will be loaded here -->
     </div>
+    
     <button id="settings-button" class="settings-button">
         <img src="../assets/settings.svg" alt="Settings">
     </button>
+    
     <script src="events.js"></script>
     <script src="newtab.js"></script>
 </body>

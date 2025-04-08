@@ -40,4 +40,47 @@
     --cyber-accent: #00ff9f;
     --cyber-text: #f72585;
     --cyber-background: #120458;
+    
+    /* Midnight Blue Theme */
+    --midnight-primary: #0c2340;
+    --midnight-secondary: #1d4e89;
+    --midnight-accent: #3da5d9;
+    --midnight-text: #ecf0f1;
+    --midnight-background: #0a1128;
+    
+    /* Emerald Dark Theme */
+    --emerald-primary: #064420;
+    --emerald-secondary: #0b6e4f;
+    --emerald-accent: #83e377;
+    --emerald-text: #d8f3dc;
+    --emerald-background: #082c14;
+    
+    /* Slate Blue Theme */
+    --slate-primary: #1e3a8a;
+    --slate-secondary: #3b82f6;
+    --slate-accent: #22d3ee;
+    --slate-text: #f8fafc;
+    --slate-background: #0f172a;
+    
+    /* Deep Purple Theme */
+    --deep-primary: #4c1d95;
+    --deep-secondary: #7c3aed;
+    --deep-accent: #2dd4bf;
+    --deep-text: #f5f3ff;
+    --deep-background: #2e1065;
+    
+    /* Nord Theme */
+    --nord-primary: #5e81ac;
+    --nord-secondary: #88c0d0;
+    --nord-accent: #bf616a;
+    --nord-text: #eceff4;
+    --nord-background: #2e3440;
+    
+    /* Template Theme (Commented Out) - Use this as a template for creating your own theme
+    --template-primary: #000000;
+    --template-secondary: #000000;
+    --template-accent: #000000;
+    --template-text: #000000;
+    --template-background: #000000;
+    */
 }
