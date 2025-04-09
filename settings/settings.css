@@ -31,7 +31,7 @@ body {
 .settings-container {
     max-width: var(--container-width);
     margin: 0 auto;
-    background: var(--background-color);
+    background: white;
     padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -108,7 +108,7 @@ h2 {
 
 .setting-description {
     font-size: 14px;
-    color: var(--text-color);
+    color: #666;
     margin-top: 5px;
     font-style: italic;
 }
@@ -133,7 +133,7 @@ h2 {
 
 .file-select-button {
     background-color: var(--primary-color);
-    color: var(--text-color);
+    color: white;
     padding: 8px 16px;
     border: none;
     border-radius: var(--border-radius);
@@ -144,7 +144,7 @@ h2 {
 .file-name {
     margin-left: 10px;
     font-size: 14px;
-    color: var(--text-color);
+    color: #666;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -157,7 +157,7 @@ h2 {
     height: 150px;
     border-radius: var(--border-radius);
     overflow: hidden;
-    background-color: var(--background-color);
+    background-color: #f5f5f5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -172,7 +172,7 @@ h2 {
 .background-inputs {
     margin-top: 10px;
     padding: 15px;
-    background-color: var(--text-color);
+    background-color: #f9f9f9;
     border-radius: var(--border-radius);
     display: none; /* Hidden by default */
 }
@@ -180,7 +180,7 @@ h2 {
 .settings-section {
     margin-bottom: 30px;
     padding: 20px;
-    background-color: var(--background-color);
+    background-color: #f9f9f9;
     border-radius: var(--border-radius);
 }
 
