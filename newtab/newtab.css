@@ -103,6 +103,7 @@ body {
     padding: 16px;
     display: none;
     z-index: 1001;
+    overflow-y: scroll;
 }
 
 .apps-grid {
@@ -117,7 +118,7 @@ body {
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    color: #333;
+    color: var(--text-color);
     padding: 8px;
     border-radius: 8px;
     transition: background-color 0.2s;
@@ -140,6 +141,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    color: var(--text-color);
 }
 
 .apps-footer {
@@ -193,7 +195,7 @@ body {
     font-size: 14px;
     font-weight: bold;
     padding: 5px 10px;
-    color: inherit;
+    color: var(--text-color);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     margin-bottom: 5px;
     width: fit-content;
@@ -225,7 +227,7 @@ body {
     justify-content: flex-start; /* Start at top to allow bottom alignment */
     position: relative; /* For absolute positioning of text */
     text-decoration: none;
-    color: inherit;
+    color: var(--text-color);
 }
 .link-grid:hover {
     background-color: rgba(0,0,0, 0.25);
@@ -259,7 +261,7 @@ body {
 .link-stack a {
     font-size: 15pt;
     text-decoration: none;
-    color: inherit;
+    color: var(--text-color);
     display: flex;
     align-items: center;
     text-decoration: none;
@@ -302,7 +304,7 @@ body {
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    color: inherit;
+    color: var(--text-color);
     padding: 10px;
     border-radius: 5px;
     transform: scale(var(--group-scale)); /* Scale based on settings */
@@ -387,7 +389,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    color: var(--primary-color);
+    color: var(--text-color);
     z-index: 100;
     pointer-events: none;
     box-shadow: 0 0 0 2px var(--accent-color);
@@ -433,6 +435,7 @@ body {
 
 .settings-button:hover {
     background-color: var(--accent-color);
-    transform: scale(1.1);
+    transform: scale(1.1) rotate(45deg);
+    transform-origin: center;
 }
 
