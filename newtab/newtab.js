@@ -315,11 +315,36 @@ async function loadGroups() {
         let groups = [];
         
         // Check if chrome.storage is available (running as extension)
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        if (typeof chrome !== 'undefined' && chrome.storage) {
             console.log('Chrome storage API available');
-            const result = await chrome.storage.sync.get(['groups']);
-            console.log('Chrome storage result:', result);
-            groups = result.groups || [];
+            
+            // First check if there's a reference to groups location in sync storage
+            if (chrome.storage.sync) {
+                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
+                
+                // If groupsLocation is 'local', get groups from local storage
+                if (syncData.groupsLocation === 'local') {
+                    console.log('Groups are stored in local storage according to sync reference');
+                    const localData = await chrome.storage.local.get(['groups']);
+                    groups = localData.groups || [];
+                }
+                // Otherwise try to get from sync storage directly
+                else if (syncData.groups && syncData.groups.length > 0) {
+                    console.log('Groups found in sync storage');
+                    groups = syncData.groups;
+                }
+                // If not found in sync, try local storage as fallback
+                else {
+                    console.log('Groups not found in sync storage, checking local storage');
+                    const localData = await chrome.storage.local.get(['groups']);
+                    groups = localData.groups || [];
+                }
+            } else {
+                // If sync is not available, try local
+                console.log('Sync storage not available, trying local storage');
+                const localData = await chrome.storage.local.get(['groups']);
+                groups = localData.groups || [];
+            }
         } else {
             // Fallback for development/testing environment
             console.warn('Chrome storage API not available, using localStorage fallback');

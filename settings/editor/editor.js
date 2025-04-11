@@ -19,6 +19,14 @@ let initialY = 0;
 let offsetX = 0;
 let offsetY = 0;
 
+// Simple variable to control grid size (in percentage)
+// Change this value to adjust grid size and snapping precision
+const GRID_SIZE = 5; // 5% grid (smaller = finer grid, larger = coarser grid)
+const MIN_MARGIN = 5; // Minimum margin from edges (%)
+
+// Calculate grid divisions (number of cells in each dimension)
+const GRID_DIVISIONS = 100 / GRID_SIZE;
+
 // Default settings
 const defaultSettings = {
     theme: 'light',
@@ -93,7 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // First, try to load settings from sync storage
             let syncData = {};
             if (chrome.storage.sync) {
-                syncData = await chrome.storage.sync.get(['settings', 'groupsLocation']);
+                syncData = await chrome.storage.sync.get(['settings', 'groupsLocation', 'groups']);
             }
             
             // Load settings
@@ -107,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log('Groups loaded from Chrome local storage');
             } else {
                 // Try to get groups from sync storage first
-                if (chrome.storage.sync && syncData.groups) {
+                if (chrome.storage.sync && syncData.groups && syncData.groups.length > 0) {
                     currentGroups = syncData.groups;
                     console.log('Groups loaded from Chrome sync storage');
                 } else {
@@ -236,11 +244,11 @@ function renderGroups() {
     });
 }
 
-// Function to position elements relative to viewport using percentages (matching newtab.js)
+// Function to position elements relative to viewport using percentages
+// This ensures compatibility between newtab.js and editor.js
 function calculatePosition(x, y) {
-    // Get screen dimensions
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    // For editor.js, we need to match the viewport percentage calculation used in newtab.js
+    // This ensures coordinates are stored identically in both places
     
     // Handle legacy format (numbers or strings with percentages)
     let percentX, percentY;
@@ -252,7 +260,11 @@ function calculatePosition(x, y) {
     // Handle numeric values (convert to percentage)
     else {
         const numX = parseFloat(x);
-        percentX = !isNaN(numX) ? numX / screenWidth : 0.5; // Default to center if invalid
+        // Treat numeric values as percentages (values should be 0-100)
+        percentX = !isNaN(numX) ? numX / 100 : 0.5; // Default to center if invalid
+        
+        // Snap to grid using GRID_DIVISIONS constant
+        percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
     
     if (typeof y === 'string' && y.endsWith('%')) {
@@ -261,14 +273,24 @@ function calculatePosition(x, y) {
     // Handle numeric values (convert to percentage)
     else {
         const numY = parseFloat(y);
-        percentY = !isNaN(numY) ? numY / screenHeight : 0.5; // Default to center if invalid
+        // Treat numeric values as percentages (values should be 0-100) 
+        percentY = !isNaN(numY) ? numY / 100 : 0.5; // Default to center if invalid
+        
+        // Snap to grid using GRID_DIVISIONS constant
+        percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
     
-    // Ensure percentages are within bounds
-    percentX = Math.max(0, Math.min(1, percentX));
-    percentY = Math.max(0, Math.min(1, percentY));
+    // Apply min margin from the constant
+    const marginPercent = MIN_MARGIN / 100;
     
-    // Calculate absolute position based on current screen size
+    // Ensure percentages are within bounds
+    percentX = Math.max(marginPercent, Math.min(1 - marginPercent, percentX));
+    percentY = Math.max(marginPercent, Math.min(1 - marginPercent, percentY));
+    
+    // Calculate absolute position based on viewport size (same as newtab.js)
+    // This is important for consistency between editor and newtab
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     const newX = percentX * screenWidth;
     const newY = percentY * screenHeight;
     
@@ -1185,27 +1207,31 @@ function handleMouseMove(e) {
     const dx = e.clientX - initialX;
     const dy = e.clientY - initialY;
     
-    // Get screen dimensions for percentage calculation
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    // Get dimensions for percentage calculation
+    const containerWidth = groupsContainer.clientWidth;
+    const containerHeight = groupsContainer.clientHeight;
     
     // Calculate raw position
     let newX = offsetX + dx;
     let newY = offsetY + dy;
     
-    // Convert to percentages
-    let percentX = newX / screenWidth;
-    let percentY = newY / screenHeight;
+    // Convert to percentages relative to the container
+    let percentX = newX / containerWidth;
+    let percentY = newY / containerHeight;
     
-    // Snap to 5% grid (0.05 increment)
+    // Snap to grid if drag is enabled
     if (dragEnabled) {
-        percentX = Math.round(percentX * 20) / 20;
-        percentY = Math.round(percentY * 20) / 20;
+        // Use the configured grid divisions from the GRID_SIZE variable
+        percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
+        percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
     
+    // Min margin as percentage (convert from percent to decimal)
+    const marginPercent = MIN_MARGIN / 100;
+    
     // Ensure percentages are within bounds
-    percentX = Math.max(0.05, Math.min(0.95, percentX));
-    percentY = Math.max(0.05, Math.min(0.95, percentY));
+    percentX = Math.max(marginPercent, Math.min(1 - marginPercent, percentX));
+    percentY = Math.max(marginPercent, Math.min(1 - marginPercent, percentY));
     
     // Apply snapped position as percentages
     activeGroup.style.left = `${percentX * 100}%`;
@@ -1226,17 +1252,24 @@ function updateGroupPosition(index, x, y) {
     const numX = parseInt(x, 10);
     const numY = parseInt(y, 10);
     
-    // Calculate percentages based on screen dimensions
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    // Get dimensions based on the container, not the window
+    const containerWidth = groupsContainer.clientWidth;
+    const containerHeight = groupsContainer.clientHeight;
     
     // Convert absolute positions to percentages
-    let percentX = numX / screenWidth;
-    let percentY = numY / screenHeight;
+    let percentX = numX / containerWidth;
+    let percentY = numY / containerHeight;
     
-    // Ensure percentages are within bounds (0.05-0.95)
-    percentX = Math.max(0.05, Math.min(0.95, percentX));
-    percentY = Math.max(0.05, Math.min(0.95, percentY));
+    // Snap to grid using GRID_DIVISIONS from the constant
+    percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
+    percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
+    
+    // Use min margin from the constant
+    const marginPercent = MIN_MARGIN / 100;
+    
+    // Ensure percentages are within bounds
+    percentX = Math.max(marginPercent, Math.min(1 - marginPercent, percentX));
+    percentY = Math.max(marginPercent, Math.min(1 - marginPercent, percentY));
     
     // Store position as percentage strings
     currentGroups[index].x = `${percentX * 100}%`;
