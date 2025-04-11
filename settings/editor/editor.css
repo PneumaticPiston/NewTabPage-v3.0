@@ -515,8 +515,8 @@ header h1 {
 }
 
 .popup-content {
-    background-color: var(--group-background-color, white);
-    color: var(--text-color, black);
+    background-color: var(--all-background-color);
+    color: var(--text-color);
     padding: 20px;
     border-radius: 8px;
     min-width: 300px;
@@ -524,7 +524,8 @@ header h1 {
     max-width: 500px;
     width: 90%;
     max-height: 80%;
-    overflow-y: scroll;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .popup-content h2 {
@@ -536,15 +537,10 @@ header h1 {
     width: calc(100% - 16px);
     padding: 8px;
     margin-bottom: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
     color: var(--text-color);
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
-.popup-content input::placeholder {
-    color: var(--text-color);
-    opacity: 0.6;
+    background-color: var(--all-background-color);
 }
 
 .popup-buttons {
@@ -577,48 +573,37 @@ header h1 {
     gap: 10px;
     margin-bottom: 10px;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
-    background-color: #f9f9f9;
+    background-color: var(--all-background-color);
     transition: background-color 0.2s;
 }
 
 .link-editor:hover {
-    background-color: #f0f0f0;
+    background-color: var(--group-background-color);
 }
 
 .link-editor input {
     flex: 1;
     padding: 5px;
-    border: 1px solid #ddd;
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
     color: var(--text-color);
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
-.link-editor input::placeholder {
-    color: var(--text-color);
-    opacity: 0.6;
-}
-
-.link-index {
-    width: 60px;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.8);
-    color: var(--text-color);
-    cursor: pointer;
-    font-weight: bold;
-    text-align: center;
+    background-color: var(--all-background-color);
 }
 
 .link-title {
+    color: var(--text-color);
     min-width: 120px;
+    background-color: var(--all-background-color);
+    border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .link-url {
-    min-width: 180px;
+    color: var(--text-color);
+    min-width: 120px;
+    background-color: var(--all-background-color);
+    border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .remove-link-btn {
@@ -824,9 +809,9 @@ header h1 {
 .form-group input {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: var(--all-background-color);
     color: var(--text-color);
 }
 

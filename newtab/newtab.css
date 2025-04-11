@@ -196,7 +196,17 @@ body {
     max-width: 100%;
 }
 
+.link-image {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 20%;
+}
+
+.grid-link-title {
+}
+
 .group-header {
+    user-select: none;
     font-size: 14px;
     font-weight: bold;
     padding: 5px 10px;
@@ -223,7 +233,7 @@ body {
 
 .link-grid {
     width: 70px;
-    height: 80px;
+    height: 85px;
     padding: 6px;
     border-radius: 5px;
     display: flex;
@@ -448,5 +458,15 @@ body {
     background-color: var(--accent-color);
     transform: scale(1.1) rotate(45deg);
     transform-origin: center;
+}
+
+ul {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-left: 0;
+    border-left-width: 0;
+    display: block;
+    list-style-type: none;
 }
 

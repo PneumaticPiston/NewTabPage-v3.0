@@ -283,15 +283,15 @@ const newLink = {
     stack: function(title, url, favicon) {
         return `
             <li href="${url}" class="link-stack">
-                <a href="${url}"><img src="${favicon}"/>${title}</a>
+                <a href="${url}"><img class="link-image" src="${favicon}"/>${title}</a>
             </li>
         `;
     },
     grid: function(title, url, favicon) {
         return `
             <a href="${url}" class="link-grid">
-                <img src="${favicon}"/>
-                <span>${title}</span>
+                <img class="link-image" src="${favicon}"/>
+                <span class="grid-link-title">${title}</span>
             </a>
         `;
     },
@@ -722,7 +722,7 @@ function initializeHeaderLinks() {
     }
 }
 
-// Initialize apps dropdown
+/// Initialize apps dropdown
 function initializeAppsDropdown() {
     const appsToggle = document.getElementById('apps-toggle');
     const appsDropdown = document.getElementById('apps-dropdown');
@@ -750,9 +750,19 @@ function initializeAppsDropdown() {
             appItem.className = 'app-item';
             
             const appIcon = document.createElement('img');
-            appIcon.src = app.icon;
+            // Use getFavicon instead of direct icon URL
+            appIcon.src = getFavicon(app.url);
             appIcon.alt = app.name;
             appIcon.className = 'app-icon';
+            
+            // Handle icon load error
+            appIcon.onerror = function() {
+                // If the icon fails to load and it's different from the original icon URL,
+                // try the original icon URL as fallback
+                if (appIcon.src !== app.icon) {
+                    appIcon.src = app.icon;
+                }
+            };
             
             const appName = document.createElement('span');
             appName.textContent = app.name;
@@ -926,15 +936,18 @@ function handleWindowResize() {
 }
 
 /**
- * Get favicon for a URL with fallbacks for offline use
+ * Get favicon for any URL with minimal exceptions but proper Google service handling
  * @param {string} url - URL to get favicon for
- * @return {string} - URL or data URI of favicon
+ * @return {string} - URL of favicon or default icon
  */
 function getFavicon(url) {
+    // Default icon as SVG data URI if all else fails
+    const DEFAULT_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+    
     try {
         // Return default icon if URL is empty
         if (!url || url.trim() === '') {
-            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+            return DEFAULT_ICON;
         }
         
         // Make sure URL is properly formatted with protocol
@@ -942,60 +955,64 @@ function getFavicon(url) {
             url = 'https://' + url;
         }
         
-        // Extract domain, handling potential errors
-        let domain;
+        // Extract domain information
+        let parsedUrl;
         try {
-            // Parse URL and extract hostname
-            const urlObj = new URL(url);
-            domain = urlObj.hostname;
-            
-            // Remove 'www.' prefix if present for consistency
-            if (domain.startsWith('www.')) {
-                domain = domain.substring(4);
-            }
+            parsedUrl = new URL(url);
         } catch (e) {
-            console.error('Invalid URL format:', url);
-            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+            console.error('Invalid URL format:', url, e);
+            return DEFAULT_ICON;
         }
         
-        // Handle Google services with specific favicons
-        if (domain === 'google.com' || domain.endsWith('.google.com') || domain === 'gmail.com') {
-            // For Google Drive
-            if (domain === 'drive.google.com') {
-                return 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png';
-            }
-            // For Gmail
-            else if (domain === 'mail.google.com' || domain === 'gmail.com') {
-                return 'https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_32dp.png';
-            }
-            // For Google Calendar
-            else if (domain === 'calendar.google.com') {
-                return 'https://ssl.gstatic.com/calendar/images/favicon_v2014_32.png';
-            }
-            // For Google Docs
-            else if (domain === 'docs.google.com') {
-                return 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico';
-            }
-            // Default Google favicon
-            else {
-                return 'https://www.google.com/favicon.ico';
-            }
+        const domain = parsedUrl.hostname;
+        
+        // Create a local favicon cache for this session if it doesn't exist
+        if (!window.faviconCache) {
+            window.faviconCache = new Map();
+        }
+        
+        // Return cached favicon if available
+        if (window.faviconCache.has(domain)) {
+            return window.faviconCache.get(domain);
         }
         
         // Check for offline mode
         if (!navigator.onLine) {
-            // Default icon for offline mode
-            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+            return DEFAULT_ICON;
         }
         
-        // Try direct favicon access first (most reliable)
-        return `https://${domain}/favicon.ico`;
+        // Special handling just for Google services that need specific icons
+        // These are the only exceptions we'll maintain explicitly
+        const googleServiceIcons = {
+            'mail.google.com': 'https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_32dp.png',
+            'drive.google.com': 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png',
+            'docs.google.com': 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico',
+            'sheets.google.com': 'https://ssl.gstatic.com/docs/spreadsheets/images/favicon_jfk2.png',
+            'slides.google.com': 'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico',
+            'calendar.google.com': 'https://ssl.gstatic.com/calendar/images/favicon_v2014_32.png',
+            'meet.google.com': 'https://www.gstatic.com/meet/favicon_meet_2023_32dp.png',
+            'chat.google.com': 'https://www.gstatic.com/chat/favicon_chat_32px.png',
+            'classroom.google.com': 'https://ssl.gstatic.com/classroom/favicon.png',
+            'keep.google.com': 'https://ssl.gstatic.com/keep/icon_2020q4v2_32dp.png'
+        };
         
-        // Alternative approach with Google's favicon service:
-        // The important part is to ensure we pass the full domain correctly
-        // return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+        // Check if this is a Google service with known icon
+        if (googleServiceIcons[domain]) {
+            const iconUrl = googleServiceIcons[domain];
+            window.faviconCache.set(domain, iconUrl);
+            return iconUrl;
+        }
+        
+        // For non-special cases, use Google's favicon service
+        // Using sz=64 parameter for higher quality icons when available
+        const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        
+        // Cache the result for future use
+        window.faviconCache.set(domain, faviconUrl);
+        
+        return faviconUrl;
     } catch (e) {
         console.warn('Error getting favicon for URL:', url, e);
-        return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+        return DEFAULT_ICON;
     }
 }
