@@ -39,7 +39,9 @@ const searchIcon = document.getElementById('search-icon');
 // Default settings
 const defaultSettings = {
     theme: 'light',
+    useCustomBackground: false,
     backgroundURL: '',
+    backgroundImage: null, // Base64 encoded image
     showSearch: true,
     showShortcuts: true,
     searchEngine: 'google',
@@ -133,49 +135,48 @@ const GROUPS = [// link groups
 */
 // Remove the hardcoded GROUPS array since we're loading from storage
 
-// Function to position elements relative to center of screen
+// Function to position elements relative to viewport using percentages
 function calculatePosition(x, y) {
     // Get screen dimensions
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
-    // Calculate center-relative coordinates
-    const centerX = screenWidth / 2;
-    const centerY = screenHeight / 2;
+    // Handle legacy format (numbers or strings with percentages)
+    let percentX, percentY;
     
-    // Handle percentage-based positions (backward compatibility)
-    let absX = x;
-    let absY = y;
-    
+    // Handle percentage strings
     if (typeof x === 'string' && x.endsWith('%')) {
-        absX = (parseFloat(x) / 100) * screenWidth;
+        percentX = parseFloat(x) / 100;
+    } 
+    // Handle numeric values (convert to percentage)
+    else {
+        const numX = parseFloat(x);
+        percentX = !isNaN(numX) ? numX / screenWidth : 0.5; // Default to center if invalid
     }
     
     if (typeof y === 'string' && y.endsWith('%')) {
-        absY = (parseFloat(y) / 100) * screenHeight;
+        percentY = parseFloat(y) / 100;
+    }
+    // Handle numeric values (convert to percentage)
+    else {
+        const numY = parseFloat(y);
+        percentY = !isNaN(numY) ? numY / screenHeight : 0.5; // Default to center if invalid
     }
     
-    // Convert to numbers if they're strings but not percentages
-    if (typeof absX === 'string') absX = parseFloat(absX);
-    if (typeof absY === 'string') absY = parseFloat(absY);
-    
-    // Handle NaN values
-    if (isNaN(absX)) absX = centerX;
-    if (isNaN(absY)) absY = centerY;
-    
-    // Convert from absolute to center-relative
-    const relX = absX - centerX;
-    const relY = absY - centerY;
-    
-    // Calculate scaled percentage position
-    const percentX = relX / centerX; // -1 to 1
-    const percentY = relY / centerY; // -1 to 1
+    // Ensure percentages are within bounds
+    percentX = Math.max(0, Math.min(1, percentX));
+    percentY = Math.max(0, Math.min(1, percentY));
     
     // Calculate absolute position based on current screen size
-    const newX = centerX + (percentX * centerX);
-    const newY = centerY + (percentY * centerY);
+    const newX = percentX * screenWidth;
+    const newY = percentY * screenHeight;
     
-    return { x: newX, y: newY };
+    return { 
+        x: newX, 
+        y: newY,
+        percentX: percentX,
+        percentY: percentY
+    };
 }
 
 const newGroup = {
@@ -201,13 +202,14 @@ const newGroup = {
         });
         group.appendChild(linkContainer);
 
-        // Calculate position relative to screen center
+        // Calculate position using percentage-based system
         const pos = calculatePosition(x, y);
 
-        // Ensure absolute positioning
+        // Ensure absolute positioning with percentages
         group.style.position = 'absolute';
-        group.style.top = pos.y + 'px';
-        group.style.left = pos.x + 'px';
+        group.style.top = `${pos.percentY * 100}%`;
+        group.style.left = `${pos.percentX * 100}%`;
+        group.style.transform = 'translate(-50%, -50%)';
         return group;
     },
     grid: function(links, x, y, rows, columns, title) {
@@ -232,13 +234,14 @@ const newGroup = {
         });
         group.appendChild(gridContainer);
 
-        // Calculate position relative to screen center
+        // Calculate position using percentage-based system
         const pos = calculatePosition(x, y);
 
-        // Ensure absolute positioning
+        // Ensure absolute positioning with percentages
         group.style.position = 'absolute';
-        group.style.top = pos.y + 'px';
-        group.style.left = pos.x + 'px';
+        group.style.top = `${pos.percentY * 100}%`;
+        group.style.left = `${pos.percentX * 100}%`;
+        group.style.transform = 'translate(-50%, -50%)';
         
         // Set up grid layout with specified rows and columns
         gridContainer.style.display = 'grid';
@@ -264,13 +267,14 @@ const newGroup = {
         group.classList.add('group');
         group.classList.add('single');
         
-        // Calculate position relative to screen center
+        // Calculate position using percentage-based system
         const pos = calculatePosition(x, y);
         
-        // Ensure absolute positioning
+        // Ensure absolute positioning with percentages
         group.style.position = 'absolute';
-        group.style.top = pos.y + 'px';
-        group.style.left = pos.x + 'px';
+        group.style.top = `${pos.percentY * 100}%`;
+        group.style.left = `${pos.percentX * 100}%`;
+        group.style.transform = 'translate(-50%, -50%)';
         return group;
     }
 };
@@ -407,9 +411,9 @@ function initializeSearch() {
             currentSettings.searchBarPosition.x,
             currentSettings.searchBarPosition.y
         );
-        searchContainer.style.top = `${pos.y}px`;
-        searchContainer.style.left = `${pos.x}px`;
-        searchContainer.style.transform = 'none'; // Remove default centering
+        searchContainer.style.top = `${pos.percentY * 100}%`;
+        searchContainer.style.left = `${pos.percentX * 100}%`;
+        searchContainer.style.transform = 'translate(-50%, -50%)';
     }
     
     // Show/hide based on settings
@@ -760,11 +764,25 @@ function initializeAppsDropdown() {
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Load settings first
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        if (typeof chrome !== 'undefined' && chrome.storage) {
             try {
-                const result = await chrome.storage.sync.get(['settings']);
-                if (result.settings) {
-                    currentSettings = result.settings;
+                // Load main settings from sync storage
+                const syncResult = await chrome.storage.sync.get(['settings']);
+                if (syncResult.settings) {
+                    currentSettings = syncResult.settings;
+                    
+                    // Load background image from local storage if we're using a custom background
+                    if (currentSettings.useCustomBackground) {
+                        try {
+                            const localResult = await chrome.storage.local.get(['backgroundImage']);
+                            if (localResult.backgroundImage) {
+                                currentSettings.backgroundImage = localResult.backgroundImage;
+                                console.log('Background image loaded from Chrome local storage');
+                            }
+                        } catch (localError) {
+                            console.warn('Error loading background image from local storage:', localError);
+                        }
+                    }
                 } else {
                     console.warn('No settings found in Chrome storage, using defaults');
                     currentSettings = {...defaultSettings};
@@ -779,6 +797,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const savedSettings = localStorage.getItem('settings');
                 if (savedSettings) {
                     currentSettings = JSON.parse(savedSettings);
+                    
+                    // Load background image from localStorage if we're using a custom background
+                    if (currentSettings.useCustomBackground) {
+                        try {
+                            const backgroundImage = localStorage.getItem('backgroundImage');
+                            if (backgroundImage) {
+                                currentSettings.backgroundImage = backgroundImage;
+                            }
+                        } catch (localError) {
+                            console.warn('Error loading background image from localStorage:', localError);
+                        }
+                    }
                 } else {
                     console.warn('No settings found in localStorage, using defaults');
                     currentSettings = {...defaultSettings};
@@ -865,26 +895,82 @@ function handleWindowResize() {
             currentSettings.searchBarPosition.x,
             currentSettings.searchBarPosition.y
         );
-        searchContainer.style.top = `${pos.y}px`;
-        searchContainer.style.left = `${pos.x}px`;
+        searchContainer.style.top = `${pos.percentY * 100}%`;
+        searchContainer.style.left = `${pos.percentX * 100}%`;
     }
 }
 
+/**
+ * Get favicon for a URL with fallbacks for offline use
+ * @param {string} url - URL to get favicon for
+ * @return {string} - URL or data URI of favicon
+ */
 function getFavicon(url) {
     try {
-        if (!url) return ''; // Return empty if url is empty
+        // Return default icon if URL is empty
+        if (!url || url.trim() === '') {
+            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+        }
         
-        // Make sure URL is properly formatted
+        // Make sure URL is properly formatted with protocol
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
             url = 'https://' + url;
         }
         
-        const domain = new URL(url).hostname;
-        // Use www subdomain to improve favicon hit rate
-        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+        // Extract domain, handling potential errors
+        let domain;
+        try {
+            // Parse URL and extract hostname
+            const urlObj = new URL(url);
+            domain = urlObj.hostname;
+            
+            // Remove 'www.' prefix if present for consistency
+            if (domain.startsWith('www.')) {
+                domain = domain.substring(4);
+            }
+        } catch (e) {
+            console.error('Invalid URL format:', url);
+            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+        }
+        
+        // Handle Google services with specific favicons
+        if (domain === 'google.com' || domain.endsWith('.google.com') || domain === 'gmail.com') {
+            // For Google Drive
+            if (domain === 'drive.google.com') {
+                return 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png';
+            }
+            // For Gmail
+            else if (domain === 'mail.google.com' || domain === 'gmail.com') {
+                return 'https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_32dp.png';
+            }
+            // For Google Calendar
+            else if (domain === 'calendar.google.com') {
+                return 'https://ssl.gstatic.com/calendar/images/favicon_v2014_32.png';
+            }
+            // For Google Docs
+            else if (domain === 'docs.google.com') {
+                return 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico';
+            }
+            // Default Google favicon
+            else {
+                return 'https://www.google.com/favicon.ico';
+            }
+        }
+        
+        // Check for offline mode
+        if (!navigator.onLine) {
+            // Default icon for offline mode
+            return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+        }
+        
+        // Try direct favicon access first (most reliable)
+        return `https://${domain}/favicon.ico`;
+        
+        // Alternative approach with Google's favicon service:
+        // The important part is to ensure we pass the full domain correctly
+        // return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
     } catch (e) {
         console.warn('Error getting favicon for URL:', url, e);
-        // Return a default icon instead of empty string
         return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
     }
 }

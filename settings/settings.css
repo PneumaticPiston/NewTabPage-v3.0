@@ -22,6 +22,10 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--background-color);
+    background-image: var(--background-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: var(--text-color);
     line-height: 1.6;
     padding: 20px;
@@ -31,10 +35,12 @@ body {
 .settings-container {
     max-width: var(--container-width);
     margin: 0 auto;
-    background: white;
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
     padding: 30px;
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 header {
@@ -54,7 +60,9 @@ h1 {
 h2 {
     font-size: 18px;
     margin-bottom: 15px;
-    color: var(--primary-color);
+    color: var(--text-color);
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--primary-color);
 }
 
 .header-links {
@@ -172,16 +180,18 @@ h2 {
 .background-inputs {
     margin-top: 10px;
     padding: 15px;
-    background-color: #f9f9f9;
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     display: none; /* Hidden by default */
 }
 
 .settings-section {
     margin-bottom: 30px;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .setting-group {
@@ -203,11 +213,18 @@ h2 {
     border-radius: var(--border-radius);
     font-size: 14px;
     transition: border-color var(--transition-speed);
+    color: var(--text-color);
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 .setting-control:focus {
     outline: none;
     border-color: var(--primary-color);
+}
+
+.setting-control::placeholder {
+    color: var(--text-color);
+    opacity: 0.6;
 }
 
 /* Theme Grid Styling */
@@ -223,7 +240,7 @@ h2 {
     flex-direction: column;
     align-items: center;
     padding: 10px;
-    background-color: #fff;
+    background-color: var(--background-color);
     border-radius: var(--border-radius);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: pointer;
@@ -271,8 +288,9 @@ h2 {
 .custom-theme-section {
     margin-top: 30px;
     padding: 15px;
-    background-color: #f5f5f5;
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: var(--border-radius);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .custom-theme-section h3 {

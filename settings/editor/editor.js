@@ -69,17 +69,67 @@ function applyThemeToEditor() {
             document.documentElement.style.setProperty('--accent-color', `var(--${theme}-accent, #e63946)`);
             document.documentElement.style.setProperty('--primary-color', `var(--${theme}-primary, #457b9d)`);
         }
+        
+        // Apply custom background if enabled
+        if (currentSettings.useCustomBackground) {
+            // Prefer stored image over URL
+            if (currentSettings.backgroundImage) {
+                document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundImage})`);
+            } else if (currentSettings.backgroundURL) {
+                document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundURL})`);
+            }
+        } else {
+            document.documentElement.style.setProperty('--background-image', 'none');
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Check if chrome.storage is available (running as extension)
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        if (typeof chrome !== 'undefined' && chrome.storage) {
             console.log('Chrome storage API available, loading data...');
-            const data = await chrome.storage.sync.get(['groups', 'settings']);
-            currentGroups = data.groups || [];
-            currentSettings = data.settings || {...defaultSettings};
+            
+            // First, try to load settings from sync storage
+            let syncData = {};
+            if (chrome.storage.sync) {
+                syncData = await chrome.storage.sync.get(['settings', 'groupsLocation']);
+            }
+            
+            // Load settings
+            currentSettings = syncData.settings || {...defaultSettings};
+            
+            // Load groups based on location indicator
+            if (syncData.groupsLocation === 'local') {
+                // Groups are stored in local storage
+                const localData = await chrome.storage.local.get(['groups']);
+                currentGroups = localData.groups || [];
+                console.log('Groups loaded from Chrome local storage');
+            } else {
+                // Try to get groups from sync storage first
+                if (chrome.storage.sync && syncData.groups) {
+                    currentGroups = syncData.groups;
+                    console.log('Groups loaded from Chrome sync storage');
+                } else {
+                    // Fallback to local storage
+                    const localData = await chrome.storage.local.get(['groups']);
+                    currentGroups = localData.groups || [];
+                    console.log('Groups loaded from Chrome local storage (fallback)');
+                }
+            }
+            
+            // Load background image from local storage if we're using a custom background
+            if (currentSettings.useCustomBackground) {
+                try {
+                    const localResult = await chrome.storage.local.get(['backgroundImage']);
+                    if (localResult.backgroundImage) {
+                        currentSettings.backgroundImage = localResult.backgroundImage;
+                        console.log('Background image loaded from Chrome local storage');
+                    }
+                } catch (localError) {
+                    console.warn('Error loading background image from local storage:', localError);
+                }
+            }
         } else {
             // Fallback for development/testing environment
             console.warn('Chrome storage API not available, using localStorage fallback');
@@ -87,6 +137,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const savedSettings = localStorage.getItem('settings');
             currentGroups = savedGroups ? JSON.parse(savedGroups) : [];
             currentSettings = savedSettings ? JSON.parse(savedSettings) : {...defaultSettings};
+            
+            // Load background image from localStorage if we're using a custom background
+            if (currentSettings.useCustomBackground) {
+                try {
+                    const backgroundImage = localStorage.getItem('backgroundImage');
+                    if (backgroundImage) {
+                        currentSettings.backgroundImage = backgroundImage;
+                    }
+                } catch (localError) {
+                    console.warn('Error loading background image from localStorage:', localError);
+                }
+            }
         }
         
         // Ensure headerLinks exists
@@ -99,66 +161,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Initialize search bar position
         if (currentSettings.searchBarPosition) {
-            // Use the same positioning calculation as groups
-            const pos = calculatePosition(
-                currentSettings.searchBarPosition.x,
-                currentSettings.searchBarPosition.y
-            );
-            searchEditor.style.top = `${pos.y}px`;
-            searchEditor.style.left = `${pos.x}px`;
-            searchEditor.style.transform = 'none'; // Remove default centering
+            // Handle both legacy and new percentage formats
+            if (typeof currentSettings.searchBarPosition.x === 'string' && 
+                currentSettings.searchBarPosition.x.endsWith('%') &&
+                typeof currentSettings.searchBarPosition.y === 'string' && 
+                currentSettings.searchBarPosition.y.endsWith('%')) {
+                // Direct percentage values
+                searchEditor.style.top = currentSettings.searchBarPosition.y;
+                searchEditor.style.left = currentSettings.searchBarPosition.x;
+            } else {
+                // Legacy format - convert to percentages
+                const pos = calculatePosition(
+                    currentSettings.searchBarPosition.x,
+                    currentSettings.searchBarPosition.y
+                );
+                searchEditor.style.top = `${pos.percentY * 100}%`;
+                searchEditor.style.left = `${pos.percentX * 100}%`;
+            }
+            // Apply transform for centering
+            searchEditor.style.transform = 'translate(-50%, -50%)';
         }
         
         // Show/hide search bar based on settings
         searchEditor.style.display = currentSettings.showSearch ? 'block' : 'none';
-        
-        // Initialize header editor
-        const headerEditor = document.getElementById('chrome-header-editor');
-        if (headerEditor) {
-            // Initialize drag events for header
-            const headerHandle = headerEditor.querySelector('.editor-handle');
-            if (headerHandle) {
-                headerHandle.addEventListener('mousedown', function(e) {
-                    if (!dragEnabled) return;
-                    
-                    e.preventDefault();
-                    
-                    // Initial positions
-                    initialX = e.clientX;
-                    initialY = e.clientY;
-                    
-                    // Current position
-                    const style = window.getComputedStyle(headerEditor);
-                    offsetX = parseInt(style.left) || 0;
-                    offsetY = parseInt(style.top) || 0;
-                    
-                    // Make sure it's using absolute positioning
-                    headerEditor.style.position = 'absolute';
-                    headerEditor.style.transform = 'none';
-                    
-                    // Add mousemove and mouseup event listeners
-                    document.addEventListener('mousemove', moveHeaderBar);
-                    document.addEventListener('mouseup', stopMoveHeaderBar);
-                });
-            }
-        }
-        
-        function moveHeaderBar(e) {
-            e.preventDefault();
-            
-            // Calculate new position
-            const dx = e.clientX - initialX;
-            const dy = e.clientY - initialY;
-            
-            headerEditor.style.top = `${offsetY + dy}px`;
-            headerEditor.style.left = `${offsetX + dx}px`;
-        }
-        
-        function stopMoveHeaderBar() {
-            // Remove event listeners
-            document.removeEventListener('mousemove', moveHeaderBar);
-            document.removeEventListener('mouseup', stopMoveHeaderBar);
-        }
         
         // Initialize drag events for search bar
         initSearchBarDrag();
@@ -183,12 +208,23 @@ function handleWindowResize() {
     
     // Reposition search editor
     if (currentSettings.searchBarPosition) {
-        const pos = calculatePosition(
-            currentSettings.searchBarPosition.x,
-            currentSettings.searchBarPosition.y
-        );
-        searchEditor.style.top = `${pos.y}px`;
-        searchEditor.style.left = `${pos.x}px`;
+        // Handle direct percentage values
+        if (typeof currentSettings.searchBarPosition.x === 'string' && 
+            currentSettings.searchBarPosition.x.endsWith('%') &&
+            typeof currentSettings.searchBarPosition.y === 'string' && 
+            currentSettings.searchBarPosition.y.endsWith('%')) {
+            // Use percentages directly
+            searchEditor.style.top = currentSettings.searchBarPosition.y;
+            searchEditor.style.left = currentSettings.searchBarPosition.x;
+        } else {
+            // Legacy format - calculate percentages
+            const pos = calculatePosition(
+                currentSettings.searchBarPosition.x,
+                currentSettings.searchBarPosition.y
+            );
+            searchEditor.style.top = `${pos.percentY * 100}%`;
+            searchEditor.style.left = `${pos.percentX * 100}%`;
+        }
     }
 }
 
@@ -200,49 +236,48 @@ function renderGroups() {
     });
 }
 
-// Function to position elements relative to center of screen (matching newtab.js)
+// Function to position elements relative to viewport using percentages (matching newtab.js)
 function calculatePosition(x, y) {
     // Get screen dimensions
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     
-    // Calculate center-relative coordinates
-    const centerX = screenWidth / 2;
-    const centerY = screenHeight / 2;
+    // Handle legacy format (numbers or strings with percentages)
+    let percentX, percentY;
     
-    // Handle percentage-based positions (backward compatibility)
-    let absX = x;
-    let absY = y;
-    
+    // Handle percentage strings
     if (typeof x === 'string' && x.endsWith('%')) {
-        absX = (parseFloat(x) / 100) * screenWidth;
+        percentX = parseFloat(x) / 100;
+    } 
+    // Handle numeric values (convert to percentage)
+    else {
+        const numX = parseFloat(x);
+        percentX = !isNaN(numX) ? numX / screenWidth : 0.5; // Default to center if invalid
     }
     
     if (typeof y === 'string' && y.endsWith('%')) {
-        absY = (parseFloat(y) / 100) * screenHeight;
+        percentY = parseFloat(y) / 100;
+    }
+    // Handle numeric values (convert to percentage)
+    else {
+        const numY = parseFloat(y);
+        percentY = !isNaN(numY) ? numY / screenHeight : 0.5; // Default to center if invalid
     }
     
-    // Convert to numbers if they're strings but not percentages
-    if (typeof absX === 'string') absX = parseFloat(absX);
-    if (typeof absY === 'string') absY = parseFloat(absY);
-    
-    // Handle NaN values
-    if (isNaN(absX)) absX = centerX;
-    if (isNaN(absY)) absY = centerY;
-    
-    // Convert from absolute to center-relative
-    const relX = absX - centerX;
-    const relY = absY - centerY;
-    
-    // Calculate scaled percentage position
-    const percentX = relX / centerX; // -1 to 1
-    const percentY = relY / centerY; // -1 to 1
+    // Ensure percentages are within bounds
+    percentX = Math.max(0, Math.min(1, percentX));
+    percentY = Math.max(0, Math.min(1, percentY));
     
     // Calculate absolute position based on current screen size
-    const newX = centerX + (percentX * centerX);
-    const newY = centerY + (percentY * centerY);
+    const newX = percentX * screenWidth;
+    const newY = percentY * screenHeight;
     
-    return { x: newX, y: newY };
+    return { 
+        x: newX, 
+        y: newY,
+        percentX: percentX,
+        percentY: percentY
+    };
 }
 
 function createGroupElement(group, index) {
@@ -255,8 +290,9 @@ function createGroupElement(group, index) {
     
     // Always use absolute positioning to match the new tab page
     div.style.position = 'absolute';
-    div.style.top = `${pos.y}px`;
-    div.style.left = `${pos.x}px`;
+    div.style.top = `${pos.percentY * 100}%`;
+    div.style.left = `${pos.percentX * 100}%`;
+    div.style.transform = 'translate(-50%, -50%)';
     
     // Add draggable class and event only if drag is enabled
     if (dragEnabled) {
@@ -678,27 +714,51 @@ function saveGroupChanges() {
 function initSearchBarDrag() {
     const handle = searchEditor.querySelector('.editor-handle');
     
+    if (!handle) {
+        console.error('Search bar handle not found');
+        return;
+    }
+    
     handle.addEventListener('mousedown', function(e) {
         if (!dragEnabled) return;
         
         e.preventDefault();
         
-        // Initial positions
+        // Initial cursor positions
         initialX = e.clientX;
         initialY = e.clientY;
         
-        // Current position
-        const style = window.getComputedStyle(searchEditor);
-        offsetX = parseInt(style.left) || 0;
-        offsetY = parseInt(style.top) || 0;
+        // Get current element position
+        const rect = searchEditor.getBoundingClientRect();
         
-        // Make sure it's using absolute positioning
+        // Get current viewport dimensions
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        
+        // Calculate current position as percentages
+        let currentLeftPercent = (rect.left + rect.width / 2) / screenWidth;
+        let currentTopPercent = (rect.top + rect.height / 2) / screenHeight;
+        
+        // Store these for the drag calculation
+        offsetX = currentLeftPercent;
+        offsetY = currentTopPercent;
+        
+        // Store original transform
+        const originalTransform = searchEditor.style.transform;
+        
+        // Ensure absolute positioning
         searchEditor.style.position = 'absolute';
-        searchEditor.style.transform = 'none'; // Remove any transform
+        
+        // Show grid overlay for snap-to-grid
+        if (dragEnabled) {
+            gridOverlay.style.display = 'block';
+        }
         
         // Add mousemove and mouseup event listeners
         document.addEventListener('mousemove', moveSearchBar);
-        document.addEventListener('mouseup', stopMoveSearchBar);
+        document.addEventListener('mouseup', function() {
+            stopMoveSearchBar(originalTransform);
+        });
     });
 }
 
@@ -706,39 +766,67 @@ function initSearchBarDrag() {
 function moveSearchBar(e) {
     e.preventDefault();
     
-    // Calculate new position
-    const dx = e.clientX - initialX;
-    const dy = e.clientY - initialY;
+    // Get current viewport dimensions
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     
-    searchEditor.style.top = `${offsetY + dy}px`;
-    searchEditor.style.left = `${offsetX + dx}px`;
+    // Calculate mouse movement in percentage of screen
+    const dxPercent = (e.clientX - initialX) / screenWidth;
+    const dyPercent = (e.clientY - initialY) / screenHeight;
+    
+    // Calculate new percentage positions
+    let newPercentX = offsetX + dxPercent;
+    let newPercentY = offsetY + dyPercent;
+    
+    // Snap to grid if drag is enabled
+    if (dragEnabled) {
+        // Snap to 5% grid (0.05 increments)
+        newPercentX = Math.round(newPercentX * 20) / 20;
+        newPercentY = Math.round(newPercentY * 20) / 20;
+    }
+    
+    // Ensure percentages are within bounds (0.05-0.95)
+    newPercentX = Math.max(0.05, Math.min(0.95, newPercentX));
+    newPercentY = Math.max(0.05, Math.min(0.95, newPercentY));
+    
+    // Apply the new position
+    searchEditor.style.left = `${newPercentX * 100}%`;
+    searchEditor.style.top = `${newPercentY * 100}%`;
+    searchEditor.style.transform = 'translate(-50%, -50%)';
 }
 
 // Handle end of search bar movement
-function stopMoveSearchBar() {
+function stopMoveSearchBar(originalTransform) {
     // Remove event listeners
     document.removeEventListener('mousemove', moveSearchBar);
-    document.removeEventListener('mouseup', stopMoveSearchBar);
+    document.removeEventListener('mouseup', arguments.callee);
     
-    // Save the position
-    const left = parseInt(searchEditor.style.left);
-    const top = parseInt(searchEditor.style.top);
+    // Hide grid overlay
+    gridOverlay.style.display = 'none';
     
-    // Get screen dimensions
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
-    const centerX = screenWidth / 2;
-    const centerY = screenHeight / 2;
+    // Make sure transform is maintained for proper centering
+    searchEditor.style.transform = 'translate(-50%, -50%)';
     
-    // Calculate relative position to screen center
-    const relX = left - centerX;
-    const relY = top - centerY; 
+    // Get position as percentages from current style
+    let left = searchEditor.style.left;
+    let top = searchEditor.style.top;
     
-    // Update settings with new position in absolute coordinates
-    // This ensures consistency between newtab and editor pages
+    // Make sure we have values
+    if (!left || !top) {
+        console.error('Search bar position is missing');
+        return;
+    }
+    
+    // Make sure they're percentage-based
+    if (!left.endsWith('%') || !top.endsWith('%')) {
+        console.error('Search bar position is not in percentage format');
+        return;
+    }
+    
+    // Update settings with new position as percentages (preserve the % symbol)
     currentSettings.searchBarPosition = { 
-        x: centerX + relX, 
-        y: centerY + relY 
+        x: left, 
+        y: top 
     };
 }
 
@@ -756,6 +844,12 @@ if (document.getElementById('add-widget-button')) {
     document.getElementById('add-widget-button').addEventListener('click', function() {
         // Open widget menu
         const widgetMenu = document.getElementById('widget-menu');
+        
+        // Populate widget menu if it's not already populated
+        if (!widgetMenu.querySelector('.widget-group')) {
+            populateWidgetMenu();
+        }
+        
         if (widgetMenu.style.display === 'block') {
             widgetMenu.style.display = 'none';
         } else {
@@ -764,6 +858,81 @@ if (document.getElementById('add-widget-button')) {
             document.getElementById('add-options').style.display = 'none';
         }
     });
+}
+
+// Populate widget menu based on WIDGET_TYPES configuration
+function populateWidgetMenu() {
+    try {
+        const widgetMenu = document.getElementById('widget-menu');
+        if (!widgetMenu) return;
+        
+        // Clear existing content
+        widgetMenu.innerHTML = '';
+        
+        // Check if WIDGET_TYPES is defined (imported from widgets.js)
+        if (typeof WIDGET_TYPES === 'undefined') {
+            console.error('WIDGET_TYPES not defined, cannot populate widget menu');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'widget-error';
+            errorDiv.textContent = 'Widget configuration not available';
+            widgetMenu.appendChild(errorDiv);
+            return;
+        }
+        
+        // Create groups and widgets based on WIDGET_TYPES
+        for (const categoryKey in WIDGET_TYPES) {
+            const category = WIDGET_TYPES[categoryKey];
+            
+            // Create category group
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'widget-group';
+            
+            // Add title
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'widget-group-title';
+            titleDiv.textContent = category.title;
+            groupDiv.appendChild(titleDiv);
+            
+            // Create widget list container
+            const listDiv = document.createElement('div');
+            listDiv.className = 'widget-list';
+            
+            // Add widgets to list
+            for (const widgetKey in category.widgets) {
+                const widget = category.widgets[widgetKey];
+                
+                const widgetItemDiv = document.createElement('div');
+                widgetItemDiv.className = 'widget-item';
+                widgetItemDiv.dataset.widget = widget.id;
+                
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'widget-icon';
+                iconDiv.textContent = widget.icon;
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'widget-name';
+                nameDiv.textContent = widget.name;
+                
+                widgetItemDiv.appendChild(iconDiv);
+                widgetItemDiv.appendChild(nameDiv);
+                
+                // Add click handler for widget selection
+                widgetItemDiv.addEventListener('click', function() {
+                    // Handle widget selection - to be implemented
+                    console.log(`Selected widget: ${widget.id} (${widget.name})`);
+                    alert(`Widget ${widget.name} selected! Widget functionality will be implemented in a future update.`);
+                    document.getElementById('widget-menu').style.display = 'none';
+                });
+                
+                listDiv.appendChild(widgetItemDiv);
+            }
+            
+            groupDiv.appendChild(listDiv);
+            widgetMenu.appendChild(groupDiv);
+        }
+    } catch (error) {
+        console.error('Error populating widget menu:', error);
+    }
 }
 
 // Handle closing menus when clicking elsewhere
@@ -789,7 +958,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// New group button functionality
+// New group button functionality - show options menu
 newGroupBtn.addEventListener('click', function() {
     const optionsMenu = document.getElementById('add-options');
     if (optionsMenu.style.display === 'flex') {
@@ -804,17 +973,48 @@ saveChangesBtn.addEventListener('click', async () => {
     try {
         // Show feedback to user
         const saveButton = document.getElementById('save-changes-btn');
-        const originalText = saveButton.textContent;
-        saveButton.textContent = 'Saving...';
+        const originalText = saveButton.innerHTML;
+        saveButton.innerHTML = 'Saving...';
         
         // Check if chrome.storage is available (running as extension)
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-            // Save groups and settings to Chrome storage sync
-            await chrome.storage.sync.set({ 
-                groups: currentGroups,
-                settings: currentSettings
-            });
-            console.log('Data successfully saved to Chrome storage:', { groups: currentGroups, settings: currentSettings });
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            // To avoid QUOTA_BYTES_PER_ITEM error, save groups separately from settings
+            // and use local storage for larger items
+            
+            // 1. First, clean up the data by removing any unnecessary large objects
+            // We'll deep clone the groups to avoid modifying the original
+            const groupsToSave = JSON.parse(JSON.stringify(currentGroups));
+            
+            // 2. Store groups and settings separately to avoid hitting quota limit
+            if (chrome.storage.sync) {
+                try {
+                    // Try to save settings to sync storage
+                    await chrome.storage.sync.set({ settings: currentSettings });
+                    
+                    // Save groups to local storage to avoid quota issues
+                    await chrome.storage.local.set({ groups: groupsToSave });
+                    
+                    // Save a reference in sync storage that groups are in local storage
+                    await chrome.storage.sync.set({ groupsLocation: 'local' });
+                    
+                    console.log('Data successfully saved to Chrome storage (split between sync and local)');
+                } catch (syncError) {
+                    console.warn('Error saving to sync storage, falling back to local storage', syncError);
+                    
+                    // If sync fails, save everything to local storage
+                    await chrome.storage.local.set({ 
+                        groups: groupsToSave,
+                        settings: currentSettings,
+                        groupsLocation: 'local'
+                    });
+                }
+            } else {
+                // If sync is not available, use local
+                await chrome.storage.local.set({ 
+                    groups: groupsToSave,
+                    settings: currentSettings
+                });
+            }
         } else {
             // Fallback for development/testing environment
             localStorage.setItem('groups', JSON.stringify(currentGroups));
@@ -823,18 +1023,18 @@ saveChangesBtn.addEventListener('click', async () => {
         }
         
         // Update feedback
-        saveButton.textContent = 'Saved!';
+        saveButton.innerHTML = 'Saved!';
         
         // Reset button text after 2 seconds
         setTimeout(() => {
-            saveButton.textContent = originalText;
+            saveButton.innerHTML = originalText;
         }, 2000);
     } catch (error) {
         console.error('Error saving data:', error);
-        alert('Error saving. Please try again.');
+        alert(`Error saving data: ${error.message}`);
         
         // Reset button text
-        document.getElementById('save-changes-btn').textContent = 'Save Changes';
+        document.getElementById('save-changes-btn').innerHTML = '<i>💾</i>';
     }
 });
 
@@ -902,13 +1102,30 @@ function handleMouseDown(e) {
     initialX = e.clientX;
     initialY = e.clientY;
     
-    // Get current positions - handle if they're not set yet
+    // Get current positions as percentages
     const style = window.getComputedStyle(activeGroup);
-    const left = style.left === 'auto' ? 0 : parseInt(style.left);
-    const top = style.top === 'auto' ? 0 : parseInt(style.top);
+    const left = style.left;
+    const top = style.top;
     
-    offsetX = left;
-    offsetY = top;
+    // Get screen dimensions
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Convert percentages to pixels for drag calculation
+    if (left.endsWith('%')) {
+        offsetX = (parseFloat(left) / 100) * screenWidth;
+    } else {
+        offsetX = parseInt(left) || 0;
+    }
+    
+    if (top.endsWith('%')) {
+        offsetY = (parseFloat(top) / 100) * screenHeight;
+    } else {
+        offsetY = parseInt(top) || 0;
+    }
+    
+    // Store original transform
+    const originalTransform = activeGroup.style.transform;
     
     // Set to absolute positioning if not already
     activeGroup.style.position = 'absolute';
@@ -923,10 +1140,12 @@ function handleMouseDown(e) {
     
     // Add event listeners to document to handle mouse movements
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseup', function(upEvent) {
+        handleMouseUp(upEvent, originalTransform);
+    });
 }
 
-function handleMouseUp(e) {
+function handleMouseUp(e, originalTransform) {
     if (!activeGroup) return;
     
     // Clean up
@@ -937,22 +1156,23 @@ function handleMouseUp(e) {
     gridOverlay.style.display = 'none';
     ruleOfThirdsOverlay.style.display = dragEnabled ? 'block' : 'none';
     
+    // Ensure transform is maintained for proper centering
+    activeGroup.style.transform = 'translate(-50%, -50%)';
+    
     // Update position in data (already snapped to grid)
     const index = parseInt(activeGroup.dataset.index);
     if (index >= 0 && index < currentGroups.length) {
         let left = activeGroup.style.left;
         let top = activeGroup.style.top;
         
-        // Remove 'px' suffix
-        left = left.replace('px', '');
-        top = top.replace('px', '');
-        
-        updateGroupPosition(index, left, top);
+        // Store as percentage values directly
+        currentGroups[index].x = left;
+        currentGroups[index].y = top;
     }
     
     // Remove document event listeners
     document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('mouseup', arguments.callee);
     
     activeGroup = null;
 }
@@ -965,39 +1185,62 @@ function handleMouseMove(e) {
     const dx = e.clientX - initialX;
     const dy = e.clientY - initialY;
     
+    // Get screen dimensions for percentage calculation
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
     // Calculate raw position
     let newX = offsetX + dx;
     let newY = offsetY + dy;
     
-    // Snap to 10px grid
-    newX = Math.round(newX / 10) * 10;
-    newY = Math.round(newY / 10) * 10;
+    // Convert to percentages
+    let percentX = newX / screenWidth;
+    let percentY = newY / screenHeight;
     
-    // Apply snapped position
-    activeGroup.style.left = `${newX}px`;
-    activeGroup.style.top = `${newY}px`;
+    // Snap to 5% grid (0.05 increment)
+    if (dragEnabled) {
+        percentX = Math.round(percentX * 20) / 20;
+        percentY = Math.round(percentY * 20) / 20;
+    }
+    
+    // Ensure percentages are within bounds
+    percentX = Math.max(0.05, Math.min(0.95, percentX));
+    percentY = Math.max(0.05, Math.min(0.95, percentY));
+    
+    // Apply snapped position as percentages
+    activeGroup.style.left = `${percentX * 100}%`;
+    activeGroup.style.top = `${percentY * 100}%`;
+    activeGroup.style.transform = 'translate(-50%, -50%)';
 }
 
 function updateGroupPosition(index, x, y) {
+    // If values are already percentages, use them directly
+    if (typeof x === 'string' && x.endsWith('%') && 
+        typeof y === 'string' && y.endsWith('%')) {
+        currentGroups[index].x = x;
+        currentGroups[index].y = y;
+        return;
+    }
+    
     // Parse values to ensure they're numeric
     const numX = parseInt(x, 10);
     const numY = parseInt(y, 10);
     
-    // Convert to a common coordinate space (relative to screen center)
+    // Calculate percentages based on screen dimensions
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    const centerX = screenWidth / 2;
-    const centerY = screenHeight / 2;
     
-    // Calculate relative position to screen center
-    // Convert from screen-absolute to center-relative coordinates
-    const relX = numX - centerX;
-    const relY = numY - centerY;
+    // Convert absolute positions to percentages
+    let percentX = numX / screenWidth;
+    let percentY = numY / screenHeight;
     
-    // Store the exact coordinates from center, which will be properly
-    // recalculated when displayed in either the newtab or editor page
-    currentGroups[index].x = centerX + relX;
-    currentGroups[index].y = centerY + relY;
+    // Ensure percentages are within bounds (0.05-0.95)
+    percentX = Math.max(0.05, Math.min(0.95, percentX));
+    percentY = Math.max(0.05, Math.min(0.95, percentY));
+    
+    // Store position as percentage strings
+    currentGroups[index].x = `${percentX * 100}%`;
+    currentGroups[index].y = `${percentY * 100}%`;
 }
 
 function getFavicon(url) {
@@ -1010,7 +1253,15 @@ function getFavicon(url) {
         }
         
         const domain = new URL(url).hostname;
-        // Use smaller favicon size and better error handling
+        
+        // Handle Google services specially
+        if (domain.includes('google.com')) {
+            // Extract the specific Google service
+            const service = domain.split('.')[0];
+            return `https://www.google.com/s2/favicons?domain=${service}.google.com&sz=32`;
+        }
+        
+        // Default handling for other domains
         return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
     } catch (e) {
         console.warn('Error getting favicon for URL:', url, e);

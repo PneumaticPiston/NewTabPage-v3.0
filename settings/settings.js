@@ -179,6 +179,8 @@ function updateBackgroundPreview() {
         bgPreviewImg.src = url;
         bgPreviewImg.style.display = 'block';
         
+        // Store the URL in settings
+        currentSettings.backgroundURL = url;
         // Clear any stored image data
         currentSettings.backgroundImage = null;
     }
@@ -197,12 +199,35 @@ function toggleBackgroundInputs() {
 async function loadSettings() {
     try {
         // Try to load from Chrome storage or use localStorage as fallback
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-            const result = await chrome.storage.sync.get(['settings']);
-            currentSettings = result.settings || {...defaultSettings};
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            // Load main settings from sync storage
+            const syncResult = await chrome.storage.sync.get(['settings']);
+            currentSettings = syncResult.settings || {...defaultSettings};
+            
+            // Load background image from local storage if available
+            try {
+                const localResult = await chrome.storage.local.get(['backgroundImage']);
+                if (localResult.backgroundImage) {
+                    currentSettings.backgroundImage = localResult.backgroundImage;
+                    console.log('Background image loaded from Chrome local storage');
+                }
+            } catch (localError) {
+                console.warn('Error loading background image from local storage:', localError);
+            }
         } else {
+            // Load settings from localStorage
             const savedSettings = localStorage.getItem('settings');
             currentSettings = savedSettings ? JSON.parse(savedSettings) : {...defaultSettings};
+            
+            // Load background image separately
+            try {
+                const backgroundImage = localStorage.getItem('backgroundImage');
+                if (backgroundImage) {
+                    currentSettings.backgroundImage = backgroundImage;
+                }
+            } catch (localError) {
+                console.warn('Error loading background image from localStorage:', localError);
+            }
         }
         
         // Initialize custom themes if not present
@@ -273,7 +298,8 @@ async function saveSettings() {
             theme: themeId,
             useCustomBackground: useCustomBgToggle.checked,
             backgroundURL: customBgInput.value,
-            // backgroundImage is already set in the handleFileUpload function
+            // Make sure backgroundImage is properly carried over or set to null
+            backgroundImage: currentSettings.backgroundImage || null,
             showSearch: showSearchToggle.checked,
             showShortcuts: showShortcutsToggle.checked,
             searchEngine: searchEngineSelect.value,
@@ -300,20 +326,44 @@ async function saveSettings() {
         // Update the current settings
         currentSettings = updatedSettings;
         
+        // Extract backgroundImage for separate storage to avoid exceeding quota limits
+        const backgroundImage = currentSettings.backgroundImage;
+        const settingsWithoutImage = { ...currentSettings, backgroundImage: null };
+        
         // Save to Chrome storage or localStorage as fallback
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        if (typeof chrome !== 'undefined' && chrome.storage) {
             try {
-                await chrome.storage.sync.set({ settings: currentSettings });
-                console.log('Settings saved to Chrome storage:', currentSettings);
+                // Save main settings to sync storage without the image
+                await chrome.storage.sync.set({ settings: settingsWithoutImage });
+                console.log('Settings saved to Chrome sync storage');
+                
+                // If we have a background image, save it separately to local storage
+                if (backgroundImage) {
+                    await chrome.storage.local.set({ backgroundImage: backgroundImage });
+                    console.log('Background image saved to Chrome local storage');
+                } else {
+                    // Clear any existing background image if none is set
+                    await chrome.storage.local.remove('backgroundImage');
+                }
             } catch (chromeError) {
                 console.error('Error saving to Chrome storage:', chromeError);
                 // Try localStorage as fallback
-                localStorage.setItem('settings', JSON.stringify(currentSettings));
-                console.log('Settings saved to localStorage (fallback):', currentSettings);
+                localStorage.setItem('settings', JSON.stringify(settingsWithoutImage));
+                if (backgroundImage) {
+                    localStorage.setItem('backgroundImage', backgroundImage);
+                } else {
+                    localStorage.removeItem('backgroundImage');
+                }
+                console.log('Settings saved to localStorage (fallback)');
             }
         } else {
-            localStorage.setItem('settings', JSON.stringify(currentSettings));
-            console.log('Settings saved to localStorage:', currentSettings);
+            localStorage.setItem('settings', JSON.stringify(settingsWithoutImage));
+            if (backgroundImage) {
+                localStorage.setItem('backgroundImage', backgroundImage);
+            } else {
+                localStorage.removeItem('backgroundImage');
+            }
+            console.log('Settings saved to localStorage');
         }
         
         // Show success message
@@ -335,6 +385,7 @@ function resetSettings() {
     
     useCustomBgToggle.checked = defaultSettings.useCustomBackground;
     customBgInput.value = defaultSettings.backgroundURL;
+    currentSettings.backgroundImage = null; // Explicitly clear background image
     bgPreviewImg.style.display = 'none';
     bgPreviewImg.src = '';
     fileNameDisplay.textContent = 'No file chosen';
@@ -587,6 +638,18 @@ function applyThemeToPage(themeId) {
         document.documentElement.style.setProperty('--accent-color', `var(--${themeId}-accent)`);
         document.documentElement.style.setProperty('--text-color', `var(--${themeId}-text)`);
         document.documentElement.style.setProperty('--background-color', `var(--${themeId}-background)`);
+    }
+    
+    // Apply custom background if enabled
+    if (currentSettings.useCustomBackground) {
+        // Prefer stored image over URL
+        if (currentSettings.backgroundImage) {
+            document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundImage})`);
+        } else if (currentSettings.backgroundURL) {
+            document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundURL})`);
+        }
+    } else {
+        document.documentElement.style.setProperty('--background-image', 'none');
     }
     
     // Apply high contrast if enabled

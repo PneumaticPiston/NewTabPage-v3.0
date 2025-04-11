@@ -10,13 +10,10 @@
 </head>
 <body>
     <header>
+        <a href="../settings.html" class="return-to-settings-btn">← Return to settings</a>
         <h1>Edit - New Tab</h1>
-        <p><a href="../settings.html">Return to settings</a></p>
-    </header>
-    
-    <!-- Chrome Header Component -->
-    <div id="chrome-header-editor" class="chrome-header-editor draggable">
-        <div class="editor-handle">Header Nav Bar</div>
+        
+        <!-- Header Nav Bar Integration -->
         <div class="header-nav-mock">
             <div class="nav-link-mock">Gmail</div>
             <div class="nav-link-mock">Photos</div>
@@ -28,7 +25,7 @@
             </div>
             <button id="edit-header-btn" class="edit-header-btn">Edit Header</button>
         </div>
-    </div>
+    </header>
     
     <!-- Search Bar Component - Only visible when enabled in settings -->
     <div id="search-editor" class="search-editor draggable">
@@ -60,63 +57,7 @@
     </div>
 
     <div id="widget-menu" class="widget-menu">
-        <div class="widget-group">
-            <div class="widget-group-title">Clock & Weather</div>
-            <div class="widget-list">
-                <div class="widget-item" data-widget="analog-clock">
-                    <div class="widget-icon">🕒</div>
-                    <div class="widget-name">Analog Clock</div>
-                </div>
-                <div class="widget-item" data-widget="digital-clock">
-                    <div class="widget-icon">⌚</div>
-                    <div class="widget-name">Digital Clock</div>
-                </div>
-                <div class="widget-item" data-widget="weather">
-                    <div class="widget-icon">☁️</div>
-                    <div class="widget-name">Weather</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="widget-group">
-            <div class="widget-group-title">Productivity</div>
-            <div class="widget-list">
-                <div class="widget-item" data-widget="todo">
-                    <div class="widget-icon">✓</div>
-                    <div class="widget-name">To-Do List</div>
-                </div>
-                <div class="widget-item" data-widget="notes">
-                    <div class="widget-icon">📝</div>
-                    <div class="widget-name">Notes</div>
-                </div>
-                <div class="widget-item" data-widget="calendar">
-                    <div class="widget-icon">📅</div>
-                    <div class="widget-name">Calendar</div>
-                </div>
-                <div class="widget-item" data-widget="timer">
-                    <div class="widget-icon">⏱️</div>
-                    <div class="widget-name">Timer</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="widget-group">
-            <div class="widget-group-title">Information</div>
-            <div class="widget-list">
-                <div class="widget-item" data-widget="news">
-                    <div class="widget-icon">📰</div>
-                    <div class="widget-name">News</div>
-                </div>
-                <div class="widget-item" data-widget="stocks">
-                    <div class="widget-icon">📈</div>
-                    <div class="widget-name">Stocks</div>
-                </div>
-                <div class="widget-item" data-widget="quote">
-                    <div class="widget-icon">💬</div>
-                    <div class="widget-name">Quote</div>
-                </div>
-            </div>
-        </div>
+        <!-- Widget menu will be dynamically populated based on WIDGET_TYPES -->
     </div>
 
     <!-- Combined popup for creating/editing groups -->
@@ -243,6 +184,8 @@
         </div>
     </div>
 
+    <!-- Include widgets.js to access WIDGET_TYPES -->
+    <script src="../../newtab/widgets.js"></script>
     <!-- Use script from file instead of inline -->
     <script src="editor-utils.js"></script>
 </body>
