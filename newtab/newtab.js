@@ -936,7 +936,7 @@ function handleWindowResize() {
 }
 
 /**
- * Get favicon for any URL with minimal exceptions but proper Google service handling
+ * Get favicon for any URL with proper handling for dynamic favicons like Google Calendar
  * @param {string} url - URL to get favicon for
  * @return {string} - URL of favicon or default icon
  */
@@ -971,7 +971,24 @@ function getFavicon(url) {
             window.faviconCache = new Map();
         }
         
-        // Return cached favicon if available
+        // Special handling for Google Calendar's dynamic favicon
+        if (domain === 'calendar.google.com') {
+            // Get today's date for the dynamic calendar icon
+            // Since Google Calendar changes its favicon to match the current date
+            const today = new Date();
+            const dateString = today.getDate().toString();
+            
+            // Either use a static calendar icon or a dynamically generated one
+            // Option 1: Use a generic calendar icon (doesn't show current date but always works)
+            const calendarGenericIcon = 'https://ssl.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_' + dateString + '_2x.png';
+            
+            // Cache with a timestamp so it refreshes daily
+            const cacheKey = `${domain}_${today.toDateString()}`;
+            window.faviconCache.set(cacheKey, calendarGenericIcon);
+            return calendarGenericIcon;
+        }
+        
+        // Return cached favicon if available for other domains
         if (window.faviconCache.has(domain)) {
             return window.faviconCache.get(domain);
         }
@@ -982,18 +999,17 @@ function getFavicon(url) {
         }
         
         // Special handling just for Google services that need specific icons
-        // These are the only exceptions we'll maintain explicitly
         const googleServiceIcons = {
             'mail.google.com': 'https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_32dp.png',
             'drive.google.com': 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png',
             'docs.google.com': 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico',
             'sheets.google.com': 'https://ssl.gstatic.com/docs/spreadsheets/images/favicon_jfk2.png',
             'slides.google.com': 'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico',
-            'calendar.google.com': 'https://ssl.gstatic.com/calendar/images/favicon_v2014_32.png',
             'meet.google.com': 'https://www.gstatic.com/meet/favicon_meet_2023_32dp.png',
             'chat.google.com': 'https://www.gstatic.com/chat/favicon_chat_32px.png',
             'classroom.google.com': 'https://ssl.gstatic.com/classroom/favicon.png',
             'keep.google.com': 'https://ssl.gstatic.com/keep/icon_2020q4v2_32dp.png'
+            // Calendar is handled separately above
         };
         
         // Check if this is a Google service with known icon
@@ -1004,7 +1020,6 @@ function getFavicon(url) {
         }
         
         // For non-special cases, use Google's favicon service
-        // Using sz=64 parameter for higher quality icons when available
         const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
         
         // Cache the result for future use
@@ -1015,4 +1030,22 @@ function getFavicon(url) {
         console.warn('Error getting favicon for URL:', url, e);
         return DEFAULT_ICON;
     }
+}
+
+// Generate a calendar icon with the current date (SVG alternative)
+function generateCalendarIcon() {
+    const today = new Date();
+    const date = today.getDate();
+    
+    // Create an SVG calendar icon with the current date
+    const svgIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <rect x="2" y="4" width="28" height="26" rx="2" fill="#fff" stroke="#db4437" stroke-width="2"/>
+      <rect x="2" y="4" width="28" height="8" fill="#db4437"/>
+      <text x="16" y="24" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#db4437">${date}</text>
+    </svg>
+    `;
+    
+    // Convert SVG to data URI
+    return 'data:image/svg+xml;base64,' + btoa(svgIcon);
 }
