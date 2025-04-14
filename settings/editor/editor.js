@@ -22,10 +22,11 @@ let offsetY = 0;
 // Simple variable to control grid size (in percentage)
 // Change this value to adjust grid size and snapping precision
 const GRID_SIZE = 5; // 5% grid (smaller = finer grid, larger = coarser grid)
-const MIN_MARGIN = 5; // Minimum margin from edges (%)
+const MIN_MARGIN = 0; // Minimum margin from edges (%) - set to 0 to match newtab.js behavior
 
 // Calculate grid divisions (number of cells in each dimension)
-const GRID_DIVISIONS = 100 / GRID_SIZE;
+// We'll use 20x20 grid for consistent square cells
+const GRID_DIVISIONS = 20;
 
 // Default settings
 const defaultSettings = {
@@ -43,6 +44,21 @@ const defaultSettings = {
 };
 
 // Load groups and settings when page loads
+// Function to apply scaling settings to ensure consistent element sizes
+function applyScalingSettings(scaling) {
+    if (!scaling) return;
+    
+    // Apply scaling variables for consistent sizing between newtab and editor
+    document.documentElement.style.setProperty('--base-font-size', `${scaling.baseFontSize || 16}px`);
+    document.documentElement.style.setProperty('--group-scale', scaling.groupScale || 1);
+    document.documentElement.style.setProperty('--spacing-scale', scaling.spacingScale || 1);
+    document.documentElement.style.setProperty('--text-scale', scaling.textScale || 1);
+    document.documentElement.style.setProperty('--element-scale', scaling.elementScale || 1);
+    document.documentElement.style.setProperty('--spacing-multiplier', scaling.spacingMultiplier || 1);
+    
+    console.log('Applied scaling settings:', scaling);
+}
+
 // Apply theme colors to body
 function applyThemeToEditor() {
     if (currentSettings && currentSettings.theme) {
@@ -101,11 +117,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // First, try to load settings from sync storage
             let syncData = {};
             if (chrome.storage.sync) {
-                syncData = await chrome.storage.sync.get(['settings', 'groupsLocation', 'groups']);
+                syncData = await chrome.storage.sync.get(['settings', 'groupsLocation', 'groups', 'scaling']);
             }
             
             // Load settings
             currentSettings = syncData.settings || {...defaultSettings};
+            
+            // Load scaling settings directly and apply them to ensure consistent dimensions
+            if (syncData.scaling) {
+                console.log('Applying scaling settings from Chrome sync storage');
+                applyScalingSettings(syncData.scaling);
+            }
             
             // Load groups based on location indicator
             if (syncData.groupsLocation === 'local') {
@@ -164,6 +186,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentSettings.headerLinks = defaultSettings.headerLinks;
         }
         
+        // Ensure shortcuts exists
+        if (!currentSettings.shortcuts) {
+            currentSettings.shortcuts = defaultSettings.shortcuts;
+        }
+        
         // Apply theme to editor
         applyThemeToEditor();
 
@@ -192,6 +219,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Show/hide search bar based on settings
         searchEditor.style.display = currentSettings.showSearch ? 'block' : 'none';
+        
+        // Show/hide shortcuts based on settings
+        const shortcutsMock = document.getElementById('shortcuts-editor-mock');
+        if (shortcutsMock) {
+            shortcutsMock.style.display = currentSettings.showShortcuts ? 'block' : 'none';
+        }
         
         // Initialize drag events for search bar
         initSearchBarDrag();
@@ -256,6 +289,8 @@ function calculatePosition(x, y) {
     // Handle percentage strings
     if (typeof x === 'string' && x.endsWith('%')) {
         percentX = parseFloat(x) / 100;
+        // Also snap values from percentage strings to our grid
+        percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
     } 
     // Handle numeric values (convert to percentage)
     else {
@@ -263,12 +298,14 @@ function calculatePosition(x, y) {
         // Treat numeric values as percentages (values should be 0-100)
         percentX = !isNaN(numX) ? numX / 100 : 0.5; // Default to center if invalid
         
-        // Snap to grid using GRID_DIVISIONS constant
+        // Snap to grid using GRID_DIVISIONS constant (always 20 for uniform cells)
         percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
     
     if (typeof y === 'string' && y.endsWith('%')) {
         percentY = parseFloat(y) / 100;
+        // Also snap values from percentage strings to our grid
+        percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
     // Handle numeric values (convert to percentage)
     else {
@@ -276,7 +313,7 @@ function calculatePosition(x, y) {
         // Treat numeric values as percentages (values should be 0-100) 
         percentY = !isNaN(numY) ? numY / 100 : 0.5; // Default to center if invalid
         
-        // Snap to grid using GRID_DIVISIONS constant
+        // Snap to grid using GRID_DIVISIONS constant (always 20 for uniform cells)
         percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
     
@@ -732,12 +769,25 @@ function saveGroupChanges() {
 // These elements seem to be missing from the HTML - removing them for now
 // If you need these functionalities, add the corresponding elements to newtab-editor.html
 
-// Initialize search bar drag functionality
+// Initialize search bar and shortcuts drag functionality
 function initSearchBarDrag() {
-    const handle = searchEditor.querySelector('.editor-handle');
+    initDraggableElement(searchEditor, 'searchBarPosition');
+    
+    // Also initialize shortcuts drag if present
+    const shortcutsEditor = document.getElementById('shortcuts-editor-mock');
+    if (shortcutsEditor) {
+        initDraggableElement(shortcutsEditor, 'shortcutsPosition');
+    }
+}
+
+// Generic function to initialize draggable elements with position saving
+function initDraggableElement(element, positionSettingKey) {
+    if (!element) return;
+    
+    const handle = element.querySelector('.editor-handle');
     
     if (!handle) {
-        console.error('Search bar handle not found');
+        console.error(`Handle not found for ${positionSettingKey}`);
         return;
     }
     
@@ -751,7 +801,7 @@ function initSearchBarDrag() {
         initialY = e.clientY;
         
         // Get current element position
-        const rect = searchEditor.getBoundingClientRect();
+        const rect = element.getBoundingClientRect();
         
         // Get current viewport dimensions
         const screenWidth = window.innerWidth;
@@ -766,10 +816,13 @@ function initSearchBarDrag() {
         offsetY = currentTopPercent;
         
         // Store original transform
-        const originalTransform = searchEditor.style.transform;
+        const originalTransform = element.style.transform;
+        
+        // Set as the active element for dragging
+        activeGroup = element;
         
         // Ensure absolute positioning
-        searchEditor.style.position = 'absolute';
+        element.style.position = 'absolute';
         
         // Show grid overlay for snap-to-grid
         if (dragEnabled) {
@@ -777,11 +830,124 @@ function initSearchBarDrag() {
         }
         
         // Add mousemove and mouseup event listeners
-        document.addEventListener('mousemove', moveSearchBar);
+        document.addEventListener('mousemove', handleDraggableMove);
         document.addEventListener('mouseup', function() {
-            stopMoveSearchBar(originalTransform);
+            stopDraggableMove(element, positionSettingKey, originalTransform);
         });
     });
+}
+
+// Temporary functions for drag handling - we'll use these until we refactor the code
+function handleDraggableMove(e) {
+    if (!activeGroup) return;
+    
+    e.preventDefault();
+    
+    // Get current viewport dimensions
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Calculate mouse movement in percentage of screen
+    const dxPercent = (e.clientX - initialX) / screenWidth;
+    const dyPercent = (e.clientY - initialY) / screenHeight;
+    
+    // Calculate new percentage positions
+    let newPercentX = offsetX + dxPercent;
+    let newPercentY = offsetY + dyPercent;
+    
+    // Snap to grid if drag is enabled
+    if (dragEnabled) {
+        // Snap to uniform grid using GRID_DIVISIONS (20x20 grid)
+        newPercentX = Math.round(newPercentX * GRID_DIVISIONS) / GRID_DIVISIONS;
+        newPercentY = Math.round(newPercentY * GRID_DIVISIONS) / GRID_DIVISIONS;
+    }
+    
+    // Ensure percentages are within bounds (0-1)
+    // Match the behavior in newtab.js which uses 0 to 1 range
+    newPercentX = Math.max(0, Math.min(1, newPercentX));
+    newPercentY = Math.max(0, Math.min(1, newPercentY));
+    
+    // Apply the new position
+    activeGroup.style.left = `${newPercentX * 100}%`;
+    activeGroup.style.top = `${newPercentY * 100}%`;
+    activeGroup.style.transform = 'translate(-50%, -50%)';
+}
+
+// Handle element movement during drag
+function handleDraggableMove(e) {
+    if (!activeGroup) return;
+    
+    e.preventDefault();
+    
+    // Get current viewport dimensions
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    
+    // Calculate mouse movement in percentage of screen
+    const dxPercent = (e.clientX - initialX) / screenWidth;
+    const dyPercent = (e.clientY - initialY) / screenHeight;
+    
+    // Calculate new percentage positions
+    let newPercentX = offsetX + dxPercent;
+    let newPercentY = offsetY + dyPercent;
+    
+    // Snap to grid if drag is enabled
+    if (dragEnabled) {
+        // Snap to uniform grid using GRID_DIVISIONS (20x20 grid)
+        newPercentX = Math.round(newPercentX * GRID_DIVISIONS) / GRID_DIVISIONS;
+        newPercentY = Math.round(newPercentY * GRID_DIVISIONS) / GRID_DIVISIONS;
+    }
+    
+    // Ensure percentages are within bounds (0-1)
+    // Match the behavior in newtab.js which uses 0 to 1 range
+    newPercentX = Math.max(0, Math.min(1, newPercentX));
+    newPercentY = Math.max(0, Math.min(1, newPercentY));
+    
+    // Apply the new position
+    activeGroup.style.left = `${newPercentX * 100}%`;
+    activeGroup.style.top = `${newPercentY * 100}%`;
+    activeGroup.style.transform = 'translate(-50%, -50%)';
+}
+
+// Handle end of element movement and save position
+function stopDraggableMove(element, positionSettingKey, originalTransform) {
+    // Remove event listeners
+    document.removeEventListener('mousemove', handleDraggableMove);
+    document.removeEventListener('mouseup', arguments.callee);
+    
+    // Hide grid overlay
+    gridOverlay.style.display = 'none';
+    
+    // Make sure transform is maintained for proper centering
+    element.style.transform = 'translate(-50%, -50%)';
+    
+    // Get position as percentages from current style
+    let left = element.style.left;
+    let top = element.style.top;
+    
+    // Make sure we have values
+    if (!left || !top) {
+        console.error('Element position is missing');
+        return;
+    }
+    
+    // Make sure they're percentage-based
+    if (!left.endsWith('%') || !top.endsWith('%')) {
+        console.error('Element position is not in percentage format');
+        return;
+    }
+    
+    // Only update search position - shortcuts follow the search
+    if (positionSettingKey === 'searchBarPosition') {
+        // Update settings with new position as percentages (preserve the % symbol)
+        currentSettings.searchBarPosition = { 
+            x: left, 
+            y: top 
+        };
+    }
+    
+    // Reset active group
+    activeGroup = null;
 }
 
 // Handle search bar movement
@@ -802,14 +968,15 @@ function moveSearchBar(e) {
     
     // Snap to grid if drag is enabled
     if (dragEnabled) {
-        // Snap to 5% grid (0.05 increments)
-        newPercentX = Math.round(newPercentX * 20) / 20;
-        newPercentY = Math.round(newPercentY * 20) / 20;
+        // Snap to uniform grid using GRID_DIVISIONS (20x20 grid)
+        newPercentX = Math.round(newPercentX * GRID_DIVISIONS) / GRID_DIVISIONS;
+        newPercentY = Math.round(newPercentY * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
     
-    // Ensure percentages are within bounds (0.05-0.95)
-    newPercentX = Math.max(0.05, Math.min(0.95, newPercentX));
-    newPercentY = Math.max(0.05, Math.min(0.95, newPercentY));
+    // Ensure percentages are within bounds (0-1)
+    // Match the behavior in newtab.js which uses 0 to 1 range
+    newPercentX = Math.max(0, Math.min(1, newPercentX));
+    newPercentY = Math.max(0, Math.min(1, newPercentY));
     
     // Apply the new position
     searchEditor.style.left = `${newPercentX * 100}%`;
@@ -1007,6 +1174,17 @@ saveChangesBtn.addEventListener('click', async () => {
             // We'll deep clone the groups to avoid modifying the original
             const groupsToSave = JSON.parse(JSON.stringify(currentGroups));
             
+            // Ensure shortcuts are properly saved
+            if (!currentSettings.shortcuts || !Array.isArray(currentSettings.shortcuts)) {
+                currentSettings.shortcuts = [
+                    { title: 'Google', url: 'https://www.google.com' },
+                    { title: 'Youtube', url: 'https://www.youtube.com' },
+                    { title: 'Gmail', url: 'https://mail.google.com' },
+                    { title: 'Drive', url: 'https://drive.google.com' },
+                    { title: 'Maps', url: 'https://maps.google.com' }
+                ];
+            }
+            
             // 2. Store groups and settings separately to avoid hitting quota limit
             if (chrome.storage.sync) {
                 try {
@@ -1069,6 +1247,13 @@ document.body.appendChild(gridOverlay);
 const ruleOfThirdsOverlay = document.createElement('div');
 ruleOfThirdsOverlay.className = 'rule-of-thirds';
 document.body.appendChild(ruleOfThirdsOverlay);
+
+// Debug function - Press Alt+G to toggle grid visibility
+document.addEventListener('keydown', function(e) {
+    if (e.altKey && e.key === 'g') {
+        document.body.classList.toggle('show-grid');
+    }
+});
 
 // Toggle drag mode
 toggleDragBtn.addEventListener('click', () => {
@@ -1207,21 +1392,22 @@ function handleMouseMove(e) {
     const dx = e.clientX - initialX;
     const dy = e.clientY - initialY;
     
-    // Get dimensions for percentage calculation
-    const containerWidth = groupsContainer.clientWidth;
-    const containerHeight = groupsContainer.clientHeight;
+    // Get dimensions for percentage calculation - use window dimensions to match newtab.js
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     
     // Calculate raw position
     let newX = offsetX + dx;
     let newY = offsetY + dy;
     
-    // Convert to percentages relative to the container
-    let percentX = newX / containerWidth;
-    let percentY = newY / containerHeight;
+    // Convert to percentages relative to the window (not the container)
+    // This matches the calculation in newtab.js
+    let percentX = newX / screenWidth;
+    let percentY = newY / screenHeight;
     
     // Snap to grid if drag is enabled
     if (dragEnabled) {
-        // Use the configured grid divisions from the GRID_SIZE variable
+        // Use the consistent 20x20 grid for uniform cell sizes
         percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
         percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
     }
@@ -1240,11 +1426,19 @@ function handleMouseMove(e) {
 }
 
 function updateGroupPosition(index, x, y) {
-    // If values are already percentages, use them directly
+    // If values are already percentages, use them directly but snap to grid
     if (typeof x === 'string' && x.endsWith('%') && 
         typeof y === 'string' && y.endsWith('%')) {
-        currentGroups[index].x = x;
-        currentGroups[index].y = y;
+        // Extract percentage values and snap to grid
+        let percentX = parseFloat(x) / 100;
+        let percentY = parseFloat(y) / 100;
+        
+        // Snap to uniform grid (20x20)
+        percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
+        percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
+        
+        currentGroups[index].x = `${percentX * 100}%`;
+        currentGroups[index].y = `${percentY * 100}%`;
         return;
     }
     
@@ -1252,15 +1446,16 @@ function updateGroupPosition(index, x, y) {
     const numX = parseInt(x, 10);
     const numY = parseInt(y, 10);
     
-    // Get dimensions based on the container, not the window
-    const containerWidth = groupsContainer.clientWidth;
-    const containerHeight = groupsContainer.clientHeight;
+    // Get dimensions based on the window, not the container
+    // This matches the calculation in newtab.js
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     
     // Convert absolute positions to percentages
-    let percentX = numX / containerWidth;
-    let percentY = numY / containerHeight;
+    let percentX = numX / screenWidth;
+    let percentY = numY / screenHeight;
     
-    // Snap to grid using GRID_DIVISIONS from the constant
+    // Snap to grid using GRID_DIVISIONS (now fixed at 20)
     percentX = Math.round(percentX * GRID_DIVISIONS) / GRID_DIVISIONS;
     percentY = Math.round(percentY * GRID_DIVISIONS) / GRID_DIVISIONS;
     
@@ -1276,31 +1471,7 @@ function updateGroupPosition(index, x, y) {
     currentGroups[index].y = `${percentY * 100}%`;
 }
 
-function getFavicon(url) {
-    try {
-        if (!url) return ''; // Return empty if url is empty
-        
-        // Make sure URL is properly formatted
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = 'https://' + url;
-        }
-        
-        const domain = new URL(url).hostname;
-        
-        // Handle Google services specially
-        if (domain.includes('google.com')) {
-            // Extract the specific Google service
-            const service = domain.split('.')[0];
-            return `https://www.google.com/s2/favicons?domain=${service}.google.com&sz=32`;
-        }
-        
-        // Default handling for other domains
-        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-    } catch (e) {
-        console.warn('Error getting favicon for URL:', url, e);
-        return ''; // Return empty string if URL is invalid
-    }
-}
+// Use global getFavicon function from editor-utils.js
 
 // Apps management
 let editingAppIndex = -1;
@@ -1708,6 +1879,15 @@ function saveHeaderLinkChanges() {
 
 // Initialize header editor and apps manager functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the draggable functionality for the shortcuts bar
+    // This makes it consistent with other elements in the editor
+    setTimeout(() => {
+        const shortcutsContainer = document.getElementById('shortcuts-container');
+        if (shortcutsContainer) {
+            initDraggableElement(shortcutsContainer, 'shortcutsPosition');
+        }
+    }, 500); // Small delay to ensure everything is loaded
+    
     // Event handler for the Edit Header button
     const editHeaderBtn = document.getElementById('edit-header-btn');
     if (editHeaderBtn) {

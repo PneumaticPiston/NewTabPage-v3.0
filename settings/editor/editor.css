@@ -14,16 +14,16 @@ header {
     top: 0px;
     left: 0px;
     width: 100%;
+    height: 60px;
     display: flex;
     position: fixed;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 0 20px;
     box-sizing: border-box;
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     z-index: 1000;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -48,14 +48,14 @@ header h1 {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.groups-editor-container {
-    margin-top: 100px;
-    padding: 20px;
+.groups-container {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100vw;
-    height: calc(100vh - 100px);
-    position: relative;
-    
-    /* Match the scaling variables from newtab.css */
+    height: 100vh;
+    transform-origin: center; /* For scaling */
+    /* Default scaling from settings */
     --base-font-size: 16px;
     --group-scale: 1;
     --spacing-scale: 1;
@@ -63,7 +63,6 @@ header h1 {
     --element-scale: 1;
     --spacing-multiplier: 1;
     font-size: calc(var(--base-font-size) * var(--text-scale));
-    transform-origin: center; /* For scaling */
 }
 
 /* 
@@ -78,8 +77,8 @@ header h1 {
     height: 100%;
     background-image: linear-gradient(to right, rgba(128, 128, 128, 0.1) 1px, transparent 1px),
                       linear-gradient(to bottom, rgba(128, 128, 128, 0.1) 1px, transparent 1px);
-    /* Must match GRID_SIZE value in JavaScript (5%) */
-    background-size: 5% 5%; 
+    /* Calculate grid size to maintain square cells regardless of viewport dimensions */
+    background-size: calc(100% / 20) calc(100% / 20); 
     pointer-events: none;
     z-index: 5;
     display: none; /* Hidden by default, shown when dragging */
@@ -95,6 +94,186 @@ header h1 {
     pointer-events: none;
     z-index: 4;
     display: none; /* Hidden by default, shown when dragging */
+}
+
+/* Shortcuts Editor Mock */
+/* Shortcuts Bar - Matches the Chrome new tab page shortcuts bar */
+.shortcuts-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 120px); /* Increased vertical offset to prevent overlap with search bar */
+    width: auto;
+    min-width: 400px;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+    background-color: var(--group-background-color);
+    border-radius: 16px;
+    padding: 10px 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.shortcuts-container .editor-handle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    font-weight: bold;
+    cursor: move;
+    padding: 5px 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+}
+
+.shortcuts-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-shortcuts-btn, .add-shortcut-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.edit-shortcuts-btn:hover, .add-shortcut-btn:hover {
+    background-color: var(--accent-color);
+}
+
+.add-shortcut-btn {
+    background-color: var(--accent-color);
+}
+
+.shortcuts-content {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.shortcut-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-color);
+    padding: 5px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    width: 60px;
+    height: 70px; /* Reduced height for a compact layout */
+    position: relative;
+    cursor: pointer;
+}
+
+.shortcut-link:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-icon {
+    width: 40px; /* Slightly smaller icon */
+    height: 40px;
+    margin-bottom: 5px;
+    object-fit: contain;
+}
+
+.shortcut-label {
+    font-size: 11px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    right: 0;
+}
+
+/* Keep the mock version for backward compatibility */
+.shortcuts-editor-mock {
+    background-color: var(--group-background-color);
+    border-radius: 16px;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 5;
+    width: auto;
+    min-width: 300px;
+    position: absolute;
+    top: calc(50% + 80px);
+    left: 50%;
+    transform: translate(-50%, 0);
+    display: none; /* Hide by default, as we're using the standard shortcuts-container */
+}
+
+.shortcuts-editor-mock .editor-handle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+    cursor: move;
+    padding: 5px 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+}
+
+.shortcuts-editor-mock .shortcuts-content {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.shortcut-mock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 70px;
+    height: 85px;
+    padding: 10px;
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.shortcut-mock:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-mock img {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    object-fit: contain;
+}
+
+.shortcut-mock-title {
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+}
+
+/* Debug class to show grid even when not in edit mode - add class to body for debugging */
+.show-grid .grid-overlay {
+    display: block;
+    opacity: 0.3;
 }
 
 .rule-of-thirds::before,
@@ -133,6 +312,8 @@ header h1 {
     display: flex;
     flex-direction: column;
     transform: translate(-50%, -50%); /* Center the element at its position */
+    /* Ensure proper scaling */
+    --group-scale: var(--group-scale, 1);
 }
 
 .group-header {
@@ -365,17 +546,22 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 8px 12px;
-    border-radius: 4px;
     color: white;
 }
 
 .nav-link-mock {
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 14px;
     color: white;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 8px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+}
+
+.nav-link-mock:hover {
+    background-color: rgba(60, 64, 67, 0.08);
 }
 
 .apps-toggle-mock {
@@ -441,9 +627,10 @@ header h1 {
     align-items: center;
     background-color: var(--group-background-color);
     border-radius: 24px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Match newtab.css */
     padding: 5px 15px;
     color: var(--text-color);
+    width: 100%; /* Take full width of parent */
 }
 
 .search-icon-mock {
@@ -457,13 +644,12 @@ header h1 {
 
 .search-input-mock {
     flex: 1;
-    height: 36px;
+    height: 40px; /* Match the actual search input height from newtab.css (padding: 12px 5px) */
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 4px;
     position: relative;
 }
 
-/* Add a placeholder text effect */
 .search-input-mock::after {
     content: "Search the web";
     position: absolute;
@@ -478,8 +664,8 @@ header h1 {
 
 .search-button-mock {
     background-color: var(--primary-color);
-    color: var(--text-color);
-    padding: 8px 15px;
+    color: white; /* Match newtab.css */
+    padding: 10px 20px; /* Match newtab.css */
     border-radius: 20px;
     margin-left: 10px;
     font-size: 14px;
@@ -669,17 +855,17 @@ header h1 {
 .grid {
     padding: 5px;
     display: grid; /* Use grid layout to match newtab.css */
-    gap: calc(8px * var(--spacing-scale)); /* Match newtab.css - scale gap based on settings */
-    align-items: stretch; /* Match newtab.css */
+    gap: calc(8px * var(--spacing-scale, 1)); /* Match newtab.css - scale gap based on settings */
+    align-items: center; /* Center items vertically */
     justify-items: center; /* Match newtab.css */
     grid-template-columns: repeat(1, 1fr); /* Default to 1 column like newtab.css */
     grid-template-rows: repeat(1, 1fr); /* Default to 1 row like newtab.css */
-    transform: scale(var(--group-scale)); /* Scale group based on settings - match newtab.css */
+    transform: scale(var(--group-scale, 1)); /* Scale group based on settings - match newtab.css */
 }
 
 .link-grid {
     width: 70px; /* Match newtab.css */
-    height: 80px; /* Match newtab.css */
+    height: 70px; /* Match height from newtab page */
     padding: 6px; /* Match newtab.css */
     border-radius: 5px;
     display: flex;

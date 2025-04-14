@@ -202,9 +202,6 @@ body {
     border-radius: 20%;
 }
 
-.grid-link-title {
-}
-
 .group-header {
     user-select: none;
     font-size: 14px;
@@ -427,12 +424,56 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, 80px);
-    width: 80%;
+    width: auto;
+    min-width: 300px;
     max-width: 800px;
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 20px;
     z-index: 5;
+    background-color: var(--group-background-color);
+    border-radius: 16px;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    width: 70px;
+    height: 85px;
+    position: relative;
+}
+
+.shortcut-link:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    object-fit: contain;
+}
+
+.shortcut-label {
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
 }
 
 .settings-button {

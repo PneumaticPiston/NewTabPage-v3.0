@@ -7,5 +7,8 @@
         "newtab": "./newtab/newtab.html"
     },
     "options_page": "./settings/settings.html",
-    "permissions": ["storage"]
+    "permissions": [
+        "storage",
+        "favicon"
+    ]
 }

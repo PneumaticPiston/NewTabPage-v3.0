@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit - New Tab</title>
-    <link rel="stylesheet" href="editor.css">
     <link rel="stylesheet" href="../../theme/themes.css">
     <link rel="stylesheet" href="../../newtab/newtab.css">
+    <link rel="stylesheet" href="editor.css">
 </head>
 <body>
     <header>
         <a href="../settings.html" class="return-to-settings-btn">← Return to settings</a>
-        <h1>Edit - New Tab</h1>
         
         <!-- Header Nav Bar Integration -->
         <div class="header-nav-mock">
@@ -34,6 +33,37 @@
             <div class="search-icon-mock"></div>
             <div class="search-input-mock"></div>
             <div class="search-button-mock">Search</div>
+        </div>
+    </div>
+    
+    <!-- Shortcuts Bar Component -->
+    <div id="shortcuts-container" class="shortcuts-container draggable">
+        <div class="editor-handle">
+            Shortcuts Bar
+            <div class="shortcuts-controls">
+                <button id="edit-shortcuts-btn" class="edit-shortcuts-btn" onclick="openShortcutsEditor()">Edit Shortcuts</button>
+            </div>
+        </div>
+        <div class="shortcuts-content">
+            <!-- Shortcuts will be loaded here dynamically -->
+        </div>
+    </div>
+    
+    <!-- Shortcuts Editor Popup -->
+    <div id="shortcuts-editor-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit Shortcuts</h2>
+            <p>Customize the shortcuts that appear below the search bar.</p>
+            
+            <div id="shortcuts-list-container">
+                <!-- Shortcuts will be added here -->
+            </div>
+            
+            <div class="popup-buttons">
+                <button id="add-shortcut-list-btn" onclick="document.getElementById('shortcuts-list-container').appendChild(addShortcutToEditor(document.getElementById('shortcuts-list-container'), {title:'', url:''}, document.getElementById('shortcuts-list-container').children.length))">Add Shortcut</button>
+                <button class="secondary" id="cancel-shortcuts-btn" onclick="document.getElementById('shortcuts-editor-popup').style.display='none'; window.currentSettings.shortcuts = JSON.parse(JSON.stringify(window.originalShortcuts)); initializeEditorShortcuts();">Cancel</button>
+                <button class="primary" id="save-shortcuts-btn" onclick="saveShortcutsFromEditor(); document.getElementById('shortcuts-editor-popup').style.display='none';">Save Changes</button>
+            </div>
         </div>
     </div>
 
@@ -189,5 +219,31 @@
     <script src="../../newtab/widgets.js"></script>
     <!-- Use script from file instead of inline -->
     <script src="editor-utils.js"></script>
+    
+    <!-- Add direct script for Edit Shortcuts button -->
+    <script>
+        // Make sure the Edit Shortcuts button works
+        document.addEventListener('DOMContentLoaded', function() {
+            const editShortcutsBtn = document.getElementById('edit-shortcuts-btn');
+            if (editShortcutsBtn) {
+                editShortcutsBtn.addEventListener('click', function() {
+                    if (typeof openShortcutsEditor === 'function') {
+                        openShortcutsEditor();
+                    } else {
+                        console.error("openShortcutsEditor function not found");
+                        // Fallback - toggle popup visibility directly
+                        const popup = document.getElementById('shortcuts-editor-popup');
+                        if (popup) {
+                            popup.style.display = 'flex';
+                            // Set up the editor if the function exists
+                            if (typeof setupShortcutsEditorPopup === 'function') {
+                                setupShortcutsEditorPopup();
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

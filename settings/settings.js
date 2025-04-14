@@ -13,6 +13,28 @@ const defaultSettings = {
     spacingScale: 100,
     highContrast: false,
     customThemes: [],
+    shortcuts: [
+        {
+            title: 'Google',
+            url: 'https://www.google.com'
+        },
+        {
+            title: 'Youtube',
+            url: 'https://www.youtube.com'
+        },
+        {
+            title: 'Gmail',
+            url: 'https://mail.google.com'
+        },
+        {
+            title: 'Drive',
+            url: 'https://drive.google.com'
+        },
+        {
+            title: 'Maps',
+            url: 'https://maps.google.com'
+        }
+    ],
     apps: [
         {
             name: 'Account',

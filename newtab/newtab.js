@@ -46,6 +46,7 @@ const defaultSettings = {
     showShortcuts: true,
     searchEngine: 'google',
     searchBarPosition: { x: 10, y: 120 },
+    shortcuts: [], // Empty by default, will be defined by user
     headerLinks: [
         { name: 'Gmail', url: 'https://mail.google.com' },
         { name: 'Photos', url: 'https://photos.google.com' },
@@ -103,16 +104,6 @@ const defaultSettings = {
 // Current settings
 let currentSettings = {...defaultSettings};
 
-const SHORTCUTS = [
-    {
-        title: 'Google',
-        url: 'https://www.google.com'
-    },
-    {
-        title: 'Youtube',
-        url: 'https://www.youtube.com'
-    }
-];
 /* 
 const GROUPS = [// link groups
     {// link group
@@ -796,6 +787,71 @@ function initializeAppsDropdown() {
     }
 }
 
+// Initialize shortcuts bar
+function initializeShortcuts() {
+    const shortcutsContainer = document.getElementById('shortcuts-container');
+    
+    // Skip if shortcuts container doesn't exist
+    if (!shortcutsContainer) return;
+    
+    // Clear existing shortcuts
+    shortcutsContainer.innerHTML = '';
+    
+    // Show/hide based on settings
+    shortcutsContainer.style.display = currentSettings.showShortcuts ? 'flex' : 'none';
+    
+    // If not shown, exit early
+    if (!currentSettings.showShortcuts) return;
+    
+    // For positioning, we'll place the shortcuts below the search bar
+    // Reset any absolute positioning styles that might have been applied
+    shortcutsContainer.style.position = 'absolute';
+    shortcutsContainer.style.top = '50%';
+    shortcutsContainer.style.left = '50%';
+    shortcutsContainer.style.transform = 'translate(-50%, 80px)';
+    
+    // Use shortcuts from settings
+    const shortcuts = currentSettings.shortcuts || defaultSettings.shortcuts;
+    
+    // Add each shortcut
+    shortcuts.forEach(shortcut => {
+        const favicon = getFavicon(shortcut.url);
+        
+        // Create link element
+        const linkElement = document.createElement('a');
+        linkElement.href = shortcut.url;
+        linkElement.className = 'shortcut-link';
+        
+        // Create icon and label
+        const iconElement = document.createElement('img');
+        iconElement.src = favicon;
+        iconElement.alt = shortcut.title;
+        iconElement.className = 'shortcut-icon';
+        
+        const labelElement = document.createElement('span');
+        labelElement.textContent = shortcut.title;
+        labelElement.className = 'shortcut-label';
+        
+        // Add to link element
+        linkElement.appendChild(iconElement);
+        linkElement.appendChild(labelElement);
+        
+        // Add to container
+        shortcutsContainer.appendChild(linkElement);
+    });
+    
+    // Adjust container width based on number of shortcuts
+    const shortcutCount = shortcuts.length;
+    if (shortcutCount > 0) {
+        // Calculate approximate width based on number of shortcuts
+        // Each shortcut is approximately 90px wide (70px width + 20px gap)
+        const estimatedWidth = Math.max(shortcutCount * 90 + 40, 300); // 40px for padding
+        shortcutsContainer.style.width = `${Math.min(estimatedWidth, 800)}px`;
+    } else {
+        shortcutsContainer.style.width = 'auto';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Load settings first
@@ -867,11 +923,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             currentSettings.searchBarPosition = {...defaultSettings.searchBarPosition};
         }
         
+        if (!currentSettings.shortcuts) {
+            currentSettings.shortcuts = [...defaultSettings.shortcuts];
+        }
+        
         // Apply theme
         applyTheme();
         
         // Initialize search
         initializeSearch();
+        
+        // Initialize shortcuts
+        initializeShortcuts();
         
         // Initialize header links
         initializeHeaderLinks();
@@ -895,6 +958,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             applyTheme();
             initializeSearch();
+            initializeShortcuts();
             initializeHeaderLinks();
             initializeAppsDropdown();
             loadGroups();
@@ -933,6 +997,9 @@ function handleWindowResize() {
         searchContainer.style.top = `${pos.percentY * 100}%`;
         searchContainer.style.left = `${pos.percentX * 100}%`;
     }
+    
+    // Reinitialize shortcuts to ensure they're properly sized for the new window dimensions
+    initializeShortcuts();
 }
 
 /**
