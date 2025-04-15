@@ -1,0 +1,14 @@
+{
+    "manifest_version": 3,
+    "name": "Custom New Tab Page",
+    "version": "1.0",
+    "description": "Replaces the default new tab page with a custom page",
+    "chrome_url_overrides": {
+        "newtab": "./newtab/newtab.html"
+    },
+    "options_page": "./settings/settings.html",
+    "permissions": [
+        "storage",
+        "favicon"
+    ]
+}

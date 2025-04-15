@@ -1,0 +1,1 @@
+function updateClock(){const e=new Date,t=e.getHours()%12,o=e.getMinutes(),r=30*t+.5*o,n=6*o,u=6*e.getSeconds();document.querySelector(".hour").style.transform=`rotate(${r}deg)`,document.querySelector(".minute").style.transform=`rotate(${n}deg)`,document.querySelector(".second").style.transform=`rotate(${u}deg)`}setInterval(updateClock,1e3),updateClock();
