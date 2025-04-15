@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit - New Tab</title>
+    <link rel="stylesheet" href="../../theme/themes.css">
+    <link rel="stylesheet" href="../../newtab/newtab.css">
+    <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+    <header>
+        <a href="../settings.html" class="return-to-settings-btn">← Return to settings</a>
+        
+        <!-- Header Nav Bar Integration -->
+        <div class="header-nav-mock">
+            <div class="nav-link-mock">Gmail</div>
+            <div class="nav-link-mock">Photos</div>
+            <div class="nav-link-mock">Search Labs</div>
+            <div class="apps-toggle-mock">
+                <svg class="apps-icon" viewBox="0 0 24 24">
+                    <path d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"></path>
+                </svg>
+            </div>
+            <button id="edit-header-btn" class="edit-header-btn">Edit Header</button>
+        </div>
+    </header>
+    
+    <!-- Search Bar Component - Only visible when enabled in settings -->
+    <div id="search-editor" class="search-editor draggable">
+        <div class="editor-handle">Search Bar</div>
+        <div class="search-form-mock">
+            <div class="search-icon-mock"></div>
+            <div class="search-input-mock"></div>
+            <div class="search-button-mock">Search</div>
+        </div>
+    </div>
+    
+    <!-- Shortcuts Editor Popup -->
+    <div id="shortcuts-editor-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit Shortcuts</h2>
+            <p>Customize the shortcuts that appear below the search bar.</p>
+            
+            <div id="shortcuts-list-container">
+                <!-- Shortcuts will be added here -->
+            </div>
+            
+            <div class="popup-buttons">
+                <button id="add-shortcut-list-btn" onclick="document.getElementById('shortcuts-list-container').appendChild(addShortcutToEditor(document.getElementById('shortcuts-list-container'), {title:'', url:''}, document.getElementById('shortcuts-list-container').children.length))">Add Shortcut</button>
+                <button class="secondary" id="cancel-shortcuts-btn" onclick="document.getElementById('shortcuts-editor-popup').style.display='none'; window.currentSettings.shortcuts = JSON.parse(JSON.stringify(window.originalShortcuts)); initializeEditorShortcuts();">Cancel</button>
+                <button class="primary" id="save-shortcuts-btn" onclick="saveShortcutsFromEditor(); document.getElementById('shortcuts-editor-popup').style.display='none';">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="groups-editor-container" class="groups-editor-container">
+        <!-- Groups will be loaded here -->
+    </div>
+
+    <div class="bottom-controls">
+        <button id="new-group-btn" class="action-button" title="Add New Content"><i>+</i></button>
+        <button id="toggle-drag-btn" class="action-button" title="Toggle Drag Mode"><i>⫝̸</i></button>
+        <button id="save-changes-btn" class="save-button" title="Save Changes"><i>💾</i></button>
+    </div>
+    
+    <div id="add-options" class="add-options">
+        <button id="add-group-button" class="option-button" title="Add New Group">
+            📁
+        </button>
+        <button id="add-widget-button" class="option-button" title="Add Widget">
+            🔧
+        </button>
+    </div>
+
+    <div id="widget-menu" class="widget-menu">
+        <!-- Widget menu will be dynamically populated based on WIDGET_TYPES -->
+    </div>
+
+    <!-- Combined popup for creating/editing groups -->
+    <div id="new-group-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Group Settings</h2>
+            <input type="text" id="new-group-title" placeholder="Group Title">
+            <select id="new-group-type" onchange="toggleGridSettings()">
+                <option value="stack">Stack</option>
+                <option value="grid">Grid</option>
+                <option value="single">Single</option>
+            </select>
+            
+            <!-- Grid-specific settings, shown only when grid type is selected -->
+            <div id="grid-settings" style="display: none; margin: 10px 0;">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label for="grid-rows">Rows:</label>
+                        <input type="number" id="grid-rows" min="1" max="5" value="1">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="grid-columns">Columns:</label>
+                        <input type="number" id="grid-columns" min="1" max="5" value="1">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="new-group-links">
+                <!-- Links will be added here -->
+            </div>
+            <div class="popup-buttons">
+                <button id="add-new-group-link-btn">Add Link</button>
+                <button class="secondary" id="cancel-new-group-btn">Cancel</button>
+                <button class="primary" id="create-new-group-btn">Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="editor.js"></script>
+    
+    <!-- App management popup -->
+    <div id="apps-manager-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Manage Apps</h2>
+            <p>Customize the apps that appear in your apps grid dropdown.</p>
+            
+            <div id="apps-list-container">
+                <!-- Apps will be added here -->
+            </div>
+            
+            <div class="popup-buttons">
+                <button id="add-app-btn">Add App</button>
+                <button class="secondary" id="cancel-apps-btn">Cancel</button>
+                <button class="primary" id="save-apps-btn">Save Apps</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App edit form popup -->
+    <div id="app-edit-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit App</h2>
+            
+            <div class="form-group">
+                <label for="app-name">App Name:</label>
+                <input type="text" id="app-name" placeholder="e.g. Gmail">
+            </div>
+            
+            <div class="form-group">
+                <label for="app-url">URL:</label>
+                <input type="url" id="app-url" placeholder="e.g. https://mail.google.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="app-icon">Icon URL:</label>
+                <input type="url" id="app-icon" placeholder="e.g. https://example.com/icon.png">
+                <p class="help-text">Enter a URL to an icon image (preferred size: 32x32px)</p>
+            </div>
+            
+            <div class="popup-buttons">
+                <button class="secondary" id="cancel-app-edit-btn">Cancel</button>
+                <button class="primary" id="save-app-edit-btn">Save App</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header Links Editor Popup -->
+    <div id="header-editor-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit Header Links</h2>
+            <p>Customize the links in your header navigation bar.</p>
+            
+            <div id="header-links-container">
+                <!-- Header links will be added here -->
+            </div>
+            
+            <div class="popup-buttons">
+                <button id="add-header-link-btn">Add Link</button>
+                <button class="secondary" id="cancel-header-btn">Cancel</button>
+                <button class="primary" id="save-header-btn">Save Header</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header Link Edit Form Popup -->
+    <div id="header-link-edit-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h2>Edit Header Link</h2>
+            
+            <div class="form-group">
+                <label for="header-link-name">Link Text:</label>
+                <input type="text" id="header-link-name" placeholder="e.g. Gmail">
+            </div>
+            
+            <div class="form-group">
+                <label for="header-link-url">URL:</label>
+                <input type="url" id="header-link-url" placeholder="e.g. https://mail.google.com">
+            </div>
+            
+            <div class="popup-buttons">
+                <button class="secondary" id="cancel-header-link-edit-btn">Cancel</button>
+                <button class="primary" id="save-header-link-edit-btn">Save Link</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- Include widgets.js to access WIDGET_TYPES -->
+    <script src="../../newtab/widgets.js"></script>
+    <!-- Use script from file instead of inline -->
+    <script src="editor-utils.js"></script>
+    
+    <!-- Add direct script for Edit Shortcuts button -->
+    <script>
+        // Make sure the Edit Shortcuts button works
+        document.addEventListener('DOMContentLoaded', function() {
+            const editShortcutsBtn = document.getElementById('edit-shortcuts-btn');
+            if (editShortcutsBtn) {
+                editShortcutsBtn.addEventListener('click', function() {
+                    if (typeof openShortcutsEditor === 'function') {
+                        openShortcutsEditor();
+                    } else {
+                        console.error("openShortcutsEditor function not found");
+                        // Fallback - toggle popup visibility directly
+                        const popup = document.getElementById('shortcuts-editor-popup');
+                        if (popup) {
+                            popup.style.display = 'flex';
+                            // Set up the editor if the function exists
+                            if (typeof setupShortcutsEditorPopup === 'function') {
+                                setupShortcutsEditorPopup();
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
