@@ -359,6 +359,13 @@ function createGroupElement(group, index) {
         div.addEventListener('mousedown', handleMouseDown);
     }
 
+    // Check if it's a widget or a regular group
+    if (group.type === 'widget') {
+        // This is a widget
+        return createWidgetElement(group, index, div, pos);
+    }
+
+    // Regular group handling
     const header = document.createElement('div');
     header.className = 'group-header';
     
@@ -428,6 +435,98 @@ function createGroupElement(group, index) {
     
     div.appendChild(linksPreview);
     return div;
+}
+
+// Function to create a widget element
+function createWidgetElement(widget, index, containerDiv, pos) {
+    // Style the container appropriately for a widget
+    containerDiv.classList.add('widget-container');
+    
+    // Create header with controls
+    const header = document.createElement('div');
+    header.className = 'group-header';
+    
+    // Add widget title
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.value = widget.title || 'Widget';
+    titleInput.className = 'group-title';
+    titleInput.onchange = (e) => updateGroupTitle(index, e.target.value);
+    header.appendChild(titleInput);
+    
+    // Add widget controls
+    const controls = document.createElement('div');
+    controls.className = 'group-controls';
+    
+    // Create settings and delete buttons
+    const settingsBtn = document.createElement('button');
+    settingsBtn.className = 'icon-button edit-group-btn';
+    settingsBtn.innerHTML = '⚙️'; // gear icon
+    settingsBtn.title = 'Widget Settings';
+    settingsBtn.onclick = () => openWidgetSettings(index);
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'icon-button remove-group-btn';
+    removeBtn.innerHTML = '✕'; // x icon
+    removeBtn.title = 'Remove Widget';
+    removeBtn.onclick = () => removeGroup(index);
+
+    controls.appendChild(settingsBtn);
+    controls.appendChild(removeBtn);
+    header.appendChild(controls);
+    containerDiv.appendChild(header);
+    
+    // Create widget content preview based on type
+    const contentPreview = document.createElement('div');
+    contentPreview.className = 'widget-preview';
+    contentPreview.style.padding = '15px';
+    contentPreview.style.minWidth = '200px';
+    contentPreview.style.minHeight = '150px';
+    contentPreview.style.display = 'flex';
+    contentPreview.style.flexDirection = 'column';
+    contentPreview.style.alignItems = 'center';
+    contentPreview.style.justifyContent = 'center';
+    
+    // Display a different preview based on widget type
+    const icon = document.createElement('div');
+    icon.style.fontSize = '48px';
+    icon.style.marginBottom = '10px';
+    icon.textContent = widget.icon || '🔧';
+    
+    const name = document.createElement('div');
+    name.textContent = widget.title || 'Widget';
+    name.style.fontWeight = 'bold';
+    
+    const info = document.createElement('div');
+    info.textContent = getWidgetTypeDescription(widget.widgetType);
+    info.style.fontSize = '12px';
+    info.style.opacity = '0.7';
+    info.style.marginTop = '5px';
+    info.style.textAlign = 'center';
+    
+    contentPreview.appendChild(icon);
+    contentPreview.appendChild(name);
+    contentPreview.appendChild(info);
+    
+    // Add the preview to the widget container
+    containerDiv.appendChild(contentPreview);
+    
+    return containerDiv;
+}
+
+// Helper function to get widget description
+function getWidgetTypeDescription(widgetType) {
+    // Look through WIDGET_TYPES to find the description
+    for (const category in WIDGET_TYPES) {
+        const categoryObj = WIDGET_TYPES[category];
+        for (const widgetKey in categoryObj.widgets) {
+            const widget = categoryObj.widgets[widgetKey];
+            if (widget.id === widgetType) {
+                return widget.description;
+            }
+        }
+    }
+    return "Custom widget";
 }
 
 function updateGroupTitle(index, title) {
@@ -575,25 +674,8 @@ function toggleGridSettings() {
     }
 }
 
-newGroupBtn.addEventListener('click', () => {
-    document.getElementById('new-group-popup').style.display = 'flex';
-    document.getElementById('new-group-title').value = '';
-    document.getElementById('new-group-type').value = 'stack';
-    document.getElementById('grid-rows').value = '1';
-    document.getElementById('grid-columns').value = '1';
-    
-    // Initialize and show/hide grid settings
-    toggleGridSettings();
-    
-    // Clear and add initial link input
-    newGroupLinks.innerHTML = '';
-    createLinkInputs(newGroupLinks);
-    
-    // Reset create button
-    const createBtn = document.getElementById('create-new-group-btn');
-    createBtn.textContent = 'Create Group';
-    createBtn.onclick = createNewGroup;
-});
+// Commented out previous direct event listener since we're now using the options menu
+// newGroupBtn click is handled in the bottom code to show options menu
 
 document.getElementById('add-new-group-link-btn').addEventListener('click', () => {
     createLinkInputs(newGroupLinks);
@@ -1023,7 +1105,27 @@ function stopMoveSearchBar(originalTransform) {
 if (document.getElementById('add-group-button')) {
     document.getElementById('add-group-button').addEventListener('click', function() {
         // Opens the group editor dialog
-        document.getElementById('new-group-popup').style.display = 'flex';
+        const newGroupPopup = document.getElementById('new-group-popup');
+        newGroupPopup.style.display = 'flex';
+        
+        // Initialize the new group form
+        document.getElementById('new-group-title').value = '';
+        document.getElementById('new-group-type').value = 'stack';
+        document.getElementById('grid-rows').value = '1';
+        document.getElementById('grid-columns').value = '1';
+        
+        // Initialize and show/hide grid settings
+        toggleGridSettings();
+        
+        // Clear and add initial link input
+        newGroupLinks.innerHTML = '';
+        createLinkInputs(newGroupLinks);
+        
+        // Reset create button
+        const createBtn = document.getElementById('create-new-group-btn');
+        createBtn.textContent = 'Create Group';
+        createBtn.onclick = createNewGroup;
+        
         // Hide add options menu
         document.getElementById('add-options').style.display = 'none';
     });
@@ -1107,10 +1209,50 @@ function populateWidgetMenu() {
                 
                 // Add click handler for widget selection
                 widgetItemDiv.addEventListener('click', function() {
-                    // Handle widget selection - to be implemented
-                    console.log(`Selected widget: ${widget.id} (${widget.name})`);
-                    alert(`Widget ${widget.name} selected! Widget functionality will be implemented in a future update.`);
+                    // Create a basic widget object
+                    const widgetObj = {
+                        type: 'widget',
+                        widgetType: widget.id,
+                        title: widget.name,
+                        icon: widget.icon,
+                        x: '50%',  // Default to center screen
+                        y: '50%',  // Default to center screen
+                        settings: {}  // Will hold widget-specific settings
+                    };
+                    
+                    // Add the widget to the current groups
+                    currentGroups.push(widgetObj);
+                    
+                    // Render the updated groups
+                    renderGroups();
+                    
+                    // Hide the widget menu
                     document.getElementById('widget-menu').style.display = 'none';
+                    
+                    // Show notification
+                    const notification = document.createElement('div');
+                    notification.className = 'widget-notification';
+                    notification.textContent = `Added ${widget.name} widget! You can drag it to position it.`;
+                    notification.style.position = 'fixed';
+                    notification.style.bottom = '20px';
+                    notification.style.left = '50%';
+                    notification.style.transform = 'translateX(-50%)';
+                    notification.style.backgroundColor = 'var(--primary-color)';
+                    notification.style.color = 'white';
+                    notification.style.padding = '10px 20px';
+                    notification.style.borderRadius = '4px';
+                    notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+                    notification.style.zIndex = '9999';
+                    document.body.appendChild(notification);
+                    
+                    // Remove notification after 3 seconds
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        notification.style.transition = 'opacity 0.5s';
+                        setTimeout(() => {
+                            document.body.removeChild(notification);
+                        }, 500);
+                    }, 3000);
                 });
                 
                 listDiv.appendChild(widgetItemDiv);
@@ -1469,6 +1611,284 @@ function updateGroupPosition(index, x, y) {
     // Store position as percentage strings
     currentGroups[index].x = `${percentX * 100}%`;
     currentGroups[index].y = `${percentY * 100}%`;
+}
+
+// Function to create a widget settings dialog
+function openWidgetSettings(index) {
+    const widget = currentGroups[index];
+    
+    // Create a custom dialog for the widget settings
+    const settingsDialog = document.createElement('div');
+    settingsDialog.className = 'popup';
+    settingsDialog.style.display = 'flex';
+    
+    const settingsContent = document.createElement('div');
+    settingsContent.className = 'popup-content';
+    
+    // Add a title to the dialog
+    const title = document.createElement('h2');
+    title.textContent = `${widget.title || 'Widget'} Settings`;
+    settingsContent.appendChild(title);
+    
+    // Add a description
+    const description = document.createElement('p');
+    description.textContent = `Configure your ${widget.title || 'Widget'} widget.`;
+    settingsContent.appendChild(description);
+    
+    // Create settings form based on widget type
+    const settingsForm = document.createElement('div');
+    settingsForm.className = 'widget-settings-form';
+    settingsForm.style.margin = '20px 0';
+    
+    // Initialize settings object if it doesn't exist
+    if (!widget.settings) {
+        widget.settings = {};
+    }
+    
+    // Create appropriate settings form based on widget type
+    switch (widget.widgetType) {
+        case 'weather':
+            createWeatherWidgetSettings(settingsForm, widget);
+            break;
+        case 'analog-clock':
+        case 'digital-clock':
+            createClockWidgetSettings(settingsForm, widget);
+            break;
+        case 'todo':
+        case 'notes':
+        case 'calendar':
+        case 'timer':
+        case 'pomodoro':
+        case 'quote':
+        case 'news':
+        case 'stocks':
+        case 'rss':
+        case 'music-controls':
+        case 'bookmarks':
+        case 'recently-visited':
+        default:
+            settingsForm.innerHTML = `
+                <p style="text-align: center; padding: 30px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+                    Additional settings for this widget type will be available in a future update.
+                </p>
+            `;
+    }
+    
+    settingsContent.appendChild(settingsForm);
+    
+    // Add buttons
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.className = 'popup-buttons';
+    
+    const saveButton = document.createElement('button');
+    saveButton.className = 'primary';
+    saveButton.textContent = 'Save';
+    saveButton.onclick = () => {
+        saveWidgetSettings(widget, settingsForm);
+        document.body.removeChild(settingsDialog);
+        renderGroups(); // Refresh the UI to show updated widget
+    };
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.onclick = () => document.body.removeChild(settingsDialog);
+    
+    buttonsDiv.appendChild(saveButton);
+    buttonsDiv.appendChild(cancelButton);
+    settingsContent.appendChild(buttonsDiv);
+    
+    // Add the dialog to the page
+    settingsDialog.appendChild(settingsContent);
+    document.body.appendChild(settingsDialog);
+}
+
+// Create settings form for weather widget
+function createWeatherWidgetSettings(container, widget) {
+    // Ensure settings object exists
+    if (!widget.settings) {
+        widget.settings = {};
+    }
+    
+    const formHTML = `
+        <div class="settings-row">
+            <label for="weather-location">Location</label>
+            <input type="text" id="weather-location" value="${widget.settings.location || ''}" 
+                   placeholder="Enter zip code, city name, or 'auto' for current location">
+            <p class="field-help">Enter a US ZIP code (e.g., 10001), city name (e.g., New York), or "auto" for automatic location detection</p>
+        </div>
+        
+        <div class="settings-row">
+            <label for="weather-units">Units</label>
+            <select id="weather-units">
+                <option value="imperial" ${widget.settings.units === 'imperial' || !widget.settings.units ? 'selected' : ''}>Fahrenheit (°F)</option>
+                <option value="metric" ${widget.settings.units === 'metric' ? 'selected' : ''}>Celsius (°C)</option>
+            </select>
+        </div>
+    `;
+    
+    container.innerHTML = formHTML;
+    
+    // Add some styling for the form
+    const style = document.createElement('style');
+    style.textContent = `
+        .widget-settings-form .settings-row {
+            margin-bottom: 15px;
+        }
+        
+        .widget-settings-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .widget-settings-form input[type="text"],
+        .widget-settings-form select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .widget-settings-form .field-help {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Create settings form for clock widgets
+function createClockWidgetSettings(container, widget) {
+    // Ensure settings object exists
+    if (!widget.settings) {
+        widget.settings = {};
+    }
+    
+    const isDigital = widget.widgetType === 'digital-clock';
+    
+    let formHTML = `
+        <div class="settings-row">
+            <label for="clock-timezone">Timezone</label>
+            <select id="clock-timezone">
+                <option value="local" ${widget.settings.timezone === 'local' || !widget.settings.timezone ? 'selected' : ''}>Local Time</option>
+                <option value="America/New_York" ${widget.settings.timezone === 'America/New_York' ? 'selected' : ''}>New York (EST/EDT)</option>
+                <option value="America/Los_Angeles" ${widget.settings.timezone === 'America/Los_Angeles' ? 'selected' : ''}>Los Angeles (PST/PDT)</option>
+                <option value="Europe/London" ${widget.settings.timezone === 'Europe/London' ? 'selected' : ''}>London (GMT/BST)</option>
+                <option value="Europe/Paris" ${widget.settings.timezone === 'Europe/Paris' ? 'selected' : ''}>Paris (CET/CEST)</option>
+                <option value="Asia/Tokyo" ${widget.settings.timezone === 'Asia/Tokyo' ? 'selected' : ''}>Tokyo (JST)</option>
+            </select>
+        </div>
+    `;
+    
+    // Add digital clock specific options
+    if (isDigital) {
+        formHTML += `
+            <div class="settings-row">
+                <label for="clock-format">Time Format</label>
+                <select id="clock-format">
+                    <option value="24h" ${widget.settings.timeFormat === '24h' || !widget.settings.timeFormat ? 'selected' : ''}>24-hour</option>
+                    <option value="12h" ${widget.settings.timeFormat === '12h' ? 'selected' : ''}>12-hour (AM/PM)</option>
+                </select>
+            </div>
+            
+            <div class="settings-row">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-seconds" ${widget.settings.showSeconds !== false ? 'checked' : ''}>
+                    <label for="show-seconds">Show seconds</label>
+                </div>
+            </div>
+            
+            <div class="settings-row">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-date" ${widget.settings.showDate !== false ? 'checked' : ''}>
+                    <label for="show-date">Show date</label>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = formHTML;
+    
+    // Add some styling for the form
+    const style = document.createElement('style');
+    style.textContent = `
+        .widget-settings-form .settings-row {
+            margin-bottom: 15px;
+        }
+        
+        .widget-settings-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .widget-settings-form select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .widget-settings-form .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        
+        .widget-settings-form .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        .widget-settings-form .checkbox-group label {
+            display: inline;
+            margin-bottom: 0;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Save widget settings from the form
+function saveWidgetSettings(widget, form) {
+    // Handle different widget types
+    switch (widget.widgetType) {
+        case 'weather':
+            // Get values from the weather settings form
+            const location = document.getElementById('weather-location').value.trim();
+            const units = document.getElementById('weather-units').value;
+            
+            // Update widget settings
+            widget.settings.location = location || 'auto';
+            widget.settings.units = units;
+            break;
+            
+        case 'digital-clock':
+            // Get values from the digital clock settings form
+            const timeFormat = document.getElementById('clock-format').value;
+            const showSeconds = document.getElementById('show-seconds').checked;
+            const showDate = document.getElementById('show-date').checked;
+            const timezone = document.getElementById('clock-timezone').value;
+            
+            // Update widget settings
+            widget.settings.timeFormat = timeFormat;
+            widget.settings.showSeconds = showSeconds;
+            widget.settings.showDate = showDate;
+            widget.settings.timezone = timezone;
+            break;
+            
+        case 'analog-clock':
+            // Get values from the analog clock settings form
+            const analogTimezone = document.getElementById('clock-timezone').value;
+            
+            // Update widget settings
+            widget.settings.timezone = analogTimezone;
+            break;
+            
+        default:
+            // No specific settings for other widget types yet
+            break;
+    }
 }
 
 // Use global getFavicon function from editor-utils.js

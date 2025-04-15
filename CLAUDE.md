@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Run locally by opening HTML files in a browser
 - Test by manually inspecting web pages and functionality
 - Install in Chrome by loading the directory as an unpacked extension
+- 
 
 ## Code Style Guidelines
 - **HTML**: Use semantic elements, proper indentation, and descriptive attributes

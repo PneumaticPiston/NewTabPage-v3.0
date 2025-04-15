@@ -945,8 +945,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Set up image drop functionality
         setupImageDrop();
         
-        // Load groups
+        // Load groups and widgets
         loadGroups();
+        loadWidgets();
         
         // Add window resize handler
         window.addEventListener('resize', handleWindowResize);
@@ -962,6 +963,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             initializeHeaderLinks();
             initializeAppsDropdown();
             loadGroups();
+            loadWidgets();
             window.addEventListener('resize', handleWindowResize);
         } catch (fallbackError) {
             console.error('Critical error in fallback initialization:', fallbackError);
@@ -987,6 +989,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 function handleWindowResize() {
     // Redraw all elements with updated positions
     loadGroups();
+    loadWidgets();
     
     // Reposition search
     if (currentSettings.searchBarPosition) {
@@ -1115,4 +1118,93 @@ function generateCalendarIcon() {
     
     // Convert SVG to data URI
     return 'data:image/svg+xml;base64,' + btoa(svgIcon);
+}
+
+// Function to load widgets from storage and display them
+async function loadWidgets() {
+    console.log('Loading widgets from storage...');
+    try {
+        let groups = [];
+        
+        // Check if chrome.storage is available (running as extension)
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            console.log('Chrome storage API available');
+            
+            // First check if there's a reference to groups location in sync storage
+            if (chrome.storage.sync) {
+                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
+                
+                // If groupsLocation is 'local', get groups from local storage
+                if (syncData.groupsLocation === 'local') {
+                    console.log('Groups are stored in local storage according to sync reference');
+                    const localData = await chrome.storage.local.get(['groups']);
+                    groups = localData.groups || [];
+                }
+                // Otherwise try to get from sync storage directly
+                else if (syncData.groups && syncData.groups.length > 0) {
+                    console.log('Groups found in sync storage');
+                    groups = syncData.groups;
+                }
+                // If not found in sync, try local storage as fallback
+                else {
+                    console.log('Groups not found in sync storage, checking local storage');
+                    const localData = await chrome.storage.local.get(['groups']);
+                    groups = localData.groups || [];
+                }
+            } else {
+                // If sync is not available, try local
+                console.log('Sync storage not available, trying local storage');
+                const localData = await chrome.storage.local.get(['groups']);
+                groups = localData.groups || [];
+            }
+        } else {
+            // Fallback for development/testing environment
+            console.warn('Chrome storage API not available, using localStorage fallback');
+            const savedGroups = localStorage.getItem('groups');
+            groups = savedGroups ? JSON.parse(savedGroups) : [];
+        }
+        
+        if (groups && groups.length > 0) {
+            console.log(`Found ${groups.length} groups in storage, checking for widgets...`);
+            
+            // Filter only widgets
+            const widgets = groups.filter(group => group.type === 'widget');
+            
+            if (widgets.length > 0) {
+                console.log(`Found ${widgets.length} widgets to display`);
+                
+                // Create and add each widget to the container
+                widgets.forEach((widget, index) => {
+                    console.log(`Creating widget: ${widget.title} (${widget.widgetType})`);
+                    
+                    if (typeof WIDGET_TEMPLATES !== 'undefined' && typeof WIDGET_TEMPLATES.createWidget === 'function') {
+                        // Create the widget using the template function
+                        const widgetElement = WIDGET_TEMPLATES.createWidget(widget);
+                        
+                        // Add widget to the document
+                        if (widgetElement) {
+                            document.getElementById('groups-container').appendChild(widgetElement);
+                            
+                            // Store reference to the widget
+                            if (Array.isArray(WIDGETS)) {
+                                WIDGETS.push({
+                                    id: `widget-${widget.widgetType}-${Date.now()}-${index}`,
+                                    element: widgetElement,
+                                    data: widget
+                                });
+                            }
+                        }
+                    } else {
+                        console.error('Widget templates not available');
+                    }
+                });
+            } else {
+                console.log('No widgets found in groups');
+            }
+        } else {
+            console.log('No groups found in storage');
+        }
+    } catch (error) {
+        console.error('Error loading widgets:', error);
+    }
 }

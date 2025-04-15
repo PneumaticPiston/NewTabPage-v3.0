@@ -386,6 +386,14 @@ h2 {
     height: 0;
 }
 
+label.switch {
+    margin-right: 0px;
+}
+
+.slider.round {
+    width: 60px;
+}
+
 .slider {
     position: absolute;
     cursor: pointer;
