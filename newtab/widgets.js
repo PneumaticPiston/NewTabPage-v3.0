@@ -353,7 +353,7 @@ function setupAnalogClockWidget(container, widgetData) {
         height: 100%;
         border-radius: 50%;
         position: relative;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.2);
     }
     .hour-marker {
@@ -361,13 +361,14 @@ function setupAnalogClockWidget(container, widgetData) {
         font-weight: bold;
         font-size: 14px;
         transform: translate(-50%, -50%);
+        color: var(--text-color, #333);
     }
     .clock-hand {
         position: absolute;
         bottom: 50%;
         left: 50%;
         transform-origin: bottom;
-        background-color: #333;
+        background-color: var(--text-color, #333);
     }
     .hour-hand {
         width: 6px;
@@ -382,14 +383,14 @@ function setupAnalogClockWidget(container, widgetData) {
     .second-hand {
         width: 2px;
         height: 80px;
-        background-color: #f00;
+        background-color: var(--accent-color, #f00);
         border-radius: 1px;
     }
     .center-dot {
         position: absolute;
         width: 12px;
         height: 12px;
-        background-color: #333;
+        background-color: var(--text-color, #333);
         border-radius: 50%;
         top: 50%;
         left: 50%;
@@ -401,7 +402,8 @@ function setupAnalogClockWidget(container, widgetData) {
         left: 50%;
         transform: translateX(-50%);
         font-size: 12px;
-        opacity: 0.6;
+        color: var(--text-color, #333);
+        opacity: 0.7;
         text-align: center;
         font-style: italic;
     }
@@ -543,23 +545,27 @@ function setupDigitalClockWidget(container, widgetData) {
         align-items: center;
         justify-content: center;
         text-align: center;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: var(--text-color, #333);
     }
     .time-display {
         font-size: 36px;
         font-weight: bold;
         margin-bottom: 5px;
         font-family: 'Courier New', monospace;
+        color: var(--text-color, #333);
     }
     .date-display {
         font-size: 14px;
+        color: var(--text-color, #333);
         opacity: 0.7;
     }
     .timezone-display {
         font-size: 12px;
-        opacity: 0.6;
+        color: var(--text-color, #333);
+        opacity: 0.7;
         margin-top: 5px;
         font-style: italic;
     }
@@ -620,13 +626,13 @@ function setupWeatherWidget(container, widgetData) {
             } else {
                 // Show error state
                 status.textContent = 'Unable to load weather data';
-                status.style.color = '#ff5555';
+                status.style.color = 'var(--accent-color, #ff5555)';
             }
         })
         .catch(error => {
             console.error('Weather widget error:', error);
             status.textContent = 'Error loading weather data';
-            status.style.color = '#ff5555';
+            status.style.color = 'var(--accent-color, #ff5555)';
         });
     
     // Add styling
@@ -638,9 +644,10 @@ function setupWeatherWidget(container, widgetData) {
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: var(--text-color, #333);
     }
     .current-conditions {
         font-size: 48px;
@@ -652,19 +659,23 @@ function setupWeatherWidget(container, widgetData) {
         font-weight: bold;
         margin-bottom: 5px;
         display: none;
+        color: var(--text-color, #333);
     }
     .condition {
         font-size: 18px;
         margin-bottom: 10px;
         display: none;
+        color: var(--text-color, #333);
     }
     .location {
         font-size: 14px;
+        color: var(--text-color, #333);
         opacity: 0.7;
         display: none;
     }
     .status {
         font-size: 14px;
+        color: var(--text-color, #333);
         opacity: 0.7;
         margin-top: 10px;
     }
@@ -861,9 +872,10 @@ function setupWorldClockWidget(container, widgetData) {
     .world-clock-widget {
         width: 200px;
         padding: 15px;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: var(--text-color, #333);
     }
     .clocks-container {
         display: flex;
@@ -875,16 +887,19 @@ function setupWorldClockWidget(container, widgetData) {
         justify-content: space-between;
         align-items: center;
         padding: 5px 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid var(--text-color, rgba(0, 0, 0, 0.1));
+        border-bottom-color: rgba(var(--text-color, 0, 0, 0), 0.1);
     }
     .clock-item:last-child {
         border-bottom: none;
     }
     .city-name {
         font-weight: bold;
+        color: var(--text-color, #333);
     }
     .time-display {
         font-family: 'Courier New', monospace;
+        color: var(--text-color, #333);
     }
     `;
     document.head.appendChild(style);
@@ -1008,9 +1023,10 @@ function setupTodoWidget(container, widgetData) {
     .todo-widget {
         width: 250px;
         padding: 15px;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: var(--text-color, #333);
     }
     .todo-list {
         list-style: none;
@@ -1023,7 +1039,8 @@ function setupTodoWidget(container, widgetData) {
         display: flex;
         align-items: center;
         padding: 8px 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid var(--text-color, rgba(0, 0, 0, 0.1));
+        border-bottom-color: rgba(var(--text-color, 0, 0, 0), 0.1);
     }
     .todo-item.completed .todo-text {
         text-decoration: line-through;
@@ -1034,11 +1051,12 @@ function setupTodoWidget(container, widgetData) {
     }
     .todo-text {
         flex: 1;
+        color: var(--text-color, #333);
     }
     .delete-todo {
         background: none;
         border: none;
-        color: #ff5555;
+        color: var(--accent-color, #ff5555);
         font-size: 18px;
         cursor: pointer;
         padding: 0 5px;
@@ -1050,12 +1068,14 @@ function setupTodoWidget(container, widgetData) {
     .todo-input {
         flex: 1;
         padding: 8px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--group-background-color, #ddd);
         border-radius: 4px 0 0 4px;
+        color: var(--text-color, #333);
+        background-color: var(--all-background-color, #fff);
     }
     .add-todo-button {
-        background-color: #4caf50;
-        color: white;
+        background-color: var(--primary-color, #4caf50);
+        color: var(--contrast-text-color, white);
         border: none;
         padding: 8px 12px;
         border-radius: 0 4px 4px 0;
@@ -1111,9 +1131,10 @@ function setupNotesWidget(container, widgetData) {
     .notes-widget {
         width: 250px;
         padding: 15px;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: var(--text-color, #333);
     }
     .notes-content {
         width: 100%;
@@ -1122,11 +1143,12 @@ function setupNotesWidget(container, widgetData) {
         width: 100%;
         height: 150px;
         padding: 10px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--group-background-color, #ddd);
         border-radius: 5px;
         resize: none;
         font-family: inherit;
-        background-color: #fff;
+        background-color: var(--all-background-color, #fff);
+        color: var(--text-color, #333);
     }
     `;
     document.head.appendChild(style);
@@ -1181,20 +1203,23 @@ function setupQuoteWidget(container, widgetData) {
     .quote-widget {
         width: 250px;
         padding: 20px;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         position: relative;
+        color: var(--text-color, #333);
     }
     .quote-text {
         font-style: italic;
         margin-bottom: 10px;
         line-height: 1.4;
+        color: var(--text-color, #333);
     }
     .quote-author {
         text-align: right;
         opacity: 0.7;
         font-size: 0.9em;
+        color: var(--text-color, #333);
     }
     .refresh-quote {
         position: absolute;
@@ -1204,10 +1229,12 @@ function setupQuoteWidget(container, widgetData) {
         border: none;
         font-size: 16px;
         cursor: pointer;
-        color: #777;
+        color: var(--text-color, #777);
+        opacity: 0.7;
     }
     .refresh-quote:hover {
-        color: #333;
+        color: var(--text-color, #333);
+        opacity: 1;
     }
     `;
     document.head.appendChild(style);
@@ -1319,9 +1346,10 @@ function setupCalendarWidget(container, widgetData) {
     .calendar-widget {
         width: 280px;
         padding: 15px;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: var(--text-color, #333);
     }
     .calendar-header {
         display: flex;
@@ -1333,6 +1361,7 @@ function setupCalendarWidget(container, widgetData) {
         font-weight: bold;
         text-align: center;
         flex: 1;
+        color: var(--text-color, #333);
     }
     .month-nav {
         background: none;
@@ -1340,6 +1369,7 @@ function setupCalendarWidget(container, widgetData) {
         font-size: 18px;
         cursor: pointer;
         padding: 0 10px;
+        color: var(--text-color, #333);
     }
     .weekday-header {
         display: grid;
@@ -1350,6 +1380,7 @@ function setupCalendarWidget(container, widgetData) {
     }
     .weekday {
         padding: 5px;
+        color: var(--text-color, #333);
     }
     .calendar-grid {
         display: grid;
@@ -1363,17 +1394,19 @@ function setupCalendarWidget(container, widgetData) {
         justify-content: center;
         border-radius: 50%;
         transition: background-color 0.2s;
+        color: var(--text-color, #333);
     }
     .day:hover {
-        background-color: rgba(0, 0, 0, 0.1);
+        background-color: var(--text-color, rgba(0, 0, 0, 0.1));
+        background-color: rgba(var(--text-color, 0, 0, 0), 0.1);
         cursor: pointer;
     }
     .day.empty {
         background: none;
     }
     .day.today {
-        background-color: #4285f4;
-        color: white;
+        background-color: var(--primary-color, #4285f4);
+        color: var(--contrast-text-color, white);
     }
     `;
     document.head.appendChild(style);
@@ -1513,19 +1546,21 @@ function setupTimerWidget(container, widgetData) {
     .timer-widget {
         width: 230px;
         padding: 15px;
-        background-color: #f5f5f5;
+        background-color: var(--group-background-color, #f5f5f5);
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         text-align: center;
+        color: var(--text-color, #333);
     }
     .timer-display {
         font-size: 32px;
         font-family: 'Courier New', monospace;
         margin-bottom: 15px;
         padding: 10px;
-        background-color: #fff;
+        background-color: var(--all-background-color, #fff);
         border-radius: 5px;
         box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        color: var(--text-color, #333);
     }
     .timer-controls {
         display: flex;
@@ -1541,15 +1576,16 @@ function setupTimerWidget(container, widgetData) {
         font-weight: bold;
     }
     .start {
-        background-color: #4CAF50;
-        color: white;
+        background-color: var(--primary-color, #4CAF50);
+        color: var(--contrast-text-color, white);
     }
     .pause {
-        background-color: #FFC107;
+        background-color: var(--secondary-color, #FFC107);
+        color: var(--text-color, #333);
     }
     .reset {
-        background-color: #F44336;
-        color: white;
+        background-color: var(--accent-color, #F44336);
+        color: var(--contrast-text-color, white);
     }
     .timer-presets {
         display: flex;
@@ -1558,17 +1594,18 @@ function setupTimerWidget(container, widgetData) {
     }
     .preset-button {
         padding: 5px 10px;
-        border: 1px solid #ddd;
-        background-color: #fff;
+        border: 1px solid var(--group-background-color, #ddd);
+        background-color: var(--all-background-color, #fff);
         border-radius: 4px;
         cursor: pointer;
+        color: var(--text-color, #333);
     }
     .timer-complete {
         animation: pulse 0.5s alternate infinite;
     }
     @keyframes pulse {
-        from { background-color: #fff; }
-        to { background-color: #ffcdd2; }
+        from { background-color: var(--all-background-color, #fff); }
+        to { background-color: var(--accent-color, #ffcdd2); opacity: 0.7; }
     }
     `;
     document.head.appendChild(style);

@@ -2,9 +2,9 @@
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    border: 2px solid #333;
+    border: 2px solid var(--text-color, #333);
     position: relative;
-    background: white;
+    background: var(--all-background-color, white);
 }
 
 .hand {
@@ -12,7 +12,7 @@
     bottom: 50%;
     left: 50%;
     transform-origin: bottom;
-    background: #333;
+    background: var(--text-color, #333);
 }
 
 .hour {
@@ -31,14 +31,14 @@
     width: 2px;
     height: 90px;
     margin-left: -1px;
-    background: red;
+    background: var(--accent-color, red);
 }
 
 .center-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #333;
+    background: var(--text-color, #333);
     position: absolute;
     top: 50%;
     left: 50%;

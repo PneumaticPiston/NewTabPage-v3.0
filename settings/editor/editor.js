@@ -9,6 +9,106 @@ const newGroupPopup = document.getElementById('new-group-popup');
 const linksEditor = document.getElementById('group-links-editor');
 const newGroupLinks = document.getElementById('new-group-links');
 
+// Function to determine if a color is dark (for contrast purposes)
+function isColorDark(color) {
+    // Handle hex colors
+    let r, g, b;
+    
+    if (color.startsWith('#')) {
+        // Convert hex to RGB
+        let hex = color.substring(1);
+        
+        // Handle shorthand hex (#FFF)
+        if (hex.length === 3) {
+            r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
+            g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
+            b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
+        } else {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+        }
+    } else if (color.startsWith('rgb')) {
+        // Handle rgb/rgba
+        const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+        if (rgbMatch) {
+            r = parseInt(rgbMatch[1]);
+            g = parseInt(rgbMatch[2]);
+            b = parseInt(rgbMatch[3]);
+        } else {
+            // Default to white if color format not recognized
+            return false;
+        }
+    } else {
+        // Default to white for unrecognized formats
+        return false;
+    }
+    
+    // Calculate brightness using W3C algorithm
+    // https://www.w3.org/TR/AERT/#color-contrast
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // Return true if dark, false if light
+    return brightness < 128;
+}
+
+// Function to apply theme to editor
+function applyThemeToEditor() {
+    const theme = currentSettings.theme || 'light';
+    const isCustomTheme = theme.startsWith('custom-');
+    
+    // Set CSS variables for colors
+    if (isCustomTheme && currentSettings.customThemes) {
+        // Find the custom theme
+        const customTheme = currentSettings.customThemes.find(t => t.id === theme);
+        if (customTheme) {
+            document.documentElement.style.setProperty('--all-background-color', customTheme.background);
+            document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
+            document.documentElement.style.setProperty('--text-color', customTheme.text);
+            document.documentElement.style.setProperty('--accent-color', customTheme.accent);
+            document.documentElement.style.setProperty('--primary-color', customTheme.primary);
+            
+            // Set contrast text color - white for dark themes, black for light themes
+            const isDarkBackground = isColorDark(customTheme.primary);
+            document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
+        }
+    } else if (theme === 'custom') {
+        // Apply colors from current custom color values
+        const customPrimary = '#457b9d'; // Default values
+        const customSecondary = '#a8dadc';
+        const customAccent = '#e63946';
+        const customText = '#1d3557';
+        const customBackground = '#f1faee';
+        
+        document.documentElement.style.setProperty('--all-background-color', customBackground);
+        document.documentElement.style.setProperty('--group-background-color', customSecondary);
+        document.documentElement.style.setProperty('--text-color', customText);
+        document.documentElement.style.setProperty('--accent-color', customAccent);
+        document.documentElement.style.setProperty('--primary-color', customPrimary);
+        
+        // Set contrast text color - white for dark themes, black for light themes
+        const isDarkBackground = isColorDark(customPrimary);
+        document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
+    } else {
+        document.documentElement.style.setProperty('--all-background-color', `var(--${theme}-background, #f1faee)`);
+        document.documentElement.style.setProperty('--group-background-color', `var(--${theme}-secondary, #a8dadc)`);
+        document.documentElement.style.setProperty('--text-color', `var(--${theme}-text, #1d3557)`);
+        document.documentElement.style.setProperty('--accent-color', `var(--${theme}-accent, #e63946)`);
+        document.documentElement.style.setProperty('--primary-color', `var(--${theme}-primary, #457b9d)`);
+        
+        // Set contrast text color appropriately based on theme
+        let isDarkTheme = false;
+        if (theme === 'dark' || theme === 'midnight' || theme === 'emerald' || 
+            theme === 'slate' || theme === 'deep' || theme === 'nord' || theme === 'cyber') {
+            isDarkTheme = true;
+        }
+        document.documentElement.style.setProperty('--contrast-text-color', isDarkTheme ? '#ffffff' : '#000000');
+    }
+    
+    // Set body background color while preserving inline style attribute
+    document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--all-background-color');
+}
+
 let currentGroups = [];
 let currentSettings = {};
 let editingGroupIndex = -1;
@@ -1238,7 +1338,7 @@ function populateWidgetMenu() {
                     notification.style.left = '50%';
                     notification.style.transform = 'translateX(-50%)';
                     notification.style.backgroundColor = 'var(--primary-color)';
-                    notification.style.color = 'white';
+                    notification.style.color = 'var(--contrast-text-color, white)';
                     notification.style.padding = '10px 20px';
                     notification.style.borderRadius = '4px';
                     notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
@@ -2299,6 +2399,9 @@ function saveHeaderLinkChanges() {
 
 // Initialize header editor and apps manager functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Apply theme immediately on page load
+    applyThemeToEditor();
+    
     // Initialize the draggable functionality for the shortcuts bar
     // This makes it consistent with other elements in the editor
     setTimeout(() => {

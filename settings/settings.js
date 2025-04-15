@@ -393,6 +393,7 @@ async function saveSettings() {
         setTimeout(() => {
             saveButton.textContent = 'Save Settings';
         }, 2000);
+        window.location.reload();
     } catch (error) {
         console.error('Error saving settings:', error);
         alert('Error saving settings. Please try again.');
@@ -625,6 +626,49 @@ function saveCustomTheme() {
     }, 2000);
 }
 
+// Function to determine if a color is dark (for contrast purposes)
+function isColorDark(color) {
+    // Handle hex colors
+    let r, g, b;
+    
+    if (color.startsWith('#')) {
+        // Convert hex to RGB
+        let hex = color.substring(1);
+        
+        // Handle shorthand hex (#FFF)
+        if (hex.length === 3) {
+            r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
+            g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
+            b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
+        } else {
+            r = parseInt(hex.substring(0, 2), 16);
+            g = parseInt(hex.substring(2, 4), 16);
+            b = parseInt(hex.substring(4, 6), 16);
+        }
+    } else if (color.startsWith('rgb')) {
+        // Handle rgb/rgba
+        const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+        if (rgbMatch) {
+            r = parseInt(rgbMatch[1]);
+            g = parseInt(rgbMatch[2]);
+            b = parseInt(rgbMatch[3]);
+        } else {
+            // Default to white if color format not recognized
+            return false;
+        }
+    } else {
+        // Default to white for unrecognized formats
+        return false;
+    }
+    
+    // Calculate brightness using W3C algorithm
+    // https://www.w3.org/TR/AERT/#color-contrast
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // Return true if dark, false if light
+    return brightness < 128;
+}
+
 // Apply theme to the settings page
 function applyThemeToPage(themeId) {
     // Check if it's a custom theme
@@ -653,6 +697,10 @@ function applyThemeToPage(themeId) {
         document.documentElement.style.setProperty('--accent-color', themeColors.accent);
         document.documentElement.style.setProperty('--text-color', themeColors.text);
         document.documentElement.style.setProperty('--background-color', themeColors.background);
+        
+        // Set contrast text color - white for dark themes, black for light themes
+        const isDarkBackground = isColorDark(themeColors.primary);
+        document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
     } else {
         // Use CSS variables for base themes
         document.documentElement.style.setProperty('--primary-color', `var(--${themeId}-primary)`);
@@ -660,7 +708,18 @@ function applyThemeToPage(themeId) {
         document.documentElement.style.setProperty('--accent-color', `var(--${themeId}-accent)`);
         document.documentElement.style.setProperty('--text-color', `var(--${themeId}-text)`);
         document.documentElement.style.setProperty('--background-color', `var(--${themeId}-background)`);
+        
+        // Set contrast text color appropriately based on theme
+        let isDarkTheme = false;
+        if (themeId === 'dark' || themeId === 'midnight' || themeId === 'emerald' || 
+            themeId === 'slate' || themeId === 'deep' || themeId === 'nord' || themeId === 'cyber') {
+            isDarkTheme = true;
+        }
+        document.documentElement.style.setProperty('--contrast-text-color', isDarkTheme ? '#ffffff' : '#000000');
     }
+    
+    // Set body background color while preserving inline style attribute
+    document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color');
     
     // Apply custom background if enabled
     if (currentSettings.useCustomBackground) {

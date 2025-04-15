@@ -11,6 +11,7 @@
     --text-scale: 1;
     --element-scale: 1;
     --spacing-multiplier: 1;
+    --contrast-text-color: white; /* For text on dark backgrounds */
 }
 
 * {
@@ -35,12 +36,13 @@ body {
 .settings-container {
     max-width: var(--container-width);
     margin: 0 auto;
-    background-color: rgba(255, 255, 255, 0.85);
+    background-color: var(--group-background-color);
     backdrop-filter: blur(10px);
     padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--primary-color);
+    color: var(--text-color);
 }
 
 header {
@@ -49,12 +51,23 @@ header {
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--primary-color);
+    
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--background-color);
+    padding: 15px;
+    backdrop-filter: blur(10px);
 }
 
 h1 {
     font-size: 24px;
     font-weight: 600;
+}
+
+header h1 {
+    color: var(--contrast-text-color, white);
 }
 
 h2 {
@@ -79,21 +92,23 @@ h2 {
     font-weight: 500;
     transition: background-color var(--transition-speed);
     display: inline-block;
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: var(--group-background-color);
+    color: var(--text-color);
 }
 
 .button:hover {
-    background-color: #e9e9e9;
+    background-color: var(--primary-color);
+    opacity: 0.8;
 }
 
 .button.primary {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--background-color);
 }
 
 .button.primary:hover {
-    background-color: #3d6e8c;
+    background-color: var(--accent-color);
+    opacity: 0.9;
 }
 
 .button.secondary {
@@ -102,21 +117,24 @@ h2 {
 }
 
 .button.secondary:hover {
-    background-color: #97c4c6;
+    background-color: var(--primary-color);
+    opacity: 0.7;
 }
 
 .button.warning {
-    background-color: #f44336;
-    color: white;
+    background-color: var(--accent-color);
+    color: var(--contrast-text-color);
 }
 
 .button.warning:hover {
-    background-color: #d32f2f;
+    background-color: var(--accent-color);
+    opacity: 0.8;
 }
 
 .setting-description {
     font-size: 14px;
-    color: #666;
+    color: var(--text-color);
+    opacity: 0.7;
     margin-top: 5px;
     font-style: italic;
 }
@@ -141,7 +159,7 @@ h2 {
 
 .file-select-button {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--contrast-text-color);
     padding: 8px 16px;
     border: none;
     border-radius: var(--border-radius);
@@ -152,7 +170,7 @@ h2 {
 .file-name {
     margin-left: 10px;
     font-size: 14px;
-    color: #666;
+    color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -165,7 +183,7 @@ h2 {
     height: 150px;
     border-radius: var(--border-radius);
     overflow: hidden;
-    background-color: #f5f5f5;
+    background-color: var(--background-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -180,18 +198,21 @@ h2 {
 .background-inputs {
     margin-top: 10px;
     padding: 15px;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--background-color);
+    opacity: 0.8;
     border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--primary-color);
     display: none; /* Hidden by default */
 }
 
 .settings-section {
     margin-bottom: 30px;
     padding: 20px;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--background-color);
+    opacity: 0.9;
     border-radius: var(--border-radius);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--primary-color);
+    color: var(--text-color);
 }
 
 .setting-group {
@@ -209,12 +230,12 @@ h2 {
 .setting-control {
     width: 65%;
     padding: 8px 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--primary-color);
     border-radius: var(--border-radius);
     font-size: 14px;
     transition: border-color var(--transition-speed);
     color: var(--text-color);
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: var(--background-color);
 }
 
 .setting-control:focus {
@@ -245,11 +266,13 @@ h2 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+
+    border: 1px solid var(--primary-color);
 }
 
 .theme-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .theme-card.active {
@@ -341,7 +364,7 @@ h2 {
     -webkit-appearance: none;
     appearance: none;
     height: 8px;
-    background: #ddd;
+    background: var(--group-background-color, #ddd);
     border-radius: 5px;
     outline: none;
     margin-right: 10px;
@@ -401,7 +424,7 @@ label.switch {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--group-background-color, #ccc);
     transition: .4s;
 }
 
@@ -412,7 +435,7 @@ label.switch {
     width: 22px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
+    background-color: var(--all-background-color, white);
     transition: .4s;
 }
 

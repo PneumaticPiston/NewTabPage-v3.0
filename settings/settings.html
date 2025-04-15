@@ -7,12 +7,12 @@
     <link rel="stylesheet" type="text/css" href="./settings.css">
     <link rel="stylesheet" type="text/css" href="../theme/themes.css">
 </head>
-<body>
+<body style="background-color: rgb(128,128,128);">
     <div class="settings-container">
         <header>
             <h1>New Tab Settings</h1>
             <div class="header-links">
-                <a href="/newtab/newtab.html" class="button">Back to New Tab</a>
+                <button id="save-settings" class="button primary">Save Settings</button>
                 <a href="./editor/newtab-editor.html" class="button primary">Edit Link Groups</a>
             </div>
         </header>
@@ -154,7 +154,7 @@
             </div>
         </div>
         
-        <div class="settings-section">
+        <div class="settings-section" style="background-color: rgb(255, 0,0);">
             <h2>Reset Options</h2>
             <div class="setting-group">
                 <button id="reset-settings" class="button secondary">Reset Settings to Default</button>
@@ -165,9 +165,7 @@
             </p>
         </div>
         
-        <div class="settings-actions">
-            <button id="save-settings" class="button primary">Save Settings</button>
-        </div>
+        
     </div>
     
     <script src="settings.js"></script>

@@ -6,6 +6,7 @@
     --text-color: var(--light-text, #1d3557);
     --accent-color: var(--light-accent, #e63946);
     --primary-color: var(--light-primary, #457b9d);
+    --contrast-text-color: white; /* For text on dark backgrounds */
 }
 
 body {
@@ -38,6 +39,7 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    color: var(--contrast-text-color);
 }
 
 .chrome-header .left-section {
@@ -56,18 +58,20 @@ body {
 }
 
 .nav-link {
-    color: white;
+    color: var(--background-color);
     text-decoration: none;
     font-size: 14px;
     padding: 8px 8px;
     border-radius: 4px;
     transition: background-color 0.2s;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     font-weight: 500;
 }
 
 .nav-link:hover {
-    background-color: rgba(60, 64, 67, 0.08);
+    background-color: var(--accent-color);
+    color: var(--background-color);
+    opacity: 0.9;
 }
 
 .apps-dropdown-container {
@@ -88,13 +92,14 @@ body {
 }
 
 .apps-toggle:hover {
-    background-color: rgba(60, 64, 67, 0.08);
+    background-color: var(--primary-color);
+    opacity: 0.8;
 }
 
 .apps-icon {
     width: 24px;
     height: 24px;
-    fill: white;
+    fill: var(--contrast-text-color);
 }
 
 .apps-dropdown {
@@ -109,6 +114,7 @@ body {
     display: none;
     z-index: 1001;
     overflow-y: scroll;
+    color: var(--text-color);
 }
 
 .apps-grid {
@@ -130,7 +136,8 @@ body {
 }
 
 .app-item:hover {
-    background-color: rgba(60, 64, 67, 0.08);
+    background-color: var(--primary-color);
+    opacity: 0.8;
 }
 
 .app-icon {
@@ -150,13 +157,13 @@ body {
 }
 
 .apps-footer {
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--primary-color);
     padding-top: 12px;
     text-align: center;
 }
 
 .customize-apps {
-    color: #1a73e8;
+    color: var(--accent-color);
     text-decoration: none;
     font-size: 14px;
 }
@@ -242,8 +249,9 @@ body {
     color: var(--text-color);
 }
 .link-grid:hover {
-    background-color: rgba(0,0,0, 0.25);
-    transition: background-color 0.08s ease;
+    background-color: var(--primary-color);
+    opacity: 0.7;
+    transition: background-color 0.08s ease, opacity 0.08s ease;
 }
 
 .stack {
@@ -264,9 +272,9 @@ body {
 }
 
 .link-stack:hover {
-    background-color: rgba(123, 123, 123, 0.5);
+    background-color: rgba(123, 123, 123, 0.2);
     text-decoration: none;
-    border: 2px solid darkgray;
+    border: 2px solid var(--primary-color);
     border-radius: 5px;
 }
 
@@ -376,18 +384,18 @@ body {
 
 .search-input::placeholder {
     color: var(--text-color);
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .search-button {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--contrast-text-color);
     border: none;
     padding: 10px 20px;
     border-radius: 20px;
     cursor: pointer;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, opacity 0.2s;
 }
 
 .search-button:hover {
@@ -401,7 +409,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--group-background-color);
+    opacity: 0.9;
     border-radius: 24px;
     display: flex;
     align-items: center;
@@ -453,7 +462,8 @@ body {
 }
 
 .shortcut-link:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--primary-color);
+    opacity: 0.9;
 }
 
 .shortcut-icon {
@@ -493,6 +503,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--contrast-text-color);
 }
 
 .settings-button:hover {
