@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="color-scheme" content="dark">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    <link rel="stylesheet" type="text/css" href="newtab.css">
+    <link rel="stylesheet" type="text/css" href="../theme/themes.css">
+</head>
+<body style="background-color: rgb(128,128,128);">
+    <header class="chrome-header">
+        <div class="left-section">
+            <!-- Empty left section for balance -->
+        </div>
+        <div class="right-section">
+            <nav class="header-nav">
+                <a href="https://mail.google.com" class="nav-link">Gmail</a>
+                <a href="https://photos.google.com" class="nav-link">Photos</a>
+                <a href="https://labs.google.com" class="nav-link">Search Labs</a>
+                <div class="apps-dropdown-container">
+                    <button id="apps-toggle" class="apps-toggle" aria-label="Google apps">
+                        <svg class="apps-icon" viewBox="0 0 24 24">
+                            <path d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"></path>
+                        </svg>
+                    </button>
+                    <div id="apps-dropdown" class="apps-dropdown">
+                        <div class="apps-grid">
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <div id="search-container" class="search-container">
+        <form id="search-form" class="search-form">
+            <img id="search-icon" class="search-icon" src="" alt="Search">
+            <input type="text" id="search-input" class="search-input" placeholder="Search the web">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
+    
+    <div id="groups-container" class="groups-container">
+        <!-- Groups will be loaded here -->
+    </div>
+    
+    <button id="settings-button" class="settings-button">
+        <img src="../assets/settings.svg" alt="Settings">
+    </button>
+    
+    <script src="events.js"></script>
+    <script src="newtab.js"></script>
+    <script src="./widgets.js"></script>
+</body>
+</html>
