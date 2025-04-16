@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="48x48" href="../assets/iconx48.png">
 </head>
 <body style="background-color: rgb(128,128,128);">
-    <header class="chrome-header">
+    <header class="chrome-header glass-background">
         <div class="left-section">
             <!-- Empty left section for balance -->
         </div>
@@ -23,7 +23,7 @@
                 <a href="https://labs.google.com" class="nav-link">Search Labs</a>
                 <div class="apps-dropdown-container">
                     <button id="apps-toggle" class="apps-toggle" aria-label="Google apps">
-                        <svg class="apps-icon" viewBox="0 0 24 24">
+                        <svg viewBox="0 0 24 24" class="apps-icon" fill="currentColor" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM6,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM16,6c0,1.1 0.9,2 2,2s2,-0.9 2,-2 -0.9,-2 -2,-2 -2,0.9 -2,2zM12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,14c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM18,20c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2z"></path>
                         </svg>
                     </button>
@@ -37,9 +37,9 @@
     </header>
     
     <div id="search-container" class="search-container">
-        <form id="search-form" class="search-form">
+        <form id="search-form" class="search-form glass-background" style="background-color: rgba(var(--background-color),0);">
             <img id="search-icon" class="search-icon" src="" alt="Search">
-            <input type="text" id="search-input" class="search-input" placeholder="Search the web">
+            <input type="text" id="search-input" class="search-input" placeholder="Search the web" style="background-color: rgba(0,0,0,0);">
             <button type="submit" class="search-button">Search</button>
         </form>
     </div>
@@ -54,6 +54,6 @@
     
     <script src="events.js"></script>
     <script src="newtab.js"></script>
-    <script src="./widgets.js"></script>
+    <script src="widgets.js"></script>
 </body>
 </html>
