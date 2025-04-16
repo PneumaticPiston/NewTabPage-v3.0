@@ -22,7 +22,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--background-color);
+    background-color: var(--all-background-color);
     background-image: var(--background-image);
     background-size: cover;
     background-position: center;
@@ -31,6 +31,7 @@ body {
     line-height: 1.6;
     padding: 20px;
     font-size: var(--base-font-size, 16px);
+    margin: 0;
 }
 
 .settings-container {

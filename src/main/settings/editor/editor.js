@@ -121,8 +121,8 @@ let offsetY = 0;
 
 // Grid configuration for snapping - MODIFY THESE VALUES TO CHANGE GRID SIZE
 // These values control the granularity of the grid when dragging elements
-const GRID_SIZE_X = 5; // 5% grid horizontally (smaller = finer grid, larger = coarser grid)
-const GRID_SIZE_Y = 5; // 5% grid vertically (smaller = finer grid, larger = coarser grid)
+const GRID_SIZE_X = 2; // 5% grid horizontally (smaller = finer grid, larger = coarser grid)
+const GRID_SIZE_Y = 2; // 5% grid vertically (smaller = finer grid, larger = coarser grid)
 const MIN_MARGIN = 0; // Minimum margin from edges (%) - set to 0 to match newtab.js behavior
 
 // Calculate grid divisions (number of cells in each dimension)
@@ -431,7 +431,7 @@ function calculatePosition(x, y) {
 
 function createGroupElement(group, index) {
     const div = document.createElement('div');
-    div.className = 'editor-group';
+    div.className = 'editor-group glass-background';
     div.dataset.index = index;
     
     // Use the same positioning logic as newtab.js
@@ -1456,11 +1456,30 @@ saveChangesBtn.addEventListener('click', async () => {
             // 2. Store groups and settings separately to avoid hitting quota limit
             if (chrome.storage.sync) {
                 try {
-                    // Try to save settings to sync storage
-                    await chrome.storage.sync.set({ settings: currentSettings });
+                    // Make a copy of current settings for sync storage
+                    // This is important to prevent modifying the original settings object
+                    const settingsForSync = { ...currentSettings };
+                    
+                    // Check if we have a background image 
+                    let backgroundImage = null;
+                    if (settingsForSync.backgroundImage) {
+                        // Store the background image separately in local storage
+                        backgroundImage = settingsForSync.backgroundImage;
+                        
+                        // Remove background image from sync settings to avoid quota limits
+                        settingsForSync.backgroundImage = null;
+                    }
+                    
+                    // Try to save settings to sync storage (without the background image)
+                    await chrome.storage.sync.set({ settings: settingsForSync });
                     
                     // Save groups to local storage to avoid quota issues
                     await chrome.storage.local.set({ groups: sanitizedGroups });
+                    
+                    // Save the background image to local storage if we have one
+                    if (backgroundImage) {
+                        await chrome.storage.local.set({ backgroundImage });
+                    }
                     
                     // Save a reference in sync storage that groups are in local storage
                     await chrome.storage.sync.set({ groupsLocation: 'local' });
@@ -1469,19 +1488,56 @@ saveChangesBtn.addEventListener('click', async () => {
                 } catch (syncError) {
                     console.warn('Error saving to sync storage, falling back to local storage', syncError);
                     
+                    // Make a copy of current settings for local storage
+                    const settingsForLocal = { ...currentSettings };
+                    
+                    // Check if we have a background image 
+                    let backgroundImage = null;
+                    if (settingsForLocal.backgroundImage) {
+                        // Store the background image separately
+                        backgroundImage = settingsForLocal.backgroundImage;
+                        
+                        // Remove background image from settings to avoid quota limits
+                        settingsForLocal.backgroundImage = null;
+                    }
+                    
                     // If sync fails, save everything to local storage
                     await chrome.storage.local.set({ 
                         groups: sanitizedGroups,
-                        settings: currentSettings,
+                        settings: settingsForLocal,
                         groupsLocation: 'local'
                     });
+                    
+                    // Save the background image separately if we have one
+                    if (backgroundImage) {
+                        await chrome.storage.local.set({ backgroundImage });
+                    }
                 }
             } else {
                 // If sync is not available, use local
+                
+                // Make a copy of current settings for local storage
+                const settingsForLocal = { ...currentSettings };
+                
+                // Check if we have a background image 
+                let backgroundImage = null;
+                if (settingsForLocal.backgroundImage) {
+                    // Store the background image separately
+                    backgroundImage = settingsForLocal.backgroundImage;
+                    
+                    // Remove background image from settings to avoid quota limits
+                    settingsForLocal.backgroundImage = null;
+                }
+                
                 await chrome.storage.local.set({ 
                     groups: sanitizedGroups,
-                    settings: currentSettings
+                    settings: settingsForLocal
                 });
+                
+                // Save the background image separately if we have one
+                if (backgroundImage) {
+                    await chrome.storage.local.set({ backgroundImage });
+                }
             }
             
             // Optionally update currentGroups in memory

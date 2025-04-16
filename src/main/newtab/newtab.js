@@ -143,6 +143,7 @@ const newGroup = {
         let group = document.createElement('div');
         group.classList.add('group');
         group.classList.add('stack');
+        group.classList.add('glass-background');
         
         // Only add header if title is not empty or whitespace
         if (title && title.trim().length > 0) {
@@ -174,6 +175,7 @@ const newGroup = {
     grid: function(links, x, y, rows, columns, title) {
         let group = document.createElement('div');
         group.classList.add('group');
+        group.classList.add('glass-background');
         
         // Only add header if title is not empty or whitespace
         if (title && title.trim().length > 0) {
@@ -211,6 +213,7 @@ const newGroup = {
     },
     single: function(link, x, y, title) {
         let group = document.createElement('div');
+        group.classList.add('glass-background');
         
         // Only add header if title is not empty or whitespace
         if (title && title.trim().length > 0) {

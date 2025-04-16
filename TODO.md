@@ -1,8 +1,8 @@
 # TODO List
 
 ## CRITICAL
-- [ ] If a custom background image is set, when the user goes to add new groups or modify layout they get a storage related error that prevents them from saving changes
 - [ ] 
+- [x] If a custom background image is set, when the user goes to add new groups or modify layout they get a storage related error that prevents them from saving changes
 
 ## User Interface & User Experience Improvements
 - [ ] Fix certain themes making text difficult to read
