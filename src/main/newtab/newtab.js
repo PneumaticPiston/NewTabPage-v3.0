@@ -10,10 +10,10 @@ const defaultSettings = {
     theme: 'light',
     useCustomBackground: false,
     backgroundURL: '',
-    backgroundImage: null, // Base64 encoded image
+    backgroundImage: null,
     showSearch: true,
     searchEngine: 'google',
-    searchBarPosition: { x: 10, y: 120 },
+    searchBarPosition: { x: 540, y: 360 }, // Assumes that the display is at least 1080x720
     shortcuts: [], // Empty by default, will be defined by user
     headerLinks: [
         { name: 'Gmail', url: 'https://mail.google.com' },
