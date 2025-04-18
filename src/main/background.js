@@ -1,7 +1,6 @@
-chrome.runtime.onInstalled.addListener((details) => {
-    if (details.reason === 'install') {
-        chrome.tabs.create({
-            url: chrome.runtime.getURL('./settings/settings.html?newInstall=true')
-        });
-    }
+// Basic service worker setup
+self.addEventListener('install', (event) => {
+    chrome.tabs.create({
+        url: chrome.runtime.getURL('/newtab/newtab.html?newInstall=true')
+    });
 });

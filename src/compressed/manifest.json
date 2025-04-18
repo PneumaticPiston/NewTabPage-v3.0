@@ -16,5 +16,9 @@
     "options_page": "./settings/settings.html",
     "permissions": [
         "storage"
-    ]
+    ],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    }
 }

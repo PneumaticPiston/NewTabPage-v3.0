@@ -199,12 +199,17 @@ body {
     top: 0px;
     left: 0px;
     border-radius: 10px;
-    box-shadow: 0px 0px 0px 0px var(--group-shadow-color);
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
     width: fit-content;
     min-width: 150px;
     max-width: 100%;
+}
+.group:hover {
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease;
 }
 
 .link-image {
@@ -492,8 +497,8 @@ body {
 
 .settings-button {
     position: absolute;
-    bottom: 2%;
-    right: 2%;
+    bottom: 2vh;
+    right: 2vw;
     width: 40px;
     height: 40px;
     border: none;
@@ -526,3 +531,17 @@ ul {
     list-style-type: none;
 }
 
+.welcome-message {
+    bottom: calc(2vh + 50px);
+    right: 2vw;
+    width: 150px;
+    padding-left: .5%;
+    padding-right: .5%;
+    position: absolute;
+    font-size: 12px;
+    color: var(--text-color);
+    background-color: var(--group-background-color);
+    border-radius: 8px;
+    text-align: center;
+    z-index: 150;
+}
