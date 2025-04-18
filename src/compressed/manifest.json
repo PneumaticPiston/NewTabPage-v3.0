@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Custom New Tab Page",
-    "version": "1.1",
+    "version": "1.2",
     "description": "Replaces the default new tab page with a custom page",
     "icons": {
         "16": "./assets/iconx16.png",
@@ -18,7 +18,7 @@
         "storage"
     ],
     "background": {
-        "service_worker": "background.js",
+        "service_worker": "/welcome/background.js",
         "type": "module"
     }
 }

@@ -93,6 +93,29 @@ for /r ".\main" %%F in (*) do (
 )
 echo Processing complete!
 echo All files are available in the .\compressed\ directory.
+
+REM Extract version from manifest.json
+echo Extracting version from manifest.json...
+set "version="
+if exist ".\compressed\manifest.json" (
+    for /f "tokens=2 delims=:, " %%a in ('findstr "version" ".\compressed\manifest.json"') do (
+        set "version=%%~a"
+        set "version=!version:"=!"
+        goto :gotversion
+    )
+) else (
+    echo Warning: manifest.json not found in compressed directory
+    set "version=unknown"
+)
+
+:gotversion
+echo Detected version: %version%
+
+REM Create ZIP file with the version name
+echo Creating ZIP file: NTPv%version%.zip
+powershell -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; $zipFile = 'NTPv%version%.zip'; if(Test-Path $zipFile){Remove-Item $zipFile}; $compress = [System.IO.Compression.ZipFile]::CreateFromDirectory('.\compressed', $zipFile, [System.IO.Compression.CompressionLevel]::Optimal, $false); $zip = [System.IO.Compression.ZipFile]::Open($zipFile, 'Update'); $entriesToRemove = @(); foreach($entry in $zip.Entries){if($entry.Name -like '*.zip'){$entriesToRemove += $entry}}; foreach($entry in $entriesToRemove){$entry.Delete()}; $zip.Dispose();"
+
+echo ZIP file creation complete!
 REM Clean up temp directory if needed
 REM rmdir /s /q ".\temp"
 endlocal
