@@ -12,11 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function newInstall() {
     document.getElementById('settings-button').href = '/settings/settings.html?newInstall=true';
     // Create and show a welcome message
-    const header = document.querySelector('header');
+    const header = document.getElementById('bottom-controls').parentElement;
     const welcomeDiv = document.createElement('div');
-    welcomeDiv.className = 'welcome-message';
+    welcomeDiv.className = 'new-install';
     welcomeDiv.innerHTML = `
-        <h3>Let's get started by customizing your new tab experience!</h3>
+        <h3>Use the '+' button to add new elements</h3>
+        <h3>Click on the '⫝̸' icon to move elements around</h3>
+        <h3>Click the '💾' icon to save changes</h3>
     `;
     header.insertAdjacentElement('afterend', welcomeDiv);
 }

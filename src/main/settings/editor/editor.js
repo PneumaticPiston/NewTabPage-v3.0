@@ -1853,7 +1853,7 @@ function openWidgetSettings(index) {
         case 'recently-visited':
         default:
             settingsForm.innerHTML = `
-                <p style="text-align: center; padding: 30px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+                <p style="text-align: center; padding: 30px; background: rgba(0,0,0,1); border-radius: 8px;">
                     Additional settings for this widget type will be available in a future update.
                 </p>
             `;

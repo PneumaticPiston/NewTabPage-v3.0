@@ -370,6 +370,7 @@ header h1 {
 }
 
 .action-button, .save-button {
+    z-index: 1;
     padding: 8px;
     border: none;
     border-radius: 50%;
@@ -389,6 +390,16 @@ header h1 {
     background-color: var(--accent-color);
     color: var(--contrast-text-color);
     transform: scale(1.1);
+}
+
+.new-install {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: yellow;
+    border-radius: 20px;
+    padding: 10px;
+    color: white;
 }
 
 .bottom-controls {
@@ -442,7 +453,7 @@ header h1 {
     display: none;
     flex-direction: column;
     gap: 15px;
-    z-index: 1000;
+    z-index: 3;
     background-color: var(--group-background-color);
     padding: 15px;
     border-radius: 12px;
@@ -540,6 +551,7 @@ header h1 {
 }
 
 .option-button {
+    z-index: 3;
     width: 50px;
     height: 50px;
     border: none;
@@ -582,6 +594,10 @@ header h1 {
 
 .option-button:hover::after {
     opacity: 1;
+}
+
+#add-group-button[title] {
+    z-index: 4;
 }
 
 .draggable {
