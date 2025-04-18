@@ -94,13 +94,14 @@ for /r ".\main" %%F in (*) do (
 echo Processing complete!
 echo All files are available in the .\compressed\ directory.
 
-REM Extract version from manifest.json
+REM Extract version from manifest.json - specifically the "version" property
 echo Extracting version from manifest.json...
 set "version="
 if exist ".\compressed\manifest.json" (
-    for /f "tokens=2 delims=:, " %%a in ('findstr "version" ".\compressed\manifest.json"') do (
+    for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"version\":" ".\compressed\manifest.json"') do (
         set "version=%%~a"
         set "version=!version:"=!"
+        set "version=!version: =!"
         goto :gotversion
     )
 ) else (
@@ -111,9 +112,9 @@ if exist ".\compressed\manifest.json" (
 :gotversion
 echo Detected version: %version%
 
-REM Create ZIP file with the version name
-echo Creating ZIP file: NTPv%version%.zip
-powershell -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; $zipFile = 'NTPv%version%.zip'; if(Test-Path $zipFile){Remove-Item $zipFile}; $compress = [System.IO.Compression.ZipFile]::CreateFromDirectory('.\compressed', $zipFile, [System.IO.Compression.CompressionLevel]::Optimal, $false); $zip = [System.IO.Compression.ZipFile]::Open($zipFile, 'Update'); $entriesToRemove = @(); foreach($entry in $zip.Entries){if($entry.Name -like '*.zip'){$entriesToRemove += $entry}}; foreach($entry in $entriesToRemove){$entry.Delete()}; $zip.Dispose();"
+REM Create ZIP file with the version name in the compressed directory
+echo Creating ZIP file: .\compressed\NTPv%version%.zip
+powershell -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; $zipFile = '.\compressed\NTPv%version%.zip'; if(Test-Path $zipFile){Remove-Item $zipFile}; $sourceDir = '.\compressed'; $tempDir = '.\temp_zip_contents'; if(Test-Path $tempDir){Remove-Item $tempDir -Recurse -Force}; New-Item -ItemType Directory -Path $tempDir | Out-Null; Get-ChildItem -Path $sourceDir -Exclude '*.zip' | Copy-Item -Destination $tempDir -Recurse; [System.IO.Compression.ZipFile]::CreateFromDirectory($tempDir, $zipFile, [System.IO.Compression.CompressionLevel]::Optimal, $false); Remove-Item $tempDir -Recurse -Force;"
 
 echo ZIP file creation complete!
 REM Clean up temp directory if needed
