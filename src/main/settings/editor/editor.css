@@ -846,6 +846,10 @@ header h1 {
     transition: background-color 0.2s;
 }
 
+input::placeholder {
+    color: var(--text-color);
+}
+
 .link-editor:hover {
     background-color: var(--secondary-color);
     opacity: 0.9;

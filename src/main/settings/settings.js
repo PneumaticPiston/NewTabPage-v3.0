@@ -11,7 +11,6 @@ const defaultSettings = {
     fontSize: 16,
     groupScale: 100,
     spacingScale: 100,
-    highContrast: false,
     customThemes: [],
     shortcuts: [
         {
@@ -111,7 +110,6 @@ const groupScaleSlider = document.getElementById('group-scale');
 const groupScaleValue = document.getElementById('group-scale-value');
 const spacingScaleSlider = document.getElementById('spacing-scale');
 const spacingScaleValue = document.getElementById('spacing-scale-value');
-const highContrastToggle = document.getElementById('high-contrast');
 
 // Custom theme elements
 const customThemeName = document.getElementById('custom-theme-name');
@@ -294,7 +292,6 @@ async function loadSettings() {
         spacingScaleSlider.value = currentSettings.spacingScale || 100;
         updateSpacingScaleDisplay();
         
-        highContrastToggle.checked = currentSettings.highContrast === true;
         
         // Generate theme grid
         generateThemeGrid();
@@ -336,8 +333,7 @@ async function saveSettings() {
             searchBarPosition: settingsCopy.searchBarPosition || { x: 10, y: 120 },
             fontSize: parseInt(fontSizeSlider.value) || 16,
             groupScale: parseInt(groupScaleSlider.value) || 100,
-            spacingScale: parseInt(spacingScaleSlider.value) || 100,
-            highContrast: highContrastToggle.checked
+            spacingScale: parseInt(spacingScaleSlider.value) || 100
         };
         
         // Ensure critical properties exist
@@ -404,7 +400,7 @@ async function saveSettings() {
         window.location.reload();
     } catch (error) {
         console.error('Error saving settings:', error);
-        alert('Error saving settings. Please try again.');
+        alert('Your image file is too large. Try decreasing the resolution and try again.');
         saveButton.textContent = 'Save Settings';
     }
 }
@@ -440,8 +436,6 @@ function resetSettings() {
     
     spacingScaleSlider.value = defaultSettings.spacingScale;
     updateSpacingScaleDisplay();
-    
-    highContrastToggle.checked = defaultSettings.highContrast;
     
     // Empty custom themes
     currentSettings.customThemes = [];
@@ -744,12 +738,6 @@ function applyThemeToPage(themeId) {
         }
     } else {
         document.documentElement.style.setProperty('--background-image', 'none');
-    }
-    
-    // Apply high contrast if enabled
-    if (currentSettings.highContrast) {
-        document.documentElement.style.setProperty('--text-color', '#000000');
-        document.documentElement.style.setProperty('--accent-color', '#FF0000');
     }
     
     // Add theme class to body for additional CSS rules

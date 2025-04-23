@@ -1,5 +1,4 @@
 const container = document.getElementById('groups-container');
-const shortcuts = document.getElementById('shortcuts-container');
 const searchContainer = document.getElementById('search-container');
 const searchForm = document.getElementById('search-form');
 const searchInput = document.getElementById('search-input');
@@ -14,7 +13,6 @@ const defaultSettings = {
     showSearch: true,
     searchEngine: 'google',
     searchBarPosition: { x: 540, y: 360 }, // Assumes that the display is at least 1080x720
-    shortcuts: [], // Empty by default, will be defined by user
     headerLinks: [
         { name: 'Gmail', url: 'https://mail.google.com' },
         { name: 'Photos', url: 'https://photos.google.com' },
@@ -778,71 +776,6 @@ function initializeAppsDropdown() {
     }
 }
 
-// Initialize shortcuts bar
-function initializeShortcuts() {
-    const shortcutsContainer = document.getElementById('shortcuts-container');
-    
-    // Skip if shortcuts container doesn't exist
-    if (!shortcutsContainer) return;
-    
-    // Clear existing shortcuts
-    shortcutsContainer.innerHTML = '';
-    
-    // Show/hide based on settings
-    shortcutsContainer.style.display = currentSettings.showShortcuts ? 'flex' : 'none';
-    
-    // If not shown, exit early
-    if (!currentSettings.showShortcuts) return;
-    
-    // For positioning, we'll place the shortcuts below the search bar
-    // Reset any absolute positioning styles that might have been applied
-    shortcutsContainer.style.position = 'absolute';
-    shortcutsContainer.style.top = '50%';
-    shortcutsContainer.style.left = '50%';
-    shortcutsContainer.style.transform = 'translate(-50%, 80px)';
-    
-    // Use shortcuts from settings
-    const shortcuts = currentSettings.shortcuts || defaultSettings.shortcuts;
-    
-    // Add each shortcut
-    shortcuts.forEach(shortcut => {
-        const favicon = getFavicon(shortcut.url);
-        
-        // Create link element
-        const linkElement = document.createElement('a');
-        linkElement.href = shortcut.url;
-        linkElement.className = 'shortcut-link';
-        
-        // Create icon and label
-        const iconElement = document.createElement('img');
-        iconElement.src = favicon;
-        iconElement.alt = shortcut.title;
-        iconElement.className = 'shortcut-icon';
-        
-        const labelElement = document.createElement('span');
-        labelElement.textContent = shortcut.title;
-        labelElement.className = 'shortcut-label';
-        
-        // Add to link element
-        linkElement.appendChild(iconElement);
-        linkElement.appendChild(labelElement);
-        
-        // Add to container
-        shortcutsContainer.appendChild(linkElement);
-    });
-    
-    // Adjust container width based on number of shortcuts
-    const shortcutCount = shortcuts.length;
-    if (shortcutCount > 0) {
-        // Calculate approximate width based on number of shortcuts
-        // Each shortcut is approximately 90px wide (70px width + 20px gap)
-        const estimatedWidth = Math.max(shortcutCount * 90 + 40, 300); // 40px for padding
-        shortcutsContainer.style.width = `${Math.min(estimatedWidth, 800)}px`;
-    } else {
-        shortcutsContainer.style.width = 'auto';
-    }
-}
-
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Load settings first
@@ -913,10 +846,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!currentSettings.searchBarPosition) {
             currentSettings.searchBarPosition = {...defaultSettings.searchBarPosition};
         }
-        
-        if (!currentSettings.shortcuts) {
-            currentSettings.shortcuts = [...defaultSettings.shortcuts];
-        }
+
+        // Load order
+
+        // Load groups
+        loadGroups();
         
         // Apply theme
         applyTheme();
@@ -924,11 +858,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Initialize search
         initializeSearch();
         
-        // Initialize shortcuts
-        initializeShortcuts();
-        
         // Initialize header links
         initializeHeaderLinks();
+        
+        // Load widgets
+        loadWidgets();
         
         // Initialize apps dropdown
         initializeAppsDropdown();
@@ -936,25 +870,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Set up image drop functionality
         setupImageDrop();
         
-        // Load groups and widgets
-        loadGroups();
-        loadWidgets();
-        
-        // Add window resize handler
-        window.addEventListener('resize', handleWindowResize);
-        
     } catch (error) {
         console.error('Error initializing new tab page:', error);
         // Continue with defaults
         currentSettings = {...defaultSettings};
         try {
+            loadGroups();
             applyTheme();
             initializeSearch();
-            initializeShortcuts();
             initializeHeaderLinks();
-            initializeAppsDropdown();
-            loadGroups();
             loadWidgets();
+            initializeAppsDropdown();
             window.addEventListener('resize', handleWindowResize);
         } catch (fallbackError) {
             console.error('Critical error in fallback initialization:', fallbackError);
@@ -975,26 +901,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 });
-
-// Handle window resize
-function handleWindowResize() {
-    // Redraw all elements with updated positions
-    loadGroups();
-    loadWidgets();
-    
-    // Reposition search
-    if (currentSettings.searchBarPosition) {
-        const pos = calculatePosition(
-            currentSettings.searchBarPosition.x,
-            currentSettings.searchBarPosition.y
-        );
-        searchContainer.style.top = `${pos.percentY * 100}%`;
-        searchContainer.style.left = `${pos.percentX * 100}%`;
-    }
-    
-    // Reinitialize shortcuts to ensure they're properly sized for the new window dimensions
-    initializeShortcuts();
-}
 
 /**
  * Get favicon for any URL with proper handling for dynamic favicons like Google Calendar
