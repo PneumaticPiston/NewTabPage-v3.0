@@ -1,3 +1,31 @@
+async function initializePage() {
+    try {
+        // Load settings and groups in parallel
+        const [settings, groups] = await Promise.all([
+            getFromStorage('settings'),
+            getFromStorage('groups')
+        ]);
+        
+        // Apply settings and render groups simultaneously
+        await Promise.all([
+            applySettings(settings),
+            renderGroups(groups)
+        ]);
+    } catch (error) {
+        console.error('Error initializing:', error);
+    }
+}
+
+function measureLoadTime(label) {
+    const start = performance.now();
+    return () => {
+        const duration = performance.now() - start;
+        console.log(`${label} took ${duration}ms`);
+    };
+}
+
+const endMeasure = measureLoadTime('Group loading');
+
 const container = document.getElementById('groups-container');
 const searchContainer = document.getElementById('search-container');
 const searchForm = document.getElementById('search-form');
@@ -349,7 +377,7 @@ async function loadGroups() {
         }
     } catch (error) {
         console.error('Error loading groups:', error);
-    }
+    } 
 }
 
 // Initialize search functionality
@@ -1146,5 +1174,26 @@ async function loadWidgets() {
         }
     } catch (error) {
         console.error('Error loading widgets:', error);
+    } finally {
+        endMeasure();
     }
+}
+
+function handleWindowResize() {
+    // Redraw all elements with updated positions
+    loadGroups();
+    loadWidgets();
+    
+    // Reposition search
+    if (currentSettings.searchBarPosition) {
+        const pos = calculatePosition(
+            currentSettings.searchBarPosition.x,
+            currentSettings.searchBarPosition.y
+        );
+        searchContainer.style.top = `${pos.percentY * 100}%`;
+        searchContainer.style.left = `${pos.percentX * 100}%`;
+    }
+    
+    // Reinitialize shortcuts to ensure they're properly sized for the new window dimensions
+    initializeShortcuts();
 }
