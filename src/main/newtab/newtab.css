@@ -543,3 +543,12 @@ ul {
     text-align: center;
     z-index: 150;
 }
+
+.error-message {
+    background-color: #ffdddd;
+    border: 1px solid #ff0000;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 500px;
+}
