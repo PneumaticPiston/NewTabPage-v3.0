@@ -4,11 +4,11 @@
     "version": "1.2",
     "description": "Add more links and widgets to your new tab page",
     "icons": {
-        "16": "/assets/iconx16.png",
-        "19": "/assets/iconx19.png",
-        "38": "/assets/iconx38.png",
-        "48": "/assets/iconx48.png",
-        "128": "/assets/iconx128.png"
+        "16": "assets/iconx16.png",
+        "19": "assets/iconx19.png",
+        "38": "assets/iconx38.png",
+        "48": "assets/iconx48.png",
+        "128": "assets/iconx128.png"
     },
     "chrome_url_overrides": {
         "newtab": "./newtab/newtab.html"
@@ -18,7 +18,7 @@
         "storage"
     ],
     "background": {
-        "service_worker": "/welcome/background.js",
+        "service_worker": "welcome/background.js",
         "type": "module"
     }
 }

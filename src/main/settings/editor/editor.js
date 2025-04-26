@@ -739,6 +739,7 @@ function updateLinkIndexes(container) {
 
 // New group popup handlers
 // Function to toggle grid settings visibility
+document.getElementById('new-group-type').addEventListener('change', toggleGridSettings);
 function toggleGridSettings() {
     const groupType = document.getElementById('new-group-type').value;
     const gridSettings = document.getElementById('grid-settings');
