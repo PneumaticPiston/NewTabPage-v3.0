@@ -1,9 +1,5 @@
 body {
     background-color: var(--all-background-color, #f1faee);
-    background-image: var(--background-image);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
     color: var(--text-color, #1d3557);
     width: 100vw;
     height: 100vh;
@@ -11,6 +7,25 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--background-image);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    z-index: -1;
+    pointer-events: none;
+}
+  
+body.bg-loaded::before {
+    opacity: 1;
 }
 
 :root {
@@ -326,6 +341,12 @@ header h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    max-width: 100%;
+    width: max-content;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     margin-bottom: 10px;
     font-size: 14px;
     font-weight: bold;

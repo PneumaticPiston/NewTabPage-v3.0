@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 - No formal build process, as this is a browser extension/HTML project
-- Run locally by opening HTML files in a browser
+- Will be run locally by opening HTML files in a browser
 - Test by manually inspecting web pages and functionality
-- Install in Chrome by loading the directory as an unpacked extension
+- Installed in Chrome by loading the directory as an unpacked extension
 - 
 
 ## Code Style Guidelines

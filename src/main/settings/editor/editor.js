@@ -201,12 +201,32 @@ function applyThemeToEditor() {
         if (currentSettings.useCustomBackground) {
             // Prefer stored image over URL
             if (currentSettings.backgroundImage) {
-                document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundImage})`);
+                // Set the CSS variable for background image
+                document.documentElement.style.setProperty('--background-image', `url("${currentSettings.backgroundImage}")`);
+                // Also set inline style for better compatibility
+                document.body.style.backgroundImage = `url("${currentSettings.backgroundImage}")`;
+                document.body.style.backgroundRepeat = 'no-repeat';
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                // Add loaded class to body to trigger the fade-in
+                document.body.classList.add('bg-loaded');
             } else if (currentSettings.backgroundURL) {
-                document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundURL})`);
+                // Set the CSS variable for background image
+                document.documentElement.style.setProperty('--background-image', `url("${currentSettings.backgroundURL}")`);
+                // Also set inline style for better compatibility
+                document.body.style.backgroundImage = `url("${currentSettings.backgroundURL}")`;
+                document.body.style.backgroundRepeat = 'no-repeat';
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                // Add loaded class to body to trigger the fade-in
+                document.body.classList.add('bg-loaded');
+            } else {
+                document.documentElement.style.setProperty('--background-image', 'none');
+                document.body.style.backgroundImage = '';
             }
         } else {
             document.documentElement.style.setProperty('--background-image', 'none');
+            document.body.style.backgroundImage = '';
         }
     }
 }

@@ -732,12 +732,27 @@ function applyThemeToPage(themeId) {
     if (currentSettings.useCustomBackground) {
         // Prefer stored image over URL
         if (currentSettings.backgroundImage) {
-            document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundImage})`);
+            // Set both the CSS variable and inline style
+            document.documentElement.style.setProperty('--background-image', `url("${currentSettings.backgroundImage}")`);
+            document.body.style.backgroundImage = `url("${currentSettings.backgroundImage}")`;
+            document.body.style.backgroundRepeat = 'no-repeat';
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.classList.add('bg-loaded');
         } else if (currentSettings.backgroundURL) {
-            document.documentElement.style.setProperty('--background-image', `url(${currentSettings.backgroundURL})`);
+            document.documentElement.style.setProperty('--background-image', `url("${currentSettings.backgroundURL}")`);
+            document.body.style.backgroundImage = `url("${currentSettings.backgroundURL}")`;
+            document.body.style.backgroundRepeat = 'no-repeat';
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.classList.add('bg-loaded');
+        } else {
+            document.documentElement.style.setProperty('--background-image', 'none');
+            document.body.style.backgroundImage = '';
         }
     } else {
         document.documentElement.style.setProperty('--background-image', 'none');
+        document.body.style.backgroundImage = '';
     }
     
     // Add theme class to body for additional CSS rules

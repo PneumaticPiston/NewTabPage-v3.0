@@ -2,7 +2,7 @@
     /* Default theme variable mapping - will be overridden by theme selection */
     --all-background-color: var(--light-background, #f1faee);
     --group-background-color: var(--light-secondary, #a8dadc);
-    --background-image: url('');
+    --background-image: none;
     --group-shadow-color: rgba(0, 0, 0, 0.2);
     --text-color: var(--light-text, #1d3557);
     --accent-color: var(--light-accent, #e63946);
@@ -16,44 +16,24 @@ body {
     margin: 0;
     padding: 0;
     opacity: 1;
-    transition: opacity s ease;
     overflow: hidden;
     background-color: var(--all-background-color);
-    background-image: var(--background-image);
-    background-repeat: no-repeat;
+    background-image: none; /* Will be set by JS if needed */
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body::before {
-    opacity: 0;
-    transition: opacity s ease;
-}
-
-body {
     position: relative;
-    background-image: none !important;
+    transition: background-image 0.5s ease-in; /* Add transition for background fade-in */
 }
-  
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image: var(--background-image);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-    z-index: -1;
-    pointer-events: none;
+
+/* Style for background image fade-in effect */
+.bg-transition {
+    transition: background-image 0.5s ease-in;
 }
-  
-body.bg-loaded::before {
-    opacity: 1;
-}
+
+/* Remove the complex background handling */
   
 
 .chrome-header {
@@ -237,6 +217,7 @@ body.bg-loaded::before {
     width: fit-content;
     min-width: 150px;
     max-width: 100%;
+    align-items: stretch; /* Ensure children don't exceed width */
 }
 
 .link-image {
@@ -253,11 +234,13 @@ body.bg-loaded::before {
     color: var(--text-color);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     margin-bottom: 5px;
-    width: fit-content;
+    width: auto; /* Let it size to content without extending beyond container */
+    max-width: 100%; /* Prevent overflow */
     box-sizing: border-box;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block; /* Block-level for better container control */
 }
 
 .grid {

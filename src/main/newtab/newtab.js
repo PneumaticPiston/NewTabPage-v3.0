@@ -244,7 +244,7 @@ const newGroup = {
             let header = document.createElement('div');
             header.classList.add('group-header');
             header.textContent = title;
-            header.style.width = 'fit-content'; // Make title fit to content
+            // Don't set inline width styles - let CSS handle it
             group.appendChild(header);
         }
 
@@ -276,7 +276,7 @@ const newGroup = {
             let header = document.createElement('div');
             header.classList.add('group-header');
             header.textContent = title;
-            header.style.width = 'fit-content'; // Make title fit to content
+            // Don't set inline width styles - let CSS handle it
             group.appendChild(header);
         }
 
@@ -314,7 +314,7 @@ const newGroup = {
             let header = document.createElement('div');
             header.classList.add('group-header');
             header.textContent = title;
-            header.style.width = 'fit-content'; // Make title fit to content
+            // Don't set inline width styles - let CSS handle it
             group.appendChild(header);
         }
 
@@ -458,119 +458,107 @@ function initializeSearch() {
 
 // Apply theme and accessibility settings
 function applyTheme() {
-    const currentTheme = currentSettings.theme || 'light';
-    const isCustomTheme = currentTheme.startsWith('custom-');
-    
-    // Set CSS variables for colors
-    if (isCustomTheme) {
-        // Find the custom theme
-        if (currentSettings.customThemes) {
-            const customTheme = currentSettings.customThemes.find(t => t.id === currentTheme);
-            if (customTheme) {
-                document.documentElement.style.setProperty('--all-background-color', customTheme.background);
-                document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
-                document.documentElement.style.setProperty('--text-color', customTheme.text);
-                document.documentElement.style.setProperty('--accent-color', customTheme.accent);
-                document.documentElement.style.setProperty('--primary-color', customTheme.primary);
-                // Set contrast text color - white for dark themes, black for light themes
-                const isDarkBackground = isColorDark(customTheme.primary);
-                document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
-            } else {
-                // Fallback to default theme if custom theme not found
-                document.documentElement.style.setProperty('--all-background-color', '#f1faee');
-                document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
-                document.documentElement.style.setProperty('--text-color', '#1d3557');
-                document.documentElement.style.setProperty('--accent-color', '#e63946');
-                document.documentElement.style.setProperty('--primary-color', '#457b9d');
-                document.documentElement.style.setProperty('--contrast-text-color', '#ffffff');
-            }
-        } else {
-            // Fallback if customThemes array doesn't exist
-            document.documentElement.style.setProperty('--all-background-color', '#f1faee');
-            document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
-            document.documentElement.style.setProperty('--text-color', '#1d3557');
-            document.documentElement.style.setProperty('--accent-color', '#e63946');
-            document.documentElement.style.setProperty('--primary-color', '#457b9d');
-            document.documentElement.style.setProperty('--contrast-text-color', '#ffffff');
-        }
-    } else if (currentTheme === 'custom') {
-        // Apply colors from current custom color values
-        const customPrimary = '#457b9d'; // Default values
-        const customSecondary = '#a8dadc';
-        const customAccent = '#e63946';
-        const customText = '#1d3557';
-        const customBackground = '#f1faee';
-        
-        document.documentElement.style.setProperty('--all-background-color', customBackground);
-        document.documentElement.style.setProperty('--group-background-color', customSecondary);
-        document.documentElement.style.setProperty('--text-color', customText);
-        document.documentElement.style.setProperty('--accent-color', customAccent);
-        document.documentElement.style.setProperty('--primary-color', customPrimary);
-        
-        // Set contrast text color - white for dark themes, black for light themes
-        const isDarkBackground = isColorDark(customPrimary);
-        document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
-    } else {
-        document.documentElement.style.setProperty('--all-background-color', `var(--${currentTheme}-background, #f1faee)`);
-        document.documentElement.style.setProperty('--group-background-color', `var(--${currentTheme}-secondary, #a8dadc)`);
-        document.documentElement.style.setProperty('--text-color', `var(--${currentTheme}-text, #1d3557)`);
-        document.documentElement.style.setProperty('--accent-color', `var(--${currentTheme}-accent, #e63946)`);
-        document.documentElement.style.setProperty('--primary-color', `var(--${currentTheme}-primary, #457b9d)`);
-        
-        // Set contrast text color appropriately based on theme
-        let isDarkTheme = false;
-        if (currentTheme === 'dark' || currentTheme === 'midnight' || currentTheme === 'emerald' || 
-            currentTheme === 'slate' || currentTheme === 'deep' || currentTheme === 'nord' || currentTheme === 'cyber') {
-            isDarkTheme = true;
-        }
-        document.documentElement.style.setProperty('--contrast-text-color', isDarkTheme ? '#ffffff' : '#000000');
+    // —————————————————————————————
+    // 1) Remove old theme-* classes
+    // —————————————————————————————
+    const themePrefix = 'theme-';
+    Array.from(document.body.classList)
+      .filter(c => c.startsWith(themePrefix))
+      .forEach(c => document.body.classList.remove(c));
+  
+    // —————————————————————————————
+    // 2) Determine current theme & dark set
+    // —————————————————————————————
+    const t = currentSettings.theme || 'light';
+    const base = t.split('-')[0];
+    const darkThemes = new Set(['dark','midnight','emerald','slate','deep','nord','cyber']);
+  
+    // —————————————————————————————
+    // 3) Write color CSS-vars on :root
+    // —————————————————————————————
+    // (same as before— set --all-background-color, --text-color, etc.)
+    // e.g. for built-ins:
+    document.documentElement.style.setProperty(
+      '--all-background-color',
+      `var(--${t}-background, #f1faee)`
+    );
+    document.documentElement.style.setProperty(
+      '--group-background-color',
+      `var(--${t}-secondary, #a8dadc)`
+    );
+    document.documentElement.style.setProperty(
+      '--text-color',
+      `var(--${t}-text, #1d3557)`
+    );
+    document.documentElement.style.setProperty(
+      '--accent-color',
+      `var(--${t}-accent, #e63946)`
+    );
+    document.documentElement.style.setProperty(
+      '--primary-color',
+      `var(--${t}-primary, #457b9d)`
+    );
+    document.documentElement.style.setProperty(
+      '--contrast-text-color',
+      darkThemes.has(base) ? '#ffffff' : '#000000'
+    );
+  
+    // —————————————————————————————
+    // 4) Inline the body’s background
+    // —————————————————————————————
+    // Always set the fallback color:
+    const bgColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--all-background-color');
+    document.body.style.backgroundColor = bgColor;
+  
+    // Background image is now handled separately at the end of the initialization process
+    // to improve performance. We only reset if necessary.
+    if (!currentSettings.useCustomBackground) {
+      // Only reset if there's no custom background
+      document.documentElement.style.setProperty('--background-image', 'none');
+      document.body.classList.remove('bg-loaded');
     }
-    
-    // Set body background color while preserving inline style
-document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--all-background-color');
-    // Apply custom background if enabled
-     if (currentSettings.useCustomBackground) {
-        // Prefer stored image over URL
-        if (currentSettings.backgroundImage) {
-            document.body.style.backgroundImage = `url(${currentSettings.backgroundImage})`;
-        } else if (currentSettings.backgroundURL) {
-            document.body.style.backgroundImage = `url(${currentSettings.backgroundURL})`;
-        }
-        // NOOP: we drive the background via body::before
-     } else {
-         document.body.style.backgroundImage = 'none';
-     }
-
-    
-    // Apply accessibility settings
+  
+    // —————————————————————————————
+    // 5) Add the new theme class
+    // —————————————————————————————
+    document.body.classList.add(`theme-${base}`);
+  
+    // —————————————————————————————
+    // 6) Accessibility & scaling
+    // —————————————————————————————
     if (currentSettings.fontSize) {
-        document.documentElement.style.setProperty('--base-font-size', `${currentSettings.fontSize}px`);
+      document.documentElement.style.setProperty(
+        '--base-font-size',
+        `${currentSettings.fontSize}px`
+      );
     }
-    
     if (currentSettings.groupScale) {
-        document.documentElement.style.setProperty('--group-scale', currentSettings.groupScale / 100);
+      document.documentElement.style.setProperty(
+        '--group-scale',
+        `${currentSettings.groupScale/100}`
+      );
     }
-    
     if (currentSettings.spacingScale) {
-        document.documentElement.style.setProperty('--spacing-scale', currentSettings.spacingScale / 100);
+      document.documentElement.style.setProperty(
+        '--spacing-scale',
+        `${currentSettings.spacingScale/100}`
+      );
     }
-    
-    // Apply high contrast if enabled
     if (currentSettings.highContrast) {
-        document.documentElement.style.setProperty('--text-color', '#000000');
-        document.documentElement.style.setProperty('--accent-color', '#FF0000');
+      document.documentElement.style.setProperty('--text-color', '#000000');
+      document.documentElement.style.setProperty('--accent-color', '#FF0000');
     }
-    
-    // Apply SVG color for settings button
-    const settingsIcon = document.querySelector('#settings-button img');
-    if (settingsIcon) {
-        settingsIcon.style.filter = `invert(${currentTheme === 'dark' || currentTheme === 'midnight' || currentTheme === 'emerald' || currentTheme === 'slate' || currentTheme === 'deep' || currentTheme === 'nord' || currentTheme === 'cyber' ? 1 : 0})`;
+  
+    // —————————————————————————————
+    // 7) Invert settings icon for dark
+    // —————————————————————————————
+    const icon = document.querySelector('#settings-button img');
+    if (icon) {
+      icon.style.filter = darkThemes.has(base) ? 'invert(1)' : 'invert(0)';
     }
-    
-    // Add theme class to body
-    document.body.className = ''; // Clear existing classes
-    document.body.classList.add(`theme-${currentTheme.split('-')[0]}`);
-}
+  }
+  
 
 // Setup drag and drop for image search
 function setupImageDrop() {
@@ -828,51 +816,94 @@ function initializeAppsDropdown() {
     }
 }
 
-function preloadAndFadeBackground(url) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        // set the CSS var for the pseudo-element on the body
-        document.body.style.setProperty(
-          '--background-image',
-          `url("${url}")`
-        );
-        // flip on the fade overlay
-        document.body.classList.add('bg-loaded');
-        resolve();
-      };
-      img.onerror = () => reject(new Error('Background failed to load: ' + url));
-      img.src = url;
-    });
-}
+// Function removed - using direct approach
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const { settings, groups } = await fetchSettingsAndGroups();
-    currentSettings = { ...defaultSettings, ...settings };
-  
-    // Preload & fade the custom background (if any)
-    // Always preload & fade if there's a URL
-const bgUrl = currentSettings.backgroundImage || currentSettings.backgroundURL;
-if (bgUrl) {
-  try {
-    await preloadAndFadeBackground(bgUrl);
-  } catch (e) {
-    console.warn('Background preload failed:', e);
-    // fallback to solid color from applyTheme()
-  }
-}
-
-  
-    // now do the rest
-    applyTheme();
-    initializeSearch();
-    initializeHeaderLinks();
-    lazyRenderGroups(groups);
-    initializeAppsDropdown();
-    deferNonCritical();
-  });
-  
-  
+    try {
+        // Load settings and groups
+        const { settings, groups } = await fetchSettingsAndGroups();
+        currentSettings = { ...defaultSettings, ...settings };
+        
+        // Apply theme for colors 
+        applyTheme();
+        
+        // Initialize the core page elements first
+        initializeSearch();
+        initializeHeaderLinks();
+        lazyRenderGroups(groups);
+        initializeAppsDropdown();
+        
+        // Load non-critical elements second
+        deferNonCritical();
+        
+        // Load the background image last, after all other elements are loaded
+        setTimeout(() => {
+            // Check for background image
+            if (currentSettings.useCustomBackground) {
+                // Apply transition class for smooth fade-in
+                document.body.classList.add('bg-transition');
+                
+                // Preload the image before applying to enable smooth transition
+                const preloadBackgroundImage = (imageUrl, callback) => {
+                    if (!imageUrl) {
+                        if (callback) callback(false);
+                        return;
+                    }
+                    
+                    const img = new Image();
+                    img.onload = function() {
+                        if (callback) callback(true, imageUrl);
+                    };
+                    img.onerror = function() {
+                        if (callback) callback(false);
+                    };
+                    img.src = imageUrl;
+                };
+                
+                // Try to load background from storage
+                if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                    chrome.storage.local.get(['backgroundImage'], (localResult) => {
+                        const bgUrl = localResult.backgroundImage || currentSettings.backgroundURL;
+                        
+                        if (bgUrl) {
+                            // Preload the background image for smooth transition
+                            preloadBackgroundImage(bgUrl, (success, loadedUrl) => {
+                                if (success) {
+                                    // Apply the background with fade-in effect
+                                    document.body.style.backgroundImage = `url("${loadedUrl}")`;
+                                    
+                                    // Add loaded class for potential additional styling
+                                    document.body.classList.add('bg-loaded');
+                                } else {
+                                    console.warn("Failed to load background image:", bgUrl);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // Fallback for non-Chrome environments
+                    const bgUrl = currentSettings.backgroundImage || currentSettings.backgroundURL;
+                    if (bgUrl) {
+                        // Preload the background image for smooth transition
+                        preloadBackgroundImage(bgUrl, (success, loadedUrl) => {
+                            if (success) {
+                                // Apply the background with fade-in effect
+                                document.body.style.backgroundImage = `url("${loadedUrl}")`;
+                                
+                                // Add loaded class for potential additional styling
+                                document.body.classList.add('bg-loaded');
+                            } else {
+                                console.warn("Failed to load background image:", bgUrl);
+                            }
+                        });
+                    }
+                }
+            }
+        }, 200); // Delay of 200ms to ensure other elements are loaded and rendered first
+    } catch (error) {
+        console.error('Error initializing page:', error);
+    }
+});
 
 function renderGroupContent(placeholder, group) {
     let el;
@@ -920,11 +951,12 @@ function renderGroupContent(placeholder, group) {
 function getFavicon(url) {
     // Default icon as SVG data URI if all else fails
     const DEFAULT_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+    const LINK_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItZ2xvYmUiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48bGluZSB4MT0iMiIgeTE9IjEyIiB4Mj0iMjIiIHkyPSIxMiI+PC9saW5lPjxwYXRoIGQ9Ik0xMiAyYTE1LjMgMTUuMyAwIDAgMSA0IDEwIDE1LjMgMTUuMyAwIDAgMS00IDEwIDE1LjMgMTUuMyAwIDAgMS00LTEwIDE1LjMgMTUuMyAwIDAgMSA0LTEweiI+PC9wYXRoPjwvc3ZnPg==';
     
     try {
         // Return default icon if URL is empty
         if (!url || url.trim() === '') {
-            return DEFAULT_ICON;
+            return LINK_ICON;
         }
         
         // Make sure URL is properly formatted with protocol
@@ -937,8 +969,8 @@ function getFavicon(url) {
         try {
             parsedUrl = new URL(url);
         } catch (e) {
-            Debugger.error('Invalid URL format:', url, e);
-            return DEFAULT_ICON;
+            console.warn('Invalid URL format:', url, e);
+            return LINK_ICON;
         }
         
         const domain = parsedUrl.hostname;
@@ -948,31 +980,9 @@ function getFavicon(url) {
             window.faviconCache = new Map();
         }
         
-        // Special handling for Google Calendar's dynamic favicon
-        if (domain === 'calendar.google.com') {
-            // Get today's date for the dynamic calendar icon
-            // Since Google Calendar changes its favicon to match the current date
-            const today = new Date();
-            const dateString = today.getDate().toString();
-            
-            // Either use a static calendar icon or a dynamically generated one
-            // Option 1: Use a generic calendar icon (doesn't show current date but always works)
-            const calendarGenericIcon = 'https://ssl.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_' + dateString + '_2x.png';
-            
-            // Cache with a timestamp so it refreshes daily
-            const cacheKey = `${domain}_${today.toDateString()}`;
-            window.faviconCache.set(cacheKey, calendarGenericIcon);
-            return calendarGenericIcon;
-        }
-        
         // Return cached favicon if available for other domains
         if (window.faviconCache.has(domain)) {
             return window.faviconCache.get(domain);
-        }
-        
-        // Check for offline mode
-        if (!navigator.onLine) {
-            return DEFAULT_ICON;
         }
         
         // Special handling just for Google services that need specific icons
@@ -985,8 +995,10 @@ function getFavicon(url) {
             'meet.google.com': 'https://www.gstatic.com/meet/favicon_meet_2023_32dp.png',
             'chat.google.com': 'https://www.gstatic.com/chat/favicon_chat_32px.png',
             'classroom.google.com': 'https://ssl.gstatic.com/classroom/favicon.png',
-            'keep.google.com': 'https://ssl.gstatic.com/keep/icon_2020q4v2_32dp.png'
-            // Calendar is handled separately above
+            'keep.google.com': 'https://ssl.gstatic.com/keep/icon_2020q4v2_32dp.png',
+            'calendar.google.com': 'https://www.google.com/calendar/images/favicon_v2018_256.png',
+            'remotedesktop.google.com': 'https://www.gstatic.com/chrome/icon/chat_favicon.png',
+            'photos.google.com': 'https://ssl.gstatic.com/photos/branding/product/2x/photos_96dp.png'
         };
         
         // Check if this is a Google service with known icon
@@ -996,16 +1008,42 @@ function getFavicon(url) {
             return iconUrl;
         }
         
-        // For non-special cases, use Google's favicon service
-        const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        // Special handling for Google Calendar's dynamic favicon (fallback option)
+        if (domain === 'calendar.google.com') {
+            // Get today's date for the dynamic calendar icon
+            const today = new Date();
+            const dateString = today.getDate().toString();
+            
+            // Use the updated, more reliable calendar icon URL
+            const calendarGenericIcon = 'https://www.google.com/calendar/images/favicon_v2018_256.png';
+            
+            // Generate an SVG calendar icon with today's date as fallback
+            const svgCalendarIcon = generateCalendarIcon();
+            
+            // Try to use the Google Calendar icon first, fallback to SVG if needed
+            const finalCalendarIcon = calendarGenericIcon || svgCalendarIcon;
+            
+            // Cache with a timestamp so it refreshes daily
+            const cacheKey = `${domain}_${today.toDateString()}`;
+            window.faviconCache.set(cacheKey, finalCalendarIcon);
+            return finalCalendarIcon;
+        }
         
-        // Cache the result for future use
-        window.faviconCache.set(domain, faviconUrl);
-        
-        return faviconUrl;
+        try {
+            // For non-special cases, use Google's favicon service with fallback
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            
+            // Cache the result for future use
+            window.faviconCache.set(domain, faviconUrl);
+            
+            return faviconUrl;
+        } catch (fetchError) {
+            console.warn('Error fetching favicon:', fetchError);
+            return LINK_ICON;
+        }
     } catch (e) {
-        Debugger.warn('Error getting favicon for URL:', url, e);
-        return DEFAULT_ICON;
+        console.warn('Error getting favicon for URL:', url, e);
+        return LINK_ICON;
     }
 }
 
