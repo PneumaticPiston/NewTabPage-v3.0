@@ -9,6 +9,8 @@ const newGroupPopup = document.getElementById('new-group-popup');
 const linksEditor = document.getElementById('group-links-editor');
 const newGroupLinks = document.getElementById('new-group-links');
 
+// Debugger.debugging.enable(); // Enable debugging
+
 // Function to determine if a color is dark (for contrast purposes)
 function isColorDark(color) {
     // Handle hex colors
@@ -157,7 +159,7 @@ function applyScalingSettings(scaling) {
     document.documentElement.style.setProperty('--element-scale', scaling.elementScale || 1);
     document.documentElement.style.setProperty('--spacing-multiplier', scaling.spacingMultiplier || 1);
     
-    console.log('Applied scaling settings:', scaling);
+    Debugger.log('Applied scaling settings:', scaling);
 }
 
 // Apply theme colors to body
@@ -209,11 +211,29 @@ function applyThemeToEditor() {
     }
 }
 
+// Add an event listener for when the tab is closed, create a warning about saving changes
+// Give two options: "Cancel" followed by "Exit without saving"
+window.addEventListener('beforeunload', (event) => {
+    if (currentGroups.length > 0) {
+        const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+        event.returnValue = confirmationMessage; // For most browsers
+        return confirmationMessage; // For some older browsers
+    }
+});
+
+window.addEventListener('beforereload', (event) => {
+    if (currentGroups.length > 0) {
+        const confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+        event.returnValue = confirmationMessage; // For most browsers
+        return confirmationMessage; // For some older browsers
+    }
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Check if chrome.storage is available (running as extension)
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            console.log('Chrome storage API available, loading data...');
+            Debugger.log('Chrome storage API available, loading data...');
             
             // First, try to load settings from sync storage
             let syncData = {};
@@ -226,7 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Load scaling settings directly and apply them to ensure consistent dimensions
             if (syncData.scaling) {
-                console.log('Applying scaling settings from Chrome sync storage');
+                Debugger.log('Applying scaling settings from Chrome sync storage');
                 applyScalingSettings(syncData.scaling);
             }
             
@@ -235,17 +255,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Groups are stored in local storage
                 const localData = await chrome.storage.local.get(['groups']);
                 currentGroups = localData.groups || [];
-                console.log('Groups loaded from Chrome local storage');
+                Debugger.log('Groups loaded from Chrome local storage');
             } else {
                 // Try to get groups from sync storage first
                 if (chrome.storage.sync && syncData.groups && syncData.groups.length > 0) {
                     currentGroups = syncData.groups;
-                    console.log('Groups loaded from Chrome sync storage');
+                    Debugger.log('Groups loaded from Chrome sync storage');
                 } else {
                     // Fallback to local storage
                     const localData = await chrome.storage.local.get(['groups']);
                     currentGroups = localData.groups || [];
-                    console.log('Groups loaded from Chrome local storage (fallback)');
+                    Debugger.log('Groups loaded from Chrome local storage (fallback)');
                 }
             }
             
@@ -255,15 +275,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const localResult = await chrome.storage.local.get(['backgroundImage']);
                     if (localResult.backgroundImage) {
                         currentSettings.backgroundImage = localResult.backgroundImage;
-                        console.log('Background image loaded from Chrome local storage');
+                        Debugger.log('Background image loaded from Chrome local storage');
                     }
                 } catch (localError) {
-                    console.warn('Error loading background image from local storage:', localError);
+                    Debugger.warn('Error loading background image from local storage:', localError);
                 }
             }
         } else {
             // Fallback for development/testing environment
-            console.warn('Chrome storage API not available, using localStorage fallback');
+            Debugger.warn('Chrome storage API not available, using localStorage fallback');
             const savedGroups = localStorage.getItem('groups');
             const savedSettings = localStorage.getItem('settings');
             currentGroups = savedGroups ? JSON.parse(savedGroups) : [];
@@ -277,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         currentSettings.backgroundImage = backgroundImage;
                     }
                 } catch (localError) {
-                    console.warn('Error loading background image from localStorage:', localError);
+                    Debugger.warn('Error loading background image from localStorage:', localError);
                 }
             }
         }
@@ -325,7 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Add window resize handler
         window.addEventListener('resize', handleWindowResize);
     } catch (error) {
-        console.error('Error loading data:', error);
+        Debugger.error('Error loading data:', error);
         currentGroups = [];
         currentSettings = {...defaultSettings};
         renderGroups(); // Still render UI even if loading fails
@@ -949,7 +969,7 @@ function initDraggableElement(element, positionSettingKey) {
     const handle = element.querySelector('.editor-handle');
     
     if (!handle) {
-        console.error(`Handle not found for ${positionSettingKey}`);
+        Debugger.error(`Handle not found for ${positionSettingKey}`);
         return;
     }
     
@@ -1089,13 +1109,13 @@ function stopDraggableMove(element, positionSettingKey, originalTransform) {
     
     // Make sure we have values
     if (!left || !top) {
-        console.error('Element position is missing');
+        Debugger.error('Element position is missing');
         return;
     }
     
     // Make sure they're percentage-based
     if (!left.endsWith('%') || !top.endsWith('%')) {
-        console.error('Element position is not in percentage format');
+        Debugger.error('Element position is not in percentage format');
         return;
     }
     
@@ -1299,7 +1319,7 @@ function populateWidgetMenu() {
         
         // Check if WIDGET_TYPES is defined (imported from widgets.js)
         if (typeof WIDGET_TYPES === 'undefined') {
-            console.error('WIDGET_TYPES not defined, cannot populate widget menu');
+            Debugger.error('WIDGET_TYPES not defined, cannot populate widget menu');
             const errorDiv = document.createElement('div');
             errorDiv.className = 'widget-error';
             errorDiv.textContent = 'Widget configuration not available';
@@ -1399,7 +1419,7 @@ function populateWidgetMenu() {
             widgetMenu.appendChild(groupDiv);
         }
     } catch (error) {
-        console.error('Error populating widget menu:', error);
+        Debugger.error('Error populating widget menu:', error);
     }
 }
 
@@ -1485,9 +1505,9 @@ saveChangesBtn.addEventListener('click', async () => {
                     // Save a reference in sync storage that groups are in local storage
                     await chrome.storage.sync.set({ groupsLocation: 'local' });
                     
-                    console.log('Data successfully saved to Chrome storage (split between sync and local)');
+                    Debugger.log('Data successfully saved to Chrome storage (split between sync and local)');
                 } catch (syncError) {
-                    console.warn('Error saving to sync storage, falling back to local storage', syncError);
+                    Debugger.warn('Error saving to sync storage, falling back to local storage', syncError);
                     
                     // Make a copy of current settings for local storage
                     const settingsForLocal = { ...currentSettings };
@@ -1549,7 +1569,7 @@ saveChangesBtn.addEventListener('click', async () => {
             localStorage.setItem('groups', JSON.stringify(sanitizedGroups));
             localStorage.setItem('settings', JSON.stringify(currentSettings));
             currentGroups = sanitizedGroups;
-            console.warn('Saved to localStorage (Chrome API not available)');
+            Debugger.warn('Saved to localStorage (Chrome API not available)');
         }
         
         // Update feedback
@@ -1560,7 +1580,7 @@ saveChangesBtn.addEventListener('click', async () => {
             saveButton.innerHTML = originalText;
         }, 2000);
     } catch (error) {
-        console.error('Error saving data:', error);
+        Debugger.error('Error saving data:', error);
         alert(`Error saving data: ${error.message}`);
         
         // Reset button text
@@ -2577,6 +2597,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function fixUrl(url) {
     if (!url) return '';
+    if(url.includes('chrome:') || url.includes('edge:')) return url; // Don't modify Chrome/Edge URLs
     // If url starts with http:// or https://, return as is
     if (/^https?:\/\//i.test(url)) return url;
     // If url starts with www., add https://

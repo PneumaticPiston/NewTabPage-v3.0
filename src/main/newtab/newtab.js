@@ -1,18 +1,86 @@
+const Debugger = {
+    log: (message) => {
+        if(this.debugging) {
+            console.log(message);
+        }
+    },
+    error: (message) => {
+        if(this.debugging) {
+            console.error(message);
+        }
+    },
+    warn: (message) => {
+        if(this.debugging) {
+            console.warn(message);
+        }
+    },
+    debugging: false,
+    debugging: {
+        enable: function() {
+            this.debugging = true;
+        },
+        disable: function() {
+            this.debugging = false;
+        }
+    }
+}
+
+// Debugger.debugging.enable(); // Enable debugging
+
+async function fetchSettingsAndGroups() {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+      const { settings, groups, groupsLocation } = await chrome.storage.sync.get(
+        ['settings', 'groups', 'groupsLocation']
+      );
+      let finalGroups = groups;
+      if (groupsLocation === 'local') {
+        const local = await chrome.storage.local.get(['groups']);
+        finalGroups = local.groups || [];
+      }
+      return {
+        settings: settings || defaultSettings,
+        groups: finalGroups || []
+      };
+    }
+    const s = JSON.parse(localStorage.getItem('settings') || 'null') || defaultSettings;
+    const g = JSON.parse(localStorage.getItem('groups') || '[]');
+    return { settings: s, groups: g };
+}
+
 async function initializePage() {
     try {
-        // Load settings and groups in parallel
+        // Start performance measurement
+        const endMeasure = measureLoadTime('Page initialization');
+        
+        // Load settings and groups in parallel - this is already good!
         const [settings, groups] = await Promise.all([
             getFromStorage('settings'),
             getFromStorage('groups')
         ]);
         
-        // Apply settings and render groups simultaneously
-        await Promise.all([
-            applySettings(settings),
-            renderGroups(groups)
-        ]);
+        // First apply critical settings that affect visual display
+        applyTheme();
+        initializeSearch();
+        
+        // Then start rendering content in parallel
+        requestAnimationFrame(() => {
+            // Use Promise.all for parallel operations that can happen simultaneously
+            Promise.all([
+                renderGroups(groups),
+                initializeHeaderLinks(),
+                initializeAppsDropdown()
+            ]).then(() => {
+                // Only after critical content is loaded, load non-critical elements
+                setTimeout(() => {
+                    loadWidgets();
+                    setupImageDrop(); 
+                }, 100);
+                
+                endMeasure();
+            });
+        });
     } catch (error) {
-        console.error('Error initializing:', error);
+        Debugger.error('Error initializing:', error);
     }
 }
 
@@ -20,7 +88,7 @@ function measureLoadTime(label) {
     const start = performance.now();
     return () => {
         const duration = performance.now() - start;
-        console.log(`${label} took ${duration}ms`);
+        Debugger.log(`${label} took ${duration}ms`);
     };
 }
 
@@ -297,88 +365,43 @@ const newLink = {
 // container.appendChild(newGroup.stack(GROUPS[0].links, GROUPS[0].x, GROUPS[0].y, GROUPS[0].title));
 
 // Function to load groups from storage
-async function loadGroups() {
-    console.log('Loading groups from storage...');
-    try {
-        let groups = [];
-        
-        // Check if chrome.storage is available (running as extension)
-        if (typeof chrome !== 'undefined' && chrome.storage) {
-            console.log('Chrome storage API available');
-            
-            // First check if there's a reference to groups location in sync storage
-            if (chrome.storage.sync) {
-                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
-                
-                // If groupsLocation is 'local', get groups from local storage
-                if (syncData.groupsLocation === 'local') {
-                    console.log('Groups are stored in local storage according to sync reference');
-                    const localData = await chrome.storage.local.get(['groups']);
-                    groups = localData.groups || [];
-                }
-                // Otherwise try to get from sync storage directly
-                else if (syncData.groups && syncData.groups.length > 0) {
-                    console.log('Groups found in sync storage');
-                    groups = syncData.groups;
-                }
-                // If not found in sync, try local storage as fallback
-                else {
-                    console.log('Groups not found in sync storage, checking local storage');
-                    const localData = await chrome.storage.local.get(['groups']);
-                    groups = localData.groups || [];
-                }
-            } else {
-                // If sync is not available, try local
-                console.log('Sync storage not available, trying local storage');
-                const localData = await chrome.storage.local.get(['groups']);
-                groups = localData.groups || [];
-            }
-        } else {
-            // Fallback for development/testing environment
-            console.warn('Chrome storage API not available, using localStorage fallback');
-            const savedGroups = localStorage.getItem('groups');
-            groups = savedGroups ? JSON.parse(savedGroups) : [];
-        }
-        
-        if (groups && groups.length > 0) {
-            console.log(`Found ${groups.length} groups in storage`);
-            
-            // Clear container first to avoid duplicates
-            container.innerHTML = '';
-            
-            groups.forEach((group, index) => {
-                console.log(`Processing group ${index}: ${group.title} (${group.type})`);
-                console.log(`Position: x=${group.x}, y=${group.y}`);
-                
-                let groupElement;
-                switch (group.type) {
-                    case 'stack':
-                        groupElement = newGroup.stack(group.links, group.x, group.y, group.title);
-                        break;
-                    case 'grid':
-                        groupElement = newGroup.grid(group.links, group.x, group.y, group.rows || 1, group.columns || 1, group.title);
-                        break;
-                    case 'single':
-                        if (group.links && group.links.length > 0) {
-                            groupElement = newGroup.single(group.links[0], group.x, group.y, group.title);
-                        }
-                        break;
-                }
-                
-                if (groupElement) {
-                    container.appendChild(groupElement);
-                    console.log(`Group ${index} added to container`);
-                } else {
-                    console.warn(`Group ${index} could not be created`);
-                }
-            });
-        } else {
-            console.log('No groups found in storage');
-        }
-    } catch (error) {
-        console.error('Error loading groups:', error);
-    } 
+async function lazyRenderGroups(groups) {
+    const container = document.getElementById('groups-container');
+    container.innerHTML = '';
+    // Build placeholders array with computed top/left strings
+    const placeholders = groups.map(group => {
+      const percentX = typeof group.x === 'string' && group.x.endsWith('%')
+        ? group.x
+        : `${(parseFloat(group.x) / window.innerWidth) * 100}%`;
+      const percentY = typeof group.y === 'string' && group.y.endsWith('%')
+        ? group.y
+        : `${(parseFloat(group.y) / window.innerHeight) * 100}%`;
+      const ph = createGroupPlaceholder({ styleTop: percentY, styleLeft: percentX });
+      container.appendChild(ph);
+      return ph;
+    });
+    const fill = () => {
+      placeholders.forEach((ph, idx) => {
+        renderGroupContent(ph, groups[idx]);
+      });
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(fill, { timeout: 200 });
+    } else {
+      requestAnimationFrame(fill);
+    }
 }
+function deferNonCritical() {
+    const work = () => {
+      loadWidgets();
+      setupImageDrop();
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(work);
+    } else {
+      setTimeout(work, 200);
+    }
+  }
 
 // Initialize search functionality
 function initializeSearch() {
@@ -504,19 +527,20 @@ function applyTheme() {
     }
     
     // Set body background color while preserving inline style
-    document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--all-background-color');
-    
+document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--all-background-color');
     // Apply custom background if enabled
-    if (currentSettings.useCustomBackground) {
+     if (currentSettings.useCustomBackground) {
         // Prefer stored image over URL
         if (currentSettings.backgroundImage) {
             document.body.style.backgroundImage = `url(${currentSettings.backgroundImage})`;
         } else if (currentSettings.backgroundURL) {
             document.body.style.backgroundImage = `url(${currentSettings.backgroundURL})`;
         }
-    } else {
-        document.body.style.backgroundImage = 'none';
-    }
+        // NOOP: we drive the background via body::before
+     } else {
+         document.body.style.backgroundImage = 'none';
+     }
+
     
     // Apply accessibility settings
     if (currentSettings.fontSize) {
@@ -556,7 +580,7 @@ function setupImageDrop() {
     
     // Ensure the search container exists
     if (!searchContainer) {
-        console.error('Search container element not found');
+        Debugger.error('Search container element not found');
         return;
     }
     
@@ -625,7 +649,7 @@ function setupImageDrop() {
             if (file.type && file.type.startsWith('image/')) {
                 performImageSearch(file);
             } else {
-                console.warn('Dropped file is not an image:', file.type);
+                Debugger.warn('Dropped file is not an image:', file.type);
             }
         }
     });
@@ -644,7 +668,7 @@ function setupImageDrop() {
 // Perform image search
 function performImageSearch(imageFile) {
     if (!imageFile) {
-        console.error('No image file provided for search');
+        Debugger.error('No image file provided for search');
         return;
     }
     
@@ -653,7 +677,7 @@ function performImageSearch(imageFile) {
         const reader = new FileReader();
         
         reader.onerror = function(error) {
-            console.error('Error reading image file:', error);
+            Debugger.error('Error reading image file:', error);
             alert('There was an error processing your image. Please try again.');
         };
         
@@ -688,7 +712,7 @@ function performImageSearch(imageFile) {
                 // Open in a new tab to avoid losing user's current state
                 window.open(searchUrl, '_blank');
             } catch (urlError) {
-                console.error('Error navigating to search URL:', urlError);
+                Debugger.error('Error navigating to search URL:', urlError);
                 // Fallback to Google Images if there's an error
                 window.open('https://images.google.com/', '_blank');
             }
@@ -697,7 +721,7 @@ function performImageSearch(imageFile) {
         // Start reading the file
         reader.readAsDataURL(imageFile);
     } catch (error) {
-        console.error('Error in image search functionality:', error);
+        Debugger.error('Error in image search functionality:', error);
         alert('There was an error processing your image search. Please try again.');
     }
 }
@@ -804,131 +828,89 @@ function initializeAppsDropdown() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        // Load settings first
-        if (typeof chrome !== 'undefined' && chrome.storage) {
-            try {
-                // Load main settings from sync storage
-                const syncResult = await chrome.storage.sync.get(['settings']);
-                if (syncResult.settings) {
-                    currentSettings = syncResult.settings;
-                    
-                    // Load background image from local storage if we're using a custom background
-                    if (currentSettings.useCustomBackground) {
-                        try {
-                            const localResult = await chrome.storage.local.get(['backgroundImage']);
-                            if (localResult.backgroundImage) {
-                                currentSettings.backgroundImage = localResult.backgroundImage;
-                                console.log('Background image loaded from Chrome local storage');
-                            }
-                        } catch (localError) {
-                            console.warn('Error loading background image from local storage:', localError);
-                        }
-                    }
-                } else {
-                    console.warn('No settings found in Chrome storage, using defaults');
-                    currentSettings = {...defaultSettings};
-                }
-            } catch (storageError) {
-                console.error('Error accessing Chrome storage:', storageError);
-                currentSettings = {...defaultSettings};
-            }
-        } else {
-            // Fallback for development
-            try {
-                const savedSettings = localStorage.getItem('settings');
-                if (savedSettings) {
-                    currentSettings = JSON.parse(savedSettings);
-                    
-                    // Load background image from localStorage if we're using a custom background
-                    if (currentSettings.useCustomBackground) {
-                        try {
-                            const backgroundImage = localStorage.getItem('backgroundImage');
-                            if (backgroundImage) {
-                                currentSettings.backgroundImage = backgroundImage;
-                            }
-                        } catch (localError) {
-                            console.warn('Error loading background image from localStorage:', localError);
-                        }
-                    }
-                } else {
-                    console.warn('No settings found in localStorage, using defaults');
-                    currentSettings = {...defaultSettings};
-                }
-            } catch (localStorageError) {
-                console.error('Error accessing localStorage:', localStorageError);
-                currentSettings = {...defaultSettings};
-            }
-        }
-        
-        // Ensure critical settings properties exist
-        if (!currentSettings.apps) {
-            currentSettings.apps = [...defaultSettings.apps];
-        }
-        
-        if (!currentSettings.headerLinks) {
-            currentSettings.headerLinks = [...defaultSettings.headerLinks];
-        }
-        
-        if (!currentSettings.searchBarPosition) {
-            currentSettings.searchBarPosition = {...defaultSettings.searchBarPosition};
-        }
+function preloadAndFadeBackground(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        // set the CSS var for the pseudo-element on the body
+        document.body.style.setProperty(
+          '--background-image',
+          `url("${url}")`
+        );
+        // flip on the fade overlay
+        document.body.classList.add('bg-loaded');
+        resolve();
+      };
+      img.onerror = () => reject(new Error('Background failed to load: ' + url));
+      img.src = url;
+    });
+}
 
-        // Load order
+document.addEventListener('DOMContentLoaded', async () => {
+    const { settings, groups } = await fetchSettingsAndGroups();
+    currentSettings = { ...defaultSettings, ...settings };
+  
+    // Preload & fade the custom background (if any)
+    // Always preload & fade if there's a URL
+const bgUrl = currentSettings.backgroundImage || currentSettings.backgroundURL;
+if (bgUrl) {
+  try {
+    await preloadAndFadeBackground(bgUrl);
+  } catch (e) {
+    console.warn('Background preload failed:', e);
+    // fallback to solid color from applyTheme()
+  }
+}
 
-        // Load groups
-        loadGroups();
-        
-        // Apply theme
-        applyTheme();
-        
-        // Initialize search
-        initializeSearch();
-        
-        // Initialize header links
-        initializeHeaderLinks();
-        
-        // Load widgets
-        loadWidgets();
-        
-        // Initialize apps dropdown
-        initializeAppsDropdown();
-        
-        // Set up image drop functionality
-        setupImageDrop();
-        
-    } catch (error) {
-        console.error('Error initializing new tab page:', error);
-        // Continue with defaults
-        currentSettings = {...defaultSettings};
-        try {
-            loadGroups();
-            applyTheme();
-            initializeSearch();
-            initializeHeaderLinks();
-            loadWidgets();
-            initializeAppsDropdown();
-            window.addEventListener('resize', handleWindowResize);
-        } catch (fallbackError) {
-            console.error('Critical error in fallback initialization:', fallbackError);
-            // Display error message to user
-            const errorDiv = document.createElement('div');
-            errorDiv.style.padding = '20px';
-            errorDiv.style.margin = '20px auto';
-            errorDiv.style.maxWidth = '500px';
-            errorDiv.style.backgroundColor = '#ffdddd';
-            errorDiv.style.border = '1px solid #ff0000';
-            errorDiv.style.borderRadius = '5px';
-            errorDiv.innerHTML = `
-                <h3>Error Loading New Tab Page</h3>
-                <p>There was a problem loading your new tab page settings. Try refreshing the page.</p>
-                <p>If the problem persists, try resetting your settings from the settings page.</p>
-            `;
-            document.body.appendChild(errorDiv);
+  
+    // now do the rest
+    applyTheme();
+    initializeSearch();
+    initializeHeaderLinks();
+    lazyRenderGroups(groups);
+    initializeAppsDropdown();
+    deferNonCritical();
+  });
+  
+  
+
+function renderGroupContent(placeholder, group) {
+    let el;
+    switch (group.type) {
+      case 'stack':
+        el = newGroup.stack(group.links, group.x, group.y, group.title);
+        break;
+      case 'grid':
+        el = newGroup.grid(group.links, group.x, group.y, group.rows || 1, group.columns || 1, group.title);
+        break;
+      case 'single':
+        if (group.links && group.links.length > 0) {
+          el = newGroup.single(group.links[0], group.x, group.y, group.title);
         }
+        break;
+      default:
+        return;
     }
-});
+    // Virtualize large link lists
+    if (Array.isArray(group.links) && group.links.length > 20 && el) {
+      const list = el.querySelector('ul') || el.querySelector('.grid');
+      if (list) {
+        const items = Array.from(list.children);
+        items.slice(20).forEach(node => node.remove());
+        const moreBtn = document.createElement('button');
+        moreBtn.textContent = `Show ${group.links.length - 20} more`;
+        moreBtn.className = 'show-more-links';
+        moreBtn.onclick = () => {
+          list.innerHTML = '';
+          items.forEach(node => list.appendChild(node));
+          moreBtn.remove();
+        };
+        el.appendChild(moreBtn);
+      }
+    }
+    // Replace only this placeholder
+    placeholder.replaceWith(el);
+}
 
 /**
  * Get favicon for any URL with proper handling for dynamic favicons like Google Calendar
@@ -955,7 +937,7 @@ function getFavicon(url) {
         try {
             parsedUrl = new URL(url);
         } catch (e) {
-            console.error('Invalid URL format:', url, e);
+            Debugger.error('Invalid URL format:', url, e);
             return DEFAULT_ICON;
         }
         
@@ -1022,7 +1004,7 @@ function getFavicon(url) {
         
         return faviconUrl;
     } catch (e) {
-        console.warn('Error getting favicon for URL:', url, e);
+        Debugger.warn('Error getting favicon for URL:', url, e);
         return DEFAULT_ICON;
     }
 }
@@ -1090,13 +1072,13 @@ function generateCalendarIcon() {
 
 // Function to load widgets from storage and display them
 async function loadWidgets() {
-    console.log('Loading widgets from storage...');
+    Debugger.log('Loading widgets from storage...');
     try {
         let groups = [];
         
         // Check if chrome.storage is available (running as extension)
         if (typeof chrome !== 'undefined' && chrome.storage) {
-            console.log('Chrome storage API available');
+            Debugger.log('Chrome storage API available');
             
             // First check if there's a reference to groups location in sync storage
             if (chrome.storage.sync) {
@@ -1104,46 +1086,46 @@ async function loadWidgets() {
                 
                 // If groupsLocation is 'local', get groups from local storage
                 if (syncData.groupsLocation === 'local') {
-                    console.log('Groups are stored in local storage according to sync reference');
+                    Debugger.log('Groups are stored in local storage according to sync reference');
                     const localData = await chrome.storage.local.get(['groups']);
                     groups = localData.groups || [];
                 }
                 // Otherwise try to get from sync storage directly
                 else if (syncData.groups && syncData.groups.length > 0) {
-                    console.log('Groups found in sync storage');
+                    Debugger.log('Groups found in sync storage');
                     groups = syncData.groups;
                 }
                 // If not found in sync, try local storage as fallback
                 else {
-                    console.log('Groups not found in sync storage, checking local storage');
+                    Debugger.log('Groups not found in sync storage, checking local storage');
                     const localData = await chrome.storage.local.get(['groups']);
                     groups = localData.groups || [];
                 }
             } else {
                 // If sync is not available, try local
-                console.log('Sync storage not available, trying local storage');
+                Debugger.log('Sync storage not available, trying local storage');
                 const localData = await chrome.storage.local.get(['groups']);
                 groups = localData.groups || [];
             }
         } else {
             // Fallback for development/testing environment
-            console.warn('Chrome storage API not available, using localStorage fallback');
+            Debugger.warn('Chrome storage API not available, using localStorage fallback');
             const savedGroups = localStorage.getItem('groups');
             groups = savedGroups ? JSON.parse(savedGroups) : [];
         }
         
         if (groups && groups.length > 0) {
-            console.log(`Found ${groups.length} groups in storage, checking for widgets...`);
+            Debugger.log(`Found ${groups.length} groups in storage, checking for widgets...`);
             
             // Filter only widgets
             const widgets = groups.filter(group => group.type === 'widget');
             
             if (widgets.length > 0) {
-                console.log(`Found ${widgets.length} widgets to display`);
+                Debugger.log(`Found ${widgets.length} widgets to display`);
                 
                 // Create and add each widget to the container
                 widgets.forEach((widget, index) => {
-                    console.log(`Creating widget: ${widget.title} (${widget.widgetType})`);
+                    Debugger.log(`Creating widget: ${widget.title} (${widget.widgetType})`);
                     
                     if (typeof WIDGET_TEMPLATES !== 'undefined' && typeof WIDGET_TEMPLATES.createWidget === 'function') {
                         // Create the widget using the template function
@@ -1163,17 +1145,17 @@ async function loadWidgets() {
                             }
                         }
                     } else {
-                        console.error('Widget templates not available');
+                        Debugger.error('Widget templates not available');
                     }
                 });
             } else {
-                console.log('No widgets found in groups');
+                Debugger.log('No widgets found in groups');
             }
         } else {
-            console.log('No groups found in storage');
+            Debugger.log('No groups found in storage');
         }
     } catch (error) {
-        console.error('Error loading widgets:', error);
+        Debugger.error('Error loading widgets:', error);
     } finally {
         endMeasure();
     }
@@ -1196,4 +1178,20 @@ function handleWindowResize() {
     
     // Reinitialize shortcuts to ensure they're properly sized for the new window dimensions
     initializeShortcuts();
+}
+
+function createGroupPlaceholder(group) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'group placeholder glass-background';
+    placeholder.style.position = 'absolute';
+    placeholder.style.top = group.styleTop;
+    placeholder.style.left = group.styleLeft;
+    placeholder.style.width = '150px';
+    placeholder.style.height = '100px';
+    placeholder.style.opacity = '0.3';
+    placeholder.style.display = 'flex';
+    placeholder.style.alignItems = 'center';
+    placeholder.style.justifyContent = 'center';
+    placeholder.textContent = 'Loading...';
+    return placeholder;
 }

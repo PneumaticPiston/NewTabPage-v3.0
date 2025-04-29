@@ -1,3 +1,32 @@
+const Debugger = {
+    log: (message) => {
+        if(this.debugging) {
+            console.log(message);
+        }
+    },
+    error: (message) => {
+        if(this.debugging) {
+            console.error(message);
+        }
+    },
+    warn: (message) => {
+        if(this.debugging) {
+            console.warn(message);
+        }
+    },
+    debugging: false,
+    debugging: {
+        enable: function() {
+            this.debugging = true;
+        },
+        disable: function() {
+            this.debugging = false;
+        }
+    }
+}
+
+// Debugger.debugging.enable(); // Enable debugging
+
 // Ensure toggleGridSettings is available in global scope
 window.toggleGridSettings = function() {
     const groupType = document.getElementById('new-group-type').value;
@@ -109,7 +138,7 @@ function getFavicon(url) {
         try {
             parsedUrl = new URL(url);
         } catch (e) {
-            console.error('Invalid URL format:', url, e);
+            Debugger.error('Invalid URL format:', url, e);
             return DEFAULT_ICON;
         }
         
@@ -176,7 +205,7 @@ function getFavicon(url) {
         
         return faviconUrl;
     } catch (e) {
-        console.warn('Error getting favicon for URL:', url, e);
+        Debugger.warn('Error getting favicon for URL:', url, e);
         return DEFAULT_ICON;
     }
 }
@@ -190,16 +219,16 @@ let originalShortcuts = [];
 
 // Set up the shortcuts editor popup
 function setupShortcutsEditorPopup() {
-    console.log('Setting up shortcuts editor popup');
+    Debugger.log('Setting up shortcuts editor popup');
     const popup = document.getElementById('shortcuts-editor-popup');
     if (!popup) {
-        console.error('Shortcuts editor popup not found!');
+        Debugger.error('Shortcuts editor popup not found!');
         return;
     }
     
     const container = document.getElementById('shortcuts-list-container');
     if (!container) {
-        console.error('Shortcuts list container not found!');
+        Debugger.error('Shortcuts list container not found!');
         return;
     }
     
@@ -225,14 +254,14 @@ function setupShortcutsEditorPopup() {
     // Set up save button
     const saveBtn = document.getElementById('save-shortcuts-btn');
     if (saveBtn) {
-        console.log('Setting up save button');
+        Debugger.log('Setting up save button');
         // Clear any existing event listeners by cloning and replacing
         saveBtn.replaceWith(saveBtn.cloneNode(true));
         
         // Re-get the button after replacement
         const newSaveBtn = document.getElementById('save-shortcuts-btn');
         newSaveBtn.onclick = function() {
-            console.log('Save button clicked');
+            Debugger.log('Save button clicked');
             saveShortcutsFromEditor();
             popup.style.display = 'none';
         };
@@ -241,14 +270,14 @@ function setupShortcutsEditorPopup() {
     // Set up cancel button
     const cancelBtn = document.getElementById('cancel-shortcuts-btn');
     if (cancelBtn) {
-        console.log('Setting up cancel button');
+        Debugger.log('Setting up cancel button');
         // Clear any existing event listeners by cloning and replacing
         cancelBtn.replaceWith(cancelBtn.cloneNode(true));
         
         // Re-get the button after replacement
         const newCancelBtn = document.getElementById('cancel-shortcuts-btn');
         newCancelBtn.onclick = function() {
-            console.log('Cancel button clicked');
+            Debugger.log('Cancel button clicked');
             // Restore original shortcuts
             window.currentSettings.shortcuts = JSON.parse(JSON.stringify(originalShortcuts));
             // Update display without saving
@@ -260,14 +289,14 @@ function setupShortcutsEditorPopup() {
     // Set up add button
     const addBtn = document.getElementById('add-shortcut-list-btn');
     if (addBtn) {
-        console.log('Setting up add button');
+        Debugger.log('Setting up add button');
         // Clear any existing event listeners by cloning and replacing
         addBtn.replaceWith(addBtn.cloneNode(true));
         
         // Re-get the button after replacement
         const newAddBtn = document.getElementById('add-shortcut-list-btn');
         newAddBtn.onclick = function() {
-            console.log('Add button clicked');
+            Debugger.log('Add button clicked');
             const index = container.children.length;
             addShortcutToEditor(container, { title: '', url: '' }, index);
         };
@@ -276,19 +305,19 @@ function setupShortcutsEditorPopup() {
 
 // Open the shortcuts editor - direct function that doesn't rely on helper functions
 window.openShortcutsEditor = function() {
-    console.log('Opening shortcuts editor');
+    Debugger.log('Opening shortcuts editor');
     
     // Get the popup element
     const popup = document.getElementById('shortcuts-editor-popup');
     if (!popup) {
-        console.error('Shortcuts editor popup not found!');
+        Debugger.error('Shortcuts editor popup not found!');
         return;
     }
     
     // Get the container for shortcuts
     const container = document.getElementById('shortcuts-list-container');
     if (!container) {
-        console.error('Shortcuts list container not found!');
+        Debugger.error('Shortcuts list container not found!');
         return;
     }
     
@@ -451,7 +480,7 @@ let editingShortcutIndex = -1;
 
 // Add function to save shortcuts to storage
 function saveShortcutsToStorage() {
-    console.log('Saving shortcuts to storage:', window.currentSettings.shortcuts);
+    Debugger.log('Saving shortcuts to storage:', window.currentSettings.shortcuts);
     
     // Make sure shortcuts exist
     if (!window.currentSettings.shortcuts) {
@@ -462,20 +491,20 @@ function saveShortcutsToStorage() {
         if (typeof chrome !== 'undefined' && chrome.storage) {
             if (chrome.storage.sync) {
                 chrome.storage.sync.set({ settings: window.currentSettings }, function() {
-                    console.log('Shortcuts saved to chrome.storage.sync');
+                    Debugger.log('Shortcuts saved to chrome.storage.sync');
                 });
             } else {
                 chrome.storage.local.set({ settings: window.currentSettings }, function() {
-                    console.log('Shortcuts saved to chrome.storage.local');
+                    Debugger.log('Shortcuts saved to chrome.storage.local');
                 });
             }
         } else {
             // Fallback for development/testing environment
             localStorage.setItem('settings', JSON.stringify(window.currentSettings));
-            console.log('Shortcuts saved to localStorage');
+            Debugger.log('Shortcuts saved to localStorage');
         }
     } catch (error) {
-        console.error('Error saving shortcuts:', error);
+        Debugger.error('Error saving shortcuts:', error);
     }
 }
 
@@ -899,13 +928,13 @@ function updateShortcutsMock() {
 
 // Initialize editor fixes
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Editor utils initialized');
-    console.log('getFavicon function is available:', typeof window.getFavicon === 'function');
+    Debugger.log('Editor utils initialized');
+    Debugger.log('getFavicon function is available:', typeof window.getFavicon === 'function');
     
     // Make sure the Edit Shortcuts button is configured to open the shortcuts editor
     document.querySelectorAll('#edit-shortcuts-btn, .edit-shortcuts-btn').forEach(btn => {
         if (btn) {
-            console.log('Found Edit Shortcuts button, adding direct click handler');
+            Debugger.log('Found Edit Shortcuts button, adding direct click handler');
             // Remove any existing listeners to avoid duplicates
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
@@ -915,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Also add event listener as fallback
             newBtn.addEventListener('click', function() {
-                console.log('Edit Shortcuts button clicked');
+                Debugger.log('Edit Shortcuts button clicked');
                 openShortcutsEditor();
             });
         }
