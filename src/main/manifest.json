@@ -20,8 +20,5 @@
     "background": {
         "service_worker": "welcome/background.js",
         "type": "module"
-    },
-    "content_security_policy": {
-        "extension_pages": "script-src 'self' 'unsafe-inline'; object-src 'self'"
     }
 }

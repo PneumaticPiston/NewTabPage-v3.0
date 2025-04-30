@@ -15,7 +15,6 @@ body {
     height: 100vh;
     margin: 0;
     padding: 0;
-    opacity: 1;
     overflow: hidden;
     background-color: var(--all-background-color);
     background-image: none; /* Will be set by JS if needed */
@@ -24,16 +23,34 @@ body {
     background-repeat: no-repeat;
     color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    position: relative;
     transition: background-image 0.5s ease-in; /* Add transition for background fade-in */
 }
 
-/* Style for background image fade-in effect */
-.bg-transition {
-    transition: background-image 0.5s ease-in;
+.background-image {
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    user-select: none;
 }
 
-/* Remove the complex background handling */
+.background-image::before {
+    content: "";
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 100vw; 
+    height: 100vh;
+    background: inherit;
+    opacity: 1;
+    animation: fadeInBg .95s cubic-bezier(0.5, 0, 0.15, 1);
+}
+  
+  /* Define the fade‐in keyframes */
+@keyframes fadeInBg {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
   
 
 .chrome-header {
@@ -197,6 +214,7 @@ body {
     --element-scale: 1;
     --spacing-multiplier: 1;
     font-size: calc(var(--base-font-size) * var(--text-scale));
+    user-select: unset;
 }
 
 .glass-background {
@@ -207,6 +225,7 @@ body {
 }
 
 .group {
+    z-index: 1;
     position: absolute;
     top: 0px;
     left: 0px;
@@ -241,6 +260,10 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     display: block; /* Block-level for better container control */
+}
+
+.placeholder {
+    opacity: 0 !important;
 }
 
 .grid {

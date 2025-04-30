@@ -142,14 +142,6 @@ function createWidget(widgetData) {
     widgetElement.style.left = `${pos.percentX * 100}%`;
     widgetElement.style.transform = 'translate(-50%, -50%)';
     
-    // Create header with title if provided
-    if (widgetData.title) {
-        const header = document.createElement('div');
-        header.className = 'widget-header';
-        header.textContent = widgetData.title;
-        widgetElement.appendChild(header);
-    }
-    
     // Create content container
     const content = document.createElement('div');
     content.className = 'widget-content';
@@ -1689,3 +1681,4 @@ const WIDGET_TEMPLATES = {
 
 // Array to store active widget instances
 const WIDGETS = [];
+

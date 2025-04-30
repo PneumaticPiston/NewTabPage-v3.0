@@ -29,6 +29,7 @@ const Debugger = {
 
 async function fetchSettingsAndGroups() {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+        Debugger.log('Using Chrome storage API');
       const { settings, groups, groupsLocation } = await chrome.storage.sync.get(
         ['settings', 'groups', 'groupsLocation']
       );
@@ -338,14 +339,14 @@ const newGroup = {
 const newLink = {
     stack: function(title, url, favicon) {
         return `
-            <li href="${url}" class="link-stack">
+            <li class="link-stack">
                 <a href="${url}"><img class="link-image" src="${favicon}"/>${title}</a>
             </li>
         `;
     },
     grid: function(title, url, favicon) {
         return `
-            <a href="${url}" class="link-grid">
+            <a href="${url}"class="link-grid">
                 <img class="link-image" src="${favicon}"/>
                 <span class="grid-link-title">${title}</span>
             </a>
@@ -870,15 +871,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                             preloadBackgroundImage(bgUrl, (success, loadedUrl) => {
                                 if (success) {
                                     // Apply the background with fade-in effect
-                                    document.body.style.backgroundImage = `url("${loadedUrl}")`;
+                                    document.getElementById('background-image').style.backgroundImage = `url("${loadedUrl}")`;
                                     
                                     // Add loaded class for potential additional styling
-                                    document.body.classList.add('bg-loaded');
+                                    document.getElementById('background-image').classList.add('background-image');
                                 } else {
-                                    console.warn("Failed to load background image:", bgUrl);
+                                    Debugger.warn("Failed to load background image:", bgUrl);
                                 }
                             });
                         }
+                        document.querySelectorAll('.group.placeholder.glass-background').forEach(el => el.remove());
+
                     });
                 } else {
                     // Fallback for non-Chrome environments
@@ -888,12 +891,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         preloadBackgroundImage(bgUrl, (success, loadedUrl) => {
                             if (success) {
                                 // Apply the background with fade-in effect
-                                document.body.style.backgroundImage = `url("${loadedUrl}")`;
+                                document.getElementById('background-image').style.backgroundImage = `url("${loadedUrl}")`;
                                 
                                 // Add loaded class for potential additional styling
-                                document.body.classList.add('bg-loaded');
+                                document.getElementById('background-image').classList.add('bg-loaded');
                             } else {
-                                console.warn("Failed to load background image:", bgUrl);
+                                Debugger.warn("Failed to load background image:", bgUrl);
                             }
                         });
                     }
@@ -901,7 +904,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }, 200); // Delay of 200ms to ensure other elements are loaded and rendered first
     } catch (error) {
-        console.error('Error initializing page:', error);
+        Debugger.error('Error initializing page:', error);
     }
 });
 
@@ -969,7 +972,7 @@ function getFavicon(url) {
         try {
             parsedUrl = new URL(url);
         } catch (e) {
-            console.warn('Invalid URL format:', url, e);
+            Debugger.warn('Invalid URL format:', url, e);
             return LINK_ICON;
         }
         
@@ -1038,11 +1041,11 @@ function getFavicon(url) {
             
             return faviconUrl;
         } catch (fetchError) {
-            console.warn('Error fetching favicon:', fetchError);
+            Debugger.warn('Error fetching favicon:', fetchError);
             return LINK_ICON;
         }
     } catch (e) {
-        console.warn('Error getting favicon for URL:', url, e);
+        Debugger.warn('Error getting favicon for URL:', url, e);
         return LINK_ICON;
     }
 }
