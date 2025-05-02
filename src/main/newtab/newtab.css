@@ -43,7 +43,7 @@ body {
     height: 100vh;
     background: inherit;
     opacity: 1;
-    animation: fadeInBg .25s cubic-bezier(0.5, 0, 0.15, 1);
+    animation: fadeInBg .30s cubic-bezier(0.5, 0, 0.15, 1);
 }
   
   /* Define the fade‐in keyframes */
