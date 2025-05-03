@@ -946,110 +946,6 @@ function renderGroupContent(placeholder, group) {
     placeholder.replaceWith(el);
 }
 
-/**
- * Get favicon for any URL with proper handling for dynamic favicons like Google Calendar
- * @param {string} url - URL to get favicon for
- * @return {string} - URL of favicon or default icon
- */
-function getFavicon(url) {
-    // Default icon as SVG data URI if all else fails
-    const DEFAULT_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
-    const LINK_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItZ2xvYmUiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48bGluZSB4MT0iMiIgeTE9IjEyIiB4Mj0iMjIiIHkyPSIxMiI+PC9saW5lPjxwYXRoIGQ9Ik0xMiAyYTE1LjMgMTUuMyAwIDAgMSA0IDEwIDE1LjMgMTUuMyAwIDAgMS00IDEwIDE1LjMgMTUuMyAwIDAgMS00LTEwIDE1LjMgMTUuMyAwIDAgMSA0LTEweiI+PC9wYXRoPjwvc3ZnPg==';
-    
-    try {
-        // Return default icon if URL is empty
-        if (!url || url.trim() === '') {
-            return LINK_ICON;
-        }
-        
-        // Make sure URL is properly formatted with protocol
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = 'https://' + url;
-        }
-        
-        // Extract domain information
-        let parsedUrl;
-        try {
-            parsedUrl = new URL(url);
-        } catch (e) {
-            Debugger.warn('Invalid URL format:', url, e);
-            return LINK_ICON;
-        }
-        
-        const domain = parsedUrl.hostname;
-        
-        // Create a local favicon cache for this session if it doesn't exist
-        if (!window.faviconCache) {
-            window.faviconCache = new Map();
-        }
-        
-        // Return cached favicon if available for other domains
-        if (window.faviconCache.has(domain)) {
-            return window.faviconCache.get(domain);
-        }
-        
-        // Special handling just for Google services that need specific icons
-        const googleServiceIcons = {
-            'mail.google.com': 'https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_32dp.png',
-            'drive.google.com': 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png',
-            'docs.google.com': 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico',
-            'sheets.google.com': 'https://ssl.gstatic.com/docs/spreadsheets/images/favicon_jfk2.png',
-            'slides.google.com': 'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico',
-            'meet.google.com': 'https://www.gstatic.com/meet/favicon_meet_2023_32dp.png',
-            'chat.google.com': 'https://www.gstatic.com/chat/favicon_chat_32px.png',
-            'classroom.google.com': 'https://ssl.gstatic.com/classroom/favicon.png',
-            'keep.google.com': 'https://ssl.gstatic.com/keep/icon_2020q4v2_32dp.png',
-            'calendar.google.com': 'https://www.google.com/calendar/images/favicon_v2018_256.png',
-            'remotedesktop.google.com': 'https://www.gstatic.com/chrome/icon/chat_favicon.png',
-            'photos.google.com': 'https://ssl.gstatic.com/photos/branding/product/2x/photos_96dp.png'
-        };
-        
-        // Check if this is a Google service with known icon
-        if (googleServiceIcons[domain]) {
-            const iconUrl = googleServiceIcons[domain];
-            window.faviconCache.set(domain, iconUrl);
-            return iconUrl;
-        }
-        
-        // Special handling for Google Calendar's dynamic favicon (fallback option)
-        if (domain === 'calendar.google.com') {
-            // Get today's date for the dynamic calendar icon
-            const today = new Date();
-            const dateString = today.getDate().toString();
-            
-            // Use the updated, more reliable calendar icon URL
-            const calendarGenericIcon = 'https://www.google.com/calendar/images/favicon_v2018_256.png';
-            
-            // Generate an SVG calendar icon with today's date as fallback
-            const svgCalendarIcon = generateCalendarIcon();
-            
-            // Try to use the Google Calendar icon first, fallback to SVG if needed
-            const finalCalendarIcon = calendarGenericIcon || svgCalendarIcon;
-            
-            // Cache with a timestamp so it refreshes daily
-            const cacheKey = `${domain}_${today.toDateString()}`;
-            window.faviconCache.set(cacheKey, finalCalendarIcon);
-            return finalCalendarIcon;
-        }
-        
-        try {
-            // For non-special cases, use Google's favicon service with fallback
-            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-            
-            // Cache the result for future use
-            window.faviconCache.set(domain, faviconUrl);
-            
-            return faviconUrl;
-        } catch (fetchError) {
-            Debugger.warn('Error fetching favicon:', fetchError);
-            return LINK_ICON;
-        }
-    } catch (e) {
-        Debugger.warn('Error getting favicon for URL:', url, e);
-        return LINK_ICON;
-    }
-}
-
 // Function to determine if a color is dark (for contrast purposes)
 function isColorDark(color) {
     // Handle hex colors
@@ -1091,24 +987,6 @@ function isColorDark(color) {
     
     // Return true if dark, false if light
     return brightness < 128;
-}
-
-// Generate a calendar icon with the current date (SVG alternative)
-function generateCalendarIcon() {
-    const today = new Date();
-    const date = today.getDate();
-    
-    // Create an SVG calendar icon with the current date
-    const svgIcon = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-      <rect x="2" y="4" width="28" height="26" rx="2" fill="#fff" stroke="#db4437" stroke-width="2"/>
-      <rect x="2" y="4" width="28" height="8" fill="#db4437"/>
-      <text x="16" y="24" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#db4437">${date}</text>
-    </svg>
-    `;
-    
-    // Convert SVG to data URI
-    return 'data:image/svg+xml;base64,' + btoa(svgIcon);
 }
 
 // Function to load widgets from storage and display them
@@ -1235,4 +1113,126 @@ function createGroupPlaceholder(group) {
     placeholder.style.justifyContent = 'center';
     placeholder.textContent = 'Loading...';
     return placeholder;
+}
+
+/**
+ * Get favicon for any URL with proper handling for dynamic favicons like Google Calendar
+ * @param {string} url - URL to get favicon for
+ * @return {string} - URL of favicon or default icon
+ */
+function getFavicon(url) {
+    // Default icon as SVG data URI if all else fails
+    const DEFAULT_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItbGluayI+PHBhdGggZD0iTTEwIDEzYTUgNSAwIDAgMCA3LjU0LjU0bDMtM2E1IDUgMCAwIDAtNy4wNy03LjA3bC0xLjcyIDEuNzEiPjwvcGF0aD48cGF0aCBkPSJNMTQgMTFhNSA1IDAgMCAwLTcuNTQtLjU0bC0zIDNhNSA1IDAgMCAwIDcuMDcgNy4wN2wxLjcxLTEuNzEiPjwvcGF0aD48L3N2Zz4=';
+    const LINK_ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItZ2xvYmUiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIj48L2NpcmNsZT48bGluZSB4MT0iMiIgeTE9IjEyIiB4Mj0iMjIiIHkyPSIxMiI+PC9saW5lPjxwYXRoIGQ9Ik0xMiAyYTE1LjMgMTUuMyAwIDAgMSA0IDEwIDE1LjMgMTUuMyAwIDAgMS00IDEwIDE1LjMgMTUuMyAwIDAgMS00LTEwIDE1LjMgMTUuMyAwIDAgMSA0LTEweiI+PC9wYXRoPjwvc3ZnPg==';
+    
+    try {
+        // Return default icon if URL is empty
+        if (!url || url.trim() === '') {
+            return LINK_ICON;
+        }
+        
+        // Make sure URL is properly formatted with protocol
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+        }
+        
+        // Extract domain information
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(url);
+        } catch (e) {
+            Debugger.warn('Invalid URL format:', url, e);
+            return LINK_ICON;
+        }
+        
+        const domain = parsedUrl.hostname;
+        
+        // Create a local favicon cache for this session if it doesn't exist
+        if (!window.faviconCache) {
+            window.faviconCache = new Map();
+        }
+        
+        // Return cached favicon if available for other domains
+        if (window.faviconCache.has(domain)) {
+            return window.faviconCache.get(domain);
+        }
+        
+        // Special handling just for Google services that need specific icons
+        const googleServiceIcons = {
+            'mail.google.com': 'https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_32dp.png',
+            'drive.google.com': 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png',
+            'docs.google.com': 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico',
+            'sheets.google.com': 'https://ssl.gstatic.com/docs/spreadsheets/images/favicon_jfk2.png',
+            'slides.google.com': 'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico',
+            'meet.google.com': 'https://www.gstatic.com/meet/favicon_meet_2023_32dp.png',
+            'chat.google.com': 'https://www.gstatic.com/chat/favicon_chat_32px.png',
+            'classroom.google.com': 'https://ssl.gstatic.com/classroom/favicon.png',
+            'keep.google.com': 'https://ssl.gstatic.com/keep/icon_2020q4v2_32dp.png',
+            'calendar.google.com': 'https://www.google.com/calendar/images/favicon_v2018_256.png',
+            'remotedesktop.google.com': 'https://www.gstatic.com/chrome/icon/chat_favicon.png',
+            'photos.google.com': 'https://ssl.gstatic.com/photos/branding/product/2x/photos_96dp.png'
+        };
+        
+        // Check if this is a Google service with known icon
+        if (googleServiceIcons[domain]) {
+            const iconUrl = googleServiceIcons[domain];
+            window.faviconCache.set(domain, iconUrl);
+            return iconUrl;
+        }
+        
+        // Special handling for Google Calendar's dynamic favicon (fallback option)
+        if (domain === 'calendar.google.com') {
+            // Get today's date for the dynamic calendar icon
+            const today = new Date();
+            const dateString = today.getDate().toString();
+            
+            // Use the updated, more reliable calendar icon URL
+            const calendarGenericIcon = 'https://www.google.com/calendar/images/favicon_v2018_256.png';
+            
+            // Generate an SVG calendar icon with today's date as fallback
+            const svgCalendarIcon = generateCalendarIcon();
+            
+            // Try to use the Google Calendar icon first, fallback to SVG if needed
+            const finalCalendarIcon = calendarGenericIcon || svgCalendarIcon;
+            
+            // Cache with a timestamp so it refreshes daily
+            const cacheKey = `${domain}_${today.toDateString()}`;
+            window.faviconCache.set(cacheKey, finalCalendarIcon);
+            return finalCalendarIcon;
+        }
+        
+        try {
+            // For non-special cases, use Google's favicon service with fallback
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            
+            // Cache the result for future use
+            window.faviconCache.set(domain, faviconUrl);
+            
+            return faviconUrl;
+        } catch (fetchError) {
+            Debugger.warn('Error fetching favicon:', fetchError);
+            return LINK_ICON;
+        }
+    } catch (e) {
+        Debugger.warn('Error getting favicon for URL:', url, e);
+        return LINK_ICON;
+    }
+}
+
+// Generate a calendar icon with the current date (SVG alternative)
+function generateCalendarIcon() {
+    const today = new Date();
+    const date = today.getDate();
+    
+    // Create an SVG calendar icon with the current date
+    const svgIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <rect x="2" y="4" width="28" height="26" rx="2" fill="#fff" stroke="#db4437" stroke-width="2"/>
+      <rect x="2" y="4" width="28" height="8" fill="#db4437"/>
+      <text x="16" y="24" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#db4437">${date}</text>
+    </svg>
+    `;
+    
+    // Convert SVG to data URI
+    return 'data:image/svg+xml;base64,' + btoa(svgIcon);
 }
