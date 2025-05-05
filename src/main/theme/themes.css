@@ -1,86 +1,121 @@
 :root {
     /* Modern Dark Theme */
+    --dark-background: #1a1b26;
     --dark-primary: #2b2d42;
     --dark-secondary: #8d99ae;
-    --dark-accent: #ef233c;
     --dark-text: #edf2f4;
-    --dark-background: #1a1b26;
+    --dark-accent: #ef233c;
 
     /* Light Minimal Theme */
+    --light-background: #f1faee;
     --light-primary: #457b9d;
     --light-secondary: #a8dadc;
-    --light-accent: #e63946;
     --light-text: #1d3557;
-    --light-background: #f1faee;
+    --light-accent: #e63946;
 
     /* Forest Theme */
+    --forest-background: #b7e4c7;
     --forest-primary: #2d6a4f;
     --forest-secondary: #95d5b2;
-    --forest-accent: #d8a47f;
     --forest-text: #081c15;
-    --forest-background: #b7e4c7;
+    --forest-accent: #d8a47f;
 
     /* Ocean Theme */
+    --ocean-background: #caf0f8;
     --ocean-primary: #023e8a;
     --ocean-secondary: #48cae4;
-    --ocean-accent: #ff9e00;
     --ocean-text: #03045e;
-    --ocean-background: #caf0f8;
+    --ocean-accent: #ff9e00;
 
     /* Sunset Theme */
+    --sunset-background: #ffbf69;
     --sunset-primary: #582f0e;
     --sunset-secondary: #f77f00;
-    --sunset-accent: #d62828;
     --sunset-text: #003049;
-    --sunset-background: #ffbf69;
+    --sunset-accent: #d62828;
 
     /* Cyberpunk Theme */
+    --cyber-background: #120458;
     --cyber-primary: #2b0f54;
     --cyber-secondary: #7209b7;
-    --cyber-accent: #00ff9f;
     --cyber-text: #f72585;
-    --cyber-background: #120458;
+    --cyber-accent: #00ff9f;
     
     /* Midnight Blue Theme */
+    --midnight-background: #0a1128;
     --midnight-primary: #0c2340;
     --midnight-secondary: #1d4e89;
-    --midnight-accent: #3da5d9;
     --midnight-text: #ecf0f1;
-    --midnight-background: #0a1128;
+    --midnight-accent: #3da5d9;
     
     /* Emerald Dark Theme */
+    --emerald-background: #082c14;
     --emerald-primary: #064420;
     --emerald-secondary: #0b6e4f;
-    --emerald-accent: #83e377;
     --emerald-text: #d8f3dc;
-    --emerald-background: #082c14;
+    --emerald-accent: #83e377;
     
     /* Slate Blue Theme */
+    --slate-background: #0f172a;
     --slate-primary: #1e3a8a;
     --slate-secondary: #3b82f6;
-    --slate-accent: #22d3ee;
     --slate-text: #f8fafc;
-    --slate-background: #0f172a;
+    --slate-accent: #22d3ee;
     
     /* Deep Purple Theme */
+    --deep-background: #2e1065;
     --deep-primary: #4c1d95;
     --deep-secondary: #7c3aed;
-    --deep-accent: #2dd4bf;
     --deep-text: #f5f3ff;
-    --deep-background: #2e1065;
+    --deep-accent: #2dd4bf;
     
     /* Nord Theme */
+    --nord-background: #2e3440;
     --nord-primary: #5e81ac;
     --nord-secondary: #88c0d0;
-    --nord-accent: #bf616a;
     --nord-text: #eceff4;
-    --nord-background: #2e3440;
+    --nord-accent: #bf616a;
+    
+    /* NEW: Rose Gold Theme */
+    --rose-background: #f9f2f5;
+    --rose-primary: #c17f98;
+    --rose-secondary: #dda5b6;
+    --rose-text: #442c37;
+    --rose-accent: #e8b4bc;
+    
+    /* NEW: Neon Night Theme */
+    --neon-background: #0f0f0f;
+    --neon-primary: #1e0b28;
+    --neon-secondary: #530068;
+    --neon-text: #f2ebf2;
+    --neon-accent: #00ff95;
+    
+    /* NEW: Autumn Theme */
+    --autumn-background: #f4e9d2;
+    --autumn-primary: #884a39;
+    --autumn-secondary: #c38154;
+    --autumn-text: #402218;
+    --autumn-accent: #f76b15;
+    
+    /* NEW: Pastel Theme */
+    --pastel-background: #fef6ff;
+    --pastel-primary: #b8c0ff;
+    --pastel-secondary: #ffd6ff;
+    --pastel-text: #5c5470;
+    --pastel-accent: #9bf6ff;
+    
+    /* NEW: Monochrome Theme */
+    --mono-background: #f5f5f5;
+    --mono-primary: #333333;
+    --mono-secondary: #777777;
+    --mono-text: #111111;
+    --mono-accent: #bbbbbb;
     
     /* Template Theme (Commented Out) - Use this as a template for creating your own theme
+    --template-background: #000000;
     --template-primary: #000000;
     --template-secondary: #000000;
-    --template-accent: #000000;
     --template-text: #000000;
-    --template-background: #000000;
+    --template-accent: #000000;
     */
 }

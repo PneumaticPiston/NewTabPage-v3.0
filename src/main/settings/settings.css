@@ -106,7 +106,7 @@ h2 {
 
 .button.primary {
     background-color: var(--primary-color);
-    color: var(--background-color);
+    color: var(--text-color);
 }
 
 .button.primary:hover {
@@ -465,6 +465,32 @@ input:checked + .slider:before {
 /* Setting group toggle specific style */
 .setting-group.toggle {
     align-items: center;
+}
+
+.background-image {
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    user-select: none;
+}
+
+.background-image::before {
+    content: "";
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 100vw; 
+    height: 100vh;
+    background: inherit;
+    opacity: 1;
+    animation: fadeInBg .30s cubic-bezier(0.5, 0, 0.15, 1);
+}
+  
+  /* Define the fade‐in keyframes */
+@keyframes fadeInBg {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 /* Responsive adjustments */

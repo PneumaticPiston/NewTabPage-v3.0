@@ -133,6 +133,11 @@ const baseThemes = [
     { id: 'slate', name: 'Slate Blue' },
     { id: 'deep', name: 'Deep Purple' },
     { id: 'nord', name: 'Nord' },
+    { id: 'rose', name: 'Rose Gold' },
+    { id: 'neon', name: 'Neon Night' },
+    { id: 'autumn', name: 'Autumn' },
+    { id: 'pastel', name: 'Pastel' },
+    { id: 'mono', name: 'Monochrome' },
     { id: 'custom', name: 'Custom Theme' }
 ];
 
