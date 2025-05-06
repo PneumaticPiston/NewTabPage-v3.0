@@ -1,4 +1,9 @@
-src/main/assets/api-keys.js
-/CLAUDE.md
-/src/compressed/
-src/temp/
+# Ignore all .md files in root
+/*.md
+
+# Ignore all JS API keys under assets
+src/main/assets/*api-keys*.js
+
+# Ignore common temp or compressed folders
+src/**/temp/
+src/**/compressed/
