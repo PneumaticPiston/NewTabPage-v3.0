@@ -9,8 +9,8 @@ const defaultSettings = {
     searchEngine: 'google',
     searchBarPosition: { x: 10, y: 120 },
     fontSize: 16,
-    groupScale: 100,
-    spacingScale: 100,
+    groupScale: 100, // Global scaling factor
+    useGlassBackground: true, // Default to true for glass background effect
     customThemes: [],
     shortcuts: [
         {
@@ -102,14 +102,13 @@ const saveButton = document.getElementById('save-settings');
 const resetButton = document.getElementById('reset-settings');
 const resetNewtabButton = document.getElementById('reset-newtab');
 const themeGrid = document.getElementById('theme-grid');
+const glassBackgroundToggle = document.getElementById('glass-background');
 
 // Accessibility elements
 const fontSizeSlider = document.getElementById('font-size');
 const fontSizeValue = document.getElementById('font-size-value');
 const groupScaleSlider = document.getElementById('group-scale');
 const groupScaleValue = document.getElementById('group-scale-value');
-const spacingScaleSlider = document.getElementById('spacing-scale');
-const spacingScaleValue = document.getElementById('spacing-scale-value');
 
 // Custom theme elements
 const customThemeName = document.getElementById('custom-theme-name');
@@ -158,7 +157,6 @@ customBgInput.addEventListener('input', updateBackgroundPreview);
 // Accessibility sliders
 fontSizeSlider.addEventListener('input', updateFontSizeDisplay);
 groupScaleSlider.addEventListener('input', updateGroupScaleDisplay);
-spacingScaleSlider.addEventListener('input', updateSpacingScaleDisplay);
 
 // Custom theme
 saveCustomThemeBtn.addEventListener('click', saveCustomTheme);
@@ -271,6 +269,9 @@ async function loadSettings() {
             showShortcutsToggle.checked = currentSettings.showShortcuts !== false;
         }
         
+        // Set glass background toggle
+        glassBackgroundToggle.checked = currentSettings.useGlassBackground !== false;
+        
         searchEngineSelect.value = currentSettings.searchEngine || 'google';
         
         // Set up background preview
@@ -293,9 +294,6 @@ async function loadSettings() {
         
         groupScaleSlider.value = currentSettings.groupScale || 100;
         updateGroupScaleDisplay();
-        
-        spacingScaleSlider.value = currentSettings.spacingScale || 100;
-        updateSpacingScaleDisplay();
         
         
         // Generate theme grid
@@ -338,7 +336,7 @@ async function saveSettings() {
             searchBarPosition: settingsCopy.searchBarPosition || { x: 10, y: 120 },
             fontSize: parseInt(fontSizeSlider.value) || 16,
             groupScale: parseInt(groupScaleSlider.value) || 100,
-            spacingScale: parseInt(spacingScaleSlider.value) || 100
+            useGlassBackground: glassBackgroundToggle.checked
         };
         
         // Ensure critical properties exist
@@ -430,6 +428,9 @@ function resetSettings() {
         showShortcutsToggle.checked = defaultSettings.showShortcuts;
     }
     
+    // Reset glass background toggle
+    glassBackgroundToggle.checked = defaultSettings.useGlassBackground;
+    
     searchEngineSelect.value = defaultSettings.searchEngine;
     
     // Reset accessibility settings
@@ -438,9 +439,6 @@ function resetSettings() {
     
     groupScaleSlider.value = defaultSettings.groupScale;
     updateGroupScaleDisplay();
-    
-    spacingScaleSlider.value = defaultSettings.spacingScale;
-    updateSpacingScaleDisplay();
     
     // Empty custom themes
     currentSettings.customThemes = [];
@@ -776,22 +774,20 @@ function updateFontSizeDisplay() {
     document.documentElement.style.fontSize = `${value}px`;
 }
 
-// Update group scale display
+// Update global scale display
 function updateGroupScaleDisplay() {
     const value = groupScaleSlider.value;
     groupScaleValue.textContent = `${value}%`;
-    // Apply change to the page for preview
+    
+    // Apply change to all scalable elements
     document.documentElement.style.setProperty('--group-scale', value / 100);
-    // Apply to all elements' transform scale
     document.documentElement.style.setProperty('--element-scale', value / 100);
-}
-
-// Update spacing scale display
-function updateSpacingScaleDisplay() {
-    const value = spacingScaleSlider.value;
-    spacingScaleValue.textContent = `${value}%`;
-    // Apply change to the page for preview
-    document.documentElement.style.setProperty('--spacing-scale', value / 100);
-    // Apply to all margins and paddings
+    
+    // Apply scale to the entire interface for preview
+    document.documentElement.style.transform = `scale(${value / 100})`;
+    document.documentElement.style.transformOrigin = 'center top';
+    
+    // Adjust some spacing to account for scaling
     document.documentElement.style.setProperty('--spacing-multiplier', value / 100);
 }
+

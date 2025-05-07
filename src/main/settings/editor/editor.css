@@ -80,7 +80,6 @@ header h1 {
     /* Default scaling from settings */
     --base-font-size: 16px;
     --group-scale: 1;
-    --spacing-scale: 1;
     --text-scale: 1;
     --element-scale: 1;
     --spacing-multiplier: 1;
@@ -963,7 +962,7 @@ input::placeholder {
 .grid {
     padding: 5px;
     display: grid; /* Use grid layout to match newtab.css */
-    gap: calc(8px * var(--spacing-scale, 1)); /* Match newtab.css - scale gap based on settings */
+    gap: calc(8px * var(--spacing-multiplier, 1)); /* Match newtab.css - scale gap based on settings */
     align-items: center; /* Center items vertically */
     justify-items: center; /* Match newtab.css */
     grid-template-columns: repeat(1, 1fr); /* Default to 1 column like newtab.css */

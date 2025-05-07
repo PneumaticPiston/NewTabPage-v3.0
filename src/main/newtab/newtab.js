@@ -110,6 +110,9 @@ const defaultSettings = {
     showSearch: true,
     searchEngine: 'google',
     searchBarPosition: { x: 540, y: 360 }, // Assumes that the display is at least 1080x720
+    useGlassBackground: true, // Default to true for glass background effect
+    fontSize: 16,
+    groupScale: 100, // Global scaling factor
     headerLinks: [
         { name: 'Gmail', url: 'https://mail.google.com' },
         { name: 'Photos', url: 'https://photos.google.com' },
@@ -238,7 +241,11 @@ const newGroup = {
         let group = document.createElement('div');
         group.classList.add('group');
         group.classList.add('stack');
-        group.classList.add('glass-background');
+        
+        // Add glass background class only if enabled in settings
+        if (currentSettings.useGlassBackground !== false) {
+            group.classList.add('glass-background');
+        }
         
         // Only add header if title is not empty or whitespace
         if (title && title.trim().length > 0) {
@@ -270,7 +277,11 @@ const newGroup = {
     grid: function(links, x, y, rows, columns, title) {
         let group = document.createElement('div');
         group.classList.add('group');
-        group.classList.add('glass-background');
+        
+        // Add glass background class only if enabled in settings
+        if (currentSettings.useGlassBackground !== false) {
+            group.classList.add('glass-background');
+        }
         
         // Only add header if title is not empty or whitespace
         if (title && title.trim().length > 0) {
@@ -308,7 +319,11 @@ const newGroup = {
     },
     single: function(link, x, y, title) {
         let group = document.createElement('div');
-        group.classList.add('glass-background');
+        
+        // Add glass background class only if enabled in settings
+        if (currentSettings.useGlassBackground !== false) {
+            group.classList.add('glass-background');
+        }
         
         // Only add header if title is not empty or whitespace
         if (title && title.trim().length > 0) {
@@ -535,16 +550,24 @@ function applyTheme() {
       );
     }
     if (currentSettings.groupScale) {
-      document.documentElement.style.setProperty(
-        '--group-scale',
-        `${currentSettings.groupScale/100}`
-      );
-    }
-    if (currentSettings.spacingScale) {
-      document.documentElement.style.setProperty(
-        '--spacing-scale',
-        `${currentSettings.spacingScale/100}`
-      );
+      const scaleValue = currentSettings.groupScale/100;
+      // Set CSS variables for individual element scaling
+      document.documentElement.style.setProperty('--group-scale', `${scaleValue}`);
+      document.documentElement.style.setProperty('--element-scale', `${scaleValue}`);
+      document.documentElement.style.setProperty('--spacing-multiplier', `${scaleValue}`);
+      
+      // Apply global scaling to all elements
+      document.documentElement.style.transform = `scale(${scaleValue})`;
+      document.documentElement.style.transformOrigin = 'center top';
+      
+      // Adjust the body to account for scaling
+      if (scaleValue !== 1) {
+        // Adjust body height to prevent scrollbars when scaling
+        document.body.style.height = `${100 / scaleValue}vh`;
+        document.body.style.width = `${100 / scaleValue}vw`;
+        document.body.style.maxWidth = 'none';
+        document.body.style.overflow = 'hidden';
+      }
     }
     if (currentSettings.highContrast) {
       document.documentElement.style.setProperty('--text-color', '#000000');
@@ -1101,7 +1124,13 @@ function handleWindowResize() {
 
 function createGroupPlaceholder(group) {
     const placeholder = document.createElement('div');
-    placeholder.className = 'group placeholder glass-background';
+    placeholder.className = 'group placeholder';
+    
+    // Add glass background class only if enabled in settings
+    if (currentSettings.useGlassBackground !== false) {
+        placeholder.classList.add('glass-background');
+    }
+    
     placeholder.style.position = 'absolute';
     placeholder.style.top = group.styleTop;
     placeholder.style.left = group.styleLeft;

@@ -139,6 +139,9 @@ const defaultSettings = {
     showSearch: true,
     searchEngine: 'google',
     searchBarPosition: { x: 10, y: 120 },
+    fontSize: 16,
+    groupScale: 100, // Global scaling factor
+    useGlassBackground: true, // Default to true for glass background effect
     headerLinks: [
         { name: 'Gmail', url: 'https://mail.google.com' },
         { name: 'Photos', url: 'https://photos.google.com' },
@@ -148,21 +151,36 @@ const defaultSettings = {
 
 // Load groups and settings when page loads
 // Function to apply scaling settings to ensure consistent element sizes
-function applyScalingSettings(scaling) {
-    if (!scaling) return;
+function applyScalingSettings() {
+    // Get the scale values from current settings
+    const fontSize = currentSettings.fontSize || 16;
+    const groupScale = currentSettings.groupScale || 100;
+    const scaleValue = groupScale / 100;
     
-    // Apply scaling variables for consistent sizing between newtab and editor
-    document.documentElement.style.setProperty('--base-font-size', `${scaling.baseFontSize || 16}px`);
-    document.documentElement.style.setProperty('--group-scale', scaling.groupScale || 1);
-    document.documentElement.style.setProperty('--spacing-scale', scaling.spacingScale || 1);
-    document.documentElement.style.setProperty('--text-scale', scaling.textScale || 1);
-    document.documentElement.style.setProperty('--element-scale', scaling.elementScale || 1);
-    document.documentElement.style.setProperty('--spacing-multiplier', scaling.spacingMultiplier || 1);
+    // Apply scaling variables for consistent sizing
+    document.documentElement.style.setProperty('--base-font-size', `${fontSize}px`);
+    document.documentElement.style.setProperty('--group-scale', `${scaleValue}`);
+    document.documentElement.style.setProperty('--element-scale', `${scaleValue}`);
+    document.documentElement.style.setProperty('--spacing-multiplier', `${scaleValue}`);
+    document.documentElement.style.setProperty('--text-scale', fontSize / 16);
     
-    Debugger.log('Applied scaling settings:', scaling);
+    // Apply global scaling to all elements
+    document.documentElement.style.transform = `scale(${scaleValue})`;
+    document.documentElement.style.transformOrigin = 'center top';
+    
+    // Adjust the body to account for scaling
+    if (scaleValue !== 1) {
+        // Adjust body height to prevent scrollbars when scaling
+        document.body.style.height = `${100 / scaleValue}vh`;
+        document.body.style.width = `${100 / scaleValue}vw`;
+        document.body.style.maxWidth = 'none';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    Debugger.log('Applied scaling settings:', { fontSize, groupScale, scaleValue });
 }
 
-// Apply theme colors to body
+// Apply theme colors and layout settings to editor
 function applyThemeToEditor() {
     if (currentSettings && currentSettings.theme) {
         const theme = currentSettings.theme || 'light';
@@ -195,6 +213,35 @@ function applyThemeToEditor() {
             document.documentElement.style.setProperty('--text-color', `var(--${theme}-text, #1d3557)`);
             document.documentElement.style.setProperty('--accent-color', `var(--${theme}-accent, #e63946)`);
             document.documentElement.style.setProperty('--primary-color', `var(--${theme}-primary, #457b9d)`);
+        }
+        
+        // Apply accessibility settings
+        if (currentSettings.fontSize) {
+            document.documentElement.style.setProperty('--base-font-size', `${currentSettings.fontSize}px`);
+            document.documentElement.style.setProperty('--text-scale', currentSettings.fontSize / 16);
+            document.documentElement.style.fontSize = `${currentSettings.fontSize}px`;
+        }
+        
+        // Apply global scaling if set in settings
+        if (currentSettings.groupScale) {
+            const scaleValue = currentSettings.groupScale/100;
+            // Set CSS variables for individual element scaling
+            document.documentElement.style.setProperty('--group-scale', `${scaleValue}`);
+            document.documentElement.style.setProperty('--element-scale', `${scaleValue}`);
+            document.documentElement.style.setProperty('--spacing-multiplier', `${scaleValue}`);
+            
+            // Apply global scaling to all elements
+            document.documentElement.style.transform = `scale(${scaleValue})`;
+            document.documentElement.style.transformOrigin = 'center top';
+            
+            // Adjust the body to account for scaling
+            if (scaleValue !== 1) {
+                // Adjust body height to prevent scrollbars when scaling
+                document.body.style.height = `${100 / scaleValue}vh`;
+                document.body.style.width = `${100 / scaleValue}vw`;
+                document.body.style.maxWidth = 'none';
+                document.body.style.overflow = 'hidden';
+            }
         }
         
         // Apply custom background if enabled
@@ -471,7 +518,13 @@ function calculatePosition(x, y) {
 
 function createGroupElement(group, index) {
     const div = document.createElement('div');
-    div.className = 'editor-group glass-background';
+    div.className = 'editor-group';
+    
+    // Add glass background class only if enabled in settings
+    if (currentSettings.useGlassBackground !== false) {
+        div.classList.add('glass-background');
+    }
+    
     div.dataset.index = index;
     
     // Use the same positioning logic as newtab.js

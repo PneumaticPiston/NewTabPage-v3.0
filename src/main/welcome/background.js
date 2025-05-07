@@ -1,4 +1,5 @@
 self.addEventListener('install', (event) => {
+    if(reason === 'install') {
     event.waitUntil((async () => {
         // Check if settings already exist
         const { settings, groups } = await chrome.storage.sync.get(['settings', 'groups']);
@@ -42,4 +43,4 @@ self.addEventListener('install', (event) => {
             url: chrome.runtime.getURL('/newtab/newtab.html?newInstall=true')
         });
     })());
-});
+}});

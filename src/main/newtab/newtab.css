@@ -269,7 +269,7 @@ body {
 .grid {
     padding: 5px;
     display: grid; /* Use grid layout */
-    gap: calc(8px * var(--spacing-scale)); /* Scale gap based on settings */
+    gap: calc(8px * var(--spacing-multiplier)); /* Scale gap based on settings */
     align-items: stretch; /* Stretch items to allow bottom text alignment */
     justify-items: center;
     grid-template-columns: repeat(1, 1fr); /* Default to 1 column */
