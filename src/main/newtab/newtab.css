@@ -286,17 +286,17 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Start at top to allow bottom alignment */
-    position: relative; /* For absolute positioning of text */
+    justify-content: flex-start;
+    position: relative;
     text-decoration: none;
     color: var(--text-color);
     background-color: rgba(0,0,0,0);
-    transition: translateY 1.2s ease, box-shadow 0.8s ease;
+    transition: scale .2s ease, box-shadow 0.8s ease;
 }
 .link-grid:hover {
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-    transition: box-shadow 0.8s ease, translateY 1.2s ease;
-    transform:translateY(-3px); /* Slightly scale up on hover */
+    transition: box-shadow 0.8s ease, scale .2s ease;
+    scale: 1.05;
 }
 
 .stack {
