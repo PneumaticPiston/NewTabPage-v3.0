@@ -299,6 +299,10 @@ body {
     scale: 1.05;
 }
 
+.grid-link-title {
+    font-weight: 400;
+}
+
 .stack {
     width: fit-content;
     height: fit-content;
@@ -424,6 +428,7 @@ body {
     padding: 12px 5px;
     outline: none;
     color: var(--text-color);
+    font-weight: 530;
     background-color: transparent;
 }
 
