@@ -8,7 +8,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     const hasGroups = groups && groups.length > 0;
     
     // If this is a fresh install OR if no settings exist, apply defaults
-    if (details.reason === 'install' || !hasSettings) {
+    if (details.reason === 'install' && !hasSettings) {
         // Set enhanced default settings if they don't exist
         if (!hasSettings) {
             const defaultSettings = {
