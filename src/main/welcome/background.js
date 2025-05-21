@@ -1,4 +1,7 @@
 chrome.runtime.onInstalled.addListener(async (details) => {
+
+    chrome.runtime.setUninstallURL('https://forms.gle/ENonKhwExQMowTuG8');
+    
     // Check if settings already exist, regardless of install reason
     const { settings, groups } = await chrome.storage.sync.get(['settings', 'groups']);
     const hasSettings = settings && Object.keys(settings).length > 0;
