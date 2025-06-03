@@ -679,6 +679,31 @@ function isColorDark(color) {
     return brightness < 128;
 }
 
+// Apply glass background setting to all relevant elements on settings page
+function applyGlassBackgroundToSettings() {
+    const useGlass = currentSettings.useGlassBackground !== false;
+    
+    // Apply to settings container
+    const settingsContainer = document.querySelector('.settings-container');
+    if (settingsContainer) {
+        if (useGlass) {
+            settingsContainer.classList.add('glass-background');
+        } else {
+            settingsContainer.classList.remove('glass-background');
+        }
+    }
+    
+    // Apply to header
+    const header = document.querySelector('header');
+    if (header) {
+        if (useGlass) {
+            header.classList.add('glass-background');
+        } else {
+            header.classList.remove('glass-background');
+        }
+    }
+}
+
 // Apply theme to the settings page
 function applyThemeToPage(themeId) {
     // Check if it's a custom theme
@@ -761,6 +786,9 @@ function applyThemeToPage(themeId) {
     // Add theme class to body for additional CSS rules
     document.body.className = '';
     document.body.classList.add(`theme-${themeId.split('-')[0]}`);
+    
+    // Apply glass background settings
+    applyGlassBackgroundToSettings();
 }
 
 // Update font size display

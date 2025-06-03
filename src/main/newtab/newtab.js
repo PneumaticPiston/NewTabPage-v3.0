@@ -472,6 +472,61 @@ function initializeSearch() {
     searchContainer.style.display = currentSettings.showSearch ? 'block' : 'none';
 }
 
+// Apply glass background setting to all relevant elements
+function applyGlassBackground() {
+    const useGlass = currentSettings.useGlassBackground !== false;
+    
+    // Apply to header
+    const header = document.querySelector('.chrome-header');
+    if (header) {
+        if (useGlass) {
+            header.classList.add('glass-background');
+        } else {
+            header.classList.remove('glass-background');
+        }
+    }
+    
+    // Apply to search form
+    const searchForm = document.querySelector('.search-form');
+    if (searchForm) {
+        if (useGlass) {
+            searchForm.classList.add('glass-background');
+        } else {
+            searchForm.classList.remove('glass-background');
+        }
+    }
+    
+    // Apply to apps dropdown
+    const appsDropdown = document.querySelector('.apps-dropdown');
+    if (appsDropdown) {
+        if (useGlass) {
+            appsDropdown.classList.add('glass-background');
+        } else {
+            appsDropdown.classList.remove('glass-background');
+        }
+    }
+    
+    // Apply to apps grid
+    const appsGrid = document.querySelector('.apps-grid');
+    if (appsGrid) {
+        if (useGlass) {
+            appsGrid.classList.add('glass-background');
+        } else {
+            appsGrid.classList.remove('glass-background');
+        }
+    }
+    
+    // Apply to all existing groups
+    const groups = document.querySelectorAll('.group');
+    groups.forEach(group => {
+        if (useGlass) {
+            group.classList.add('glass-background');
+        } else {
+            group.classList.remove('glass-background');
+        }
+    });
+}
+
 // Apply theme and accessibility settings
 function applyTheme() {
     // —————————————————————————————
@@ -488,36 +543,61 @@ function applyTheme() {
     const t = currentSettings.theme || 'light';
     const base = t.split('-')[0];
     const darkThemes = new Set(['dark','midnight','emerald','slate','deep','nord','cyber']);
+    const isCustomTheme = t.startsWith('custom-');
   
     // —————————————————————————————
     // 3) Write color CSS-vars on :root
     // —————————————————————————————
-    // (same as before— set --all-background-color, --text-color, etc.)
-    // e.g. for built-ins:
-    document.documentElement.style.setProperty(
-      '--all-background-color',
-      `var(--${t}-background, #f1faee)`
-    );
-    document.documentElement.style.setProperty(
-      '--group-background-color',
-      `var(--${t}-secondary, #a8dadc)`
-    );
-    document.documentElement.style.setProperty(
-      '--text-color',
-      `var(--${t}-text, #1d3557)`
-    );
-    document.documentElement.style.setProperty(
-      '--accent-color',
-      `var(--${t}-accent, #e63946)`
-    );
-    document.documentElement.style.setProperty(
-      '--primary-color',
-      `var(--${t}-primary, #457b9d)`
-    );
-    document.documentElement.style.setProperty(
-      '--contrast-text-color',
-      darkThemes.has(base) ? '#ffffff' : '#000000'
-    );
+    if (isCustomTheme) {
+        // Handle custom themes - find the custom theme in settings
+        const customTheme = currentSettings.customThemes && currentSettings.customThemes.find(theme => theme.id === t);
+        if (customTheme) {
+            // Apply direct color values for custom themes
+            document.documentElement.style.setProperty('--all-background-color', customTheme.background);
+            document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
+            document.documentElement.style.setProperty('--text-color', customTheme.text);
+            document.documentElement.style.setProperty('--accent-color', customTheme.accent);
+            document.documentElement.style.setProperty('--primary-color', customTheme.primary);
+            
+            // Set contrast text color - white for dark themes, black for light themes
+            const isDarkBackground = isColorDark(customTheme.primary);
+            document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
+        } else {
+            // Fallback to light theme if custom theme not found
+            document.documentElement.style.setProperty('--all-background-color', '#f1faee');
+            document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
+            document.documentElement.style.setProperty('--text-color', '#1d3557');
+            document.documentElement.style.setProperty('--accent-color', '#e63946');
+            document.documentElement.style.setProperty('--primary-color', '#457b9d');
+            document.documentElement.style.setProperty('--contrast-text-color', '#000000');
+        }
+    } else {
+        // Handle built-in themes using CSS variables
+        document.documentElement.style.setProperty(
+          '--all-background-color',
+          `var(--${t}-background, #f1faee)`
+        );
+        document.documentElement.style.setProperty(
+          '--group-background-color',
+          `var(--${t}-secondary, #a8dadc)`
+        );
+        document.documentElement.style.setProperty(
+          '--text-color',
+          `var(--${t}-text, #1d3557)`
+        );
+        document.documentElement.style.setProperty(
+          '--accent-color',
+          `var(--${t}-accent, #e63946)`
+        );
+        document.documentElement.style.setProperty(
+          '--primary-color',
+          `var(--${t}-primary, #457b9d)`
+        );
+        document.documentElement.style.setProperty(
+          '--contrast-text-color',
+          darkThemes.has(base) ? '#ffffff' : '#000000'
+        );
+    }
   
     // —————————————————————————————
     // 4) Inline the body’s background
@@ -581,6 +661,11 @@ function applyTheme() {
     if (icon) {
       icon.style.filter = darkThemes.has(base) ? 'invert(1)' : 'invert(0)';
     }
+    
+    // —————————————————————————————
+    // 8) Apply glass background settings
+    // —————————————————————————————
+    applyGlassBackground();
   }
   
 

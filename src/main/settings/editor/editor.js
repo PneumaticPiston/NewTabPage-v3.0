@@ -714,11 +714,15 @@ function getWidgetTypeDescription(widgetType) {
 
 function updateGroupTitle(index, title) {
     currentGroups[index].title = title;
+    // Auto-save when group title is changed
+    saveGroupsToStorage();
 }
 
 function removeGroup(index) {
     currentGroups.splice(index, 1);
     renderGroups();
+    // Auto-save when group is removed
+    saveGroupsToStorage();
 }
 
 function createLinkInputs(container, link = { title: '', url: '' }, index = null) {
@@ -934,6 +938,8 @@ function createNewGroup() {
     currentGroups.push(newGroup);
     renderGroups();
     document.getElementById('new-group-popup').style.display = 'none';
+    // Auto-save when new group is created
+    saveGroupsToStorage();
 }
 
 function openEditPopup(index) {
@@ -1024,6 +1030,8 @@ function saveGroupChanges() {
 
     renderGroups();
     document.getElementById('new-group-popup').style.display = 'none';
+    // Auto-save when group is updated
+    saveGroupsToStorage();
     
     // Reset create button
     const createBtn = document.getElementById('create-new-group-btn');
@@ -1860,6 +1868,8 @@ function updateGroupPosition(index, x, y) {
         
         currentGroups[index].x = `${percentX * 100}%`;
         currentGroups[index].y = `${percentY * 100}%`;
+        // Auto-save when group position is updated
+        saveGroupsToStorage();
         return;
     }
     
@@ -1890,6 +1900,8 @@ function updateGroupPosition(index, x, y) {
     // Store position as percentage strings
     currentGroups[index].x = `${percentX * 100}%`;
     currentGroups[index].y = `${percentY * 100}%`;
+    // Auto-save when group position is updated
+    saveGroupsToStorage();
 }
 
 // Function to create a widget settings dialog

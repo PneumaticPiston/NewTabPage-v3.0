@@ -134,7 +134,6 @@ body {
     top: 48px;
     right: 0;
     width: 320px;
-    background-color: var(--primary-color);
     border-radius: 8px;
     box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
     padding: 16px;
@@ -218,13 +217,14 @@ body {
 }
 
 .glass-background {
-    background-color: rgba(255, 255, 255, 0.25);
+    background-color: rgba(var(--group-background-color), 0.25) !important;
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .group {
+    background-color: var(--group-background-color);
     z-index: 1;
     position: absolute;
     top: 0px;
@@ -236,7 +236,7 @@ body {
     width: fit-content;
     min-width: 150px;
     max-width: 100%;
-    align-items: stretch; /* Ensure children don't exceed width */
+    align-items: stretch;
 }
 
 .link-image {
@@ -290,7 +290,6 @@ body {
     position: relative;
     text-decoration: none;
     color: var(--text-color);
-    background-color: rgba(0,0,0,0);
     transition: scale .2s ease, box-shadow 0.8s ease;
 }
 .link-grid:hover {
