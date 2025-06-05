@@ -1529,7 +1529,10 @@ newGroupBtn.addEventListener('click', function(e) {
         optionsMenu.style.display = 'flex';
     }
 });
-
+// Saves the settings and groups to storage
+function saveAll() {
+    
+}
 // Save button - Save groups and settings
 saveChangesBtn.addEventListener('click', async () => {
     try {
@@ -2717,7 +2720,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newMessage = document.createElement('div');
         newMessage.className = 'welcome-message';
         newMessage.innerHTML = `
-            <div class="welcome-content">
+            <div class="welcome-content" id="welcome-content">
                 <h2>Welcome to NewTabPage!</h2>
                 <p>Get started by adding your first group or widget:</p>
                 <ul>
@@ -2728,5 +2731,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         document.body.appendChild(newMessage);
+
+        newMessage.addEventListener('click', () => {
+            document.body.removeChild(newMessage);
+            // Optionally, you can redirect to the settings page or perform other actions
+            // window.location.href = 'settings.html'; // Uncomment to redirect
+        });
     }
 });
