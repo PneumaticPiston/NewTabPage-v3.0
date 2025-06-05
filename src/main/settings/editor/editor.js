@@ -288,14 +288,6 @@ window.addEventListener('beforeunload', (event) => {
     }
 });
 
-window.addEventListener('beforereload', (event) => {
-    if (currentGroups.length > 0) {
-        const confirmationMessage = 'Make sure you save your changes before leaving. Are you sure you want to exit?';
-        event.returnValue = confirmationMessage; // For most browsers
-        return confirmationMessage; // For some older browsers
-    }
-});
-
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Check if chrome.storage is available (running as extension)
@@ -2722,6 +2714,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (urlParams.get('newInstall') === 'true') {
         console.log('New installation detected');
-        
+        const newMessage = document.createElement('div');
+        newMessage.className = 'welcome-message';
+        newMessage.innerHTML = `
+            <div class="welcome-content">
+                <h2>Welcome to NewTabPage!</h2>
+                <p>Get started by adding your first group or widget:</p>
+                <ul>
+                    <li>Click the "+" button to add a new group or widget</li>
+                    <li>Drag items to position them where you want</li>
+                    <li>Use the Settings panel to customize the look and feel</li>
+                </ul>
+            </div>
+        `;
+        document.body.appendChild(newMessage);
     }
 });
