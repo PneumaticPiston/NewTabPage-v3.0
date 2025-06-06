@@ -1,1 +1,1 @@
-function newInstall(){document.getElementById("newtab-editor").href="/settings/editor/newtab-editor.html?newInstall=true"}document.addEventListener("DOMContentLoaded",(()=>{"true"===new URLSearchParams(window.location.search).get("newInstall")&&(console.log("New installation detected"),newInstall())}));
+document.addEventListener("DOMContentLoaded",(()=>{"true"===new URLSearchParams(window.location.search).get("newInstall")&&(console.log("New installation detected"),document.getElementById("editor-link").href+="?newInstall=true")}));

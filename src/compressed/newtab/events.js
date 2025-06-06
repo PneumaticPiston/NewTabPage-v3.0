@@ -1,1 +1,1 @@
-document.getElementById("settings-button").addEventListener("click",(function(){window.location.href="../settings/settings.html"}));
+document.getElementById("settings-button").addEventListener("click",(function(){"true"!==new URLSearchParams(window.location.search).get("newInstall")?window.location.href="../settings/settings.html":window.location.href="../settings/settings.html?newInstall=true"}));
