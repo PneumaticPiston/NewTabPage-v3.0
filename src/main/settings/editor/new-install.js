@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
         newMessage.innerHTML = `
             <div class="welcome-content">
                 <h2>Controls:</h2>
-                <p>Add link groups or widgets:</p>
-                <p>Toggle the drag anchor to move things around:</p>
-                <p>Don't forget to save your settings before you leave!</p>
+                <p>Add link groups or widgets: ➤</p>
+                <p>Toggle the drag anchor to move things around: ➤</p>
+                <p>Don't forget to save your settings before you leave! ➤</p>
             </div>
         `;
         document.body.appendChild(newMessage);
