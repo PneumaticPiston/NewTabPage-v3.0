@@ -412,16 +412,6 @@ header h1 {
     transform: scale(1.1);
 }
 
-.new-install {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background-color: yellow;
-    border-radius: 20px;
-    padding: 10px;
-    color: white;
-}
-
 .bottom-controls {
     position: fixed;
     bottom: 20px;
@@ -1227,4 +1217,14 @@ input::placeholder {
     padding: 4px 8px;
     border-radius: 4px 4px 0 0;
     user-select: none;
+}
+
+div.welcome-message {
+    position: fixed;
+    bottom: 3%;
+    right: 6%;
+    background-color:indianred;
+    border-radius: 20px;
+    padding: 8px;
+    color: white;
 }

@@ -288,6 +288,14 @@ window.addEventListener('beforeunload', (event) => {
     }
 });
 
+window.addEventListener('beforereload', (event) => {
+    if (currentGroups.length > 0) {
+        const confirmationMessage = 'Make sure you save your changes before leaving. Are you sure you want to exit?';
+        event.returnValue = confirmationMessage; // For most browsers
+        return confirmationMessage; // For some older browsers
+    }
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Check if chrome.storage is available (running as extension)
@@ -1529,10 +1537,7 @@ newGroupBtn.addEventListener('click', function(e) {
         optionsMenu.style.display = 'flex';
     }
 });
-// Saves the settings and groups to storage
-function saveAll() {
-    
-}
+
 // Save button - Save groups and settings
 saveChangesBtn.addEventListener('click', async () => {
     try {
@@ -2720,14 +2725,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const newMessage = document.createElement('div');
         newMessage.className = 'welcome-message';
         newMessage.innerHTML = `
-            <div class="welcome-content" id="welcome-content">
-                <h2>Welcome to NewTabPage!</h2>
-                <p>Get started by adding your first group or widget:</p>
-                <ul>
-                    <li>Click the "+" button to add a new group or widget</li>
-                    <li>Drag items to position them where you want</li>
-                    <li>Use the Settings panel to customize the look and feel</li>
-                </ul>
+            <div class="welcome-content">
+                <h2>Controls:</h2>
+                <p>Add link groups or widgets:</p>
+                <p>Toggle the drag anchor to move things around:</p>
+                <p>Don't forget to save your settings before you leave!</p>
             </div>
         `;
         document.body.appendChild(newMessage);
