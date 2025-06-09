@@ -119,4 +119,15 @@ powershell -Command "Add-Type -Assembly 'System.IO.Compression.FileSystem'; $zip
 echo ZIP file creation complete!
 REM Clean up temp directory if needed
 REM rmdir /s /q ".\temp"
-endlocal
+
+echo Removeing temporary files
+cd .\compressed\
+rmdir /q /s assets
+rmdir /q /s newtab
+rmdir /q /s settings
+rmdir /q /s theme
+rmdir /q /s welcome
+rmdir /q /s widgets
+del background.js
+del manifest.json
+pause
