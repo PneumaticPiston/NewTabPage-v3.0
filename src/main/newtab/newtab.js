@@ -113,6 +113,13 @@ const defaultSettings = {
     useGlassBackground: true, // Default to true for glass background effect
     fontSize: 16,
     groupScale: 100, // Global scaling factor
+    customColors: {
+        primary: '#457b9d',
+        secondary: '#a8dadc',
+        accent: '#e63946',
+        text: '#1d3557',
+        background: '#f1faee'
+    },
     headerLinks: [
         { name: 'Gmail', url: 'https://mail.google.com' },
         { name: 'Photos', url: 'https://photos.google.com' },
@@ -488,10 +495,13 @@ function applyGlassBackground() {
     
     // Apply to search form
     const searchForm = document.querySelector('.search-form');
+    const searchContainer = document.querySelector('.search-container');
     if (searchForm) {
         if (useGlass) {
+            searchContainer.classList.add('glass-background');
             searchForm.classList.add('glass-background');
         } else {
+            searchContainer.classList.remove('glass-background');
             searchForm.classList.remove('glass-background');
         }
     }
@@ -543,33 +553,55 @@ function applyTheme() {
     const t = currentSettings.theme || 'light';
     const base = t.split('-')[0];
     const darkThemes = new Set(['dark','midnight','emerald','slate','deep','nord','cyber']);
-    const isCustomTheme = t.startsWith('custom-');
+    const isCustomTheme = t.startsWith('custom-') || t === 'custom';
   
     // —————————————————————————————
     // 3) Write color CSS-vars on :root
     // —————————————————————————————
     if (isCustomTheme) {
-        // Handle custom themes - find the custom theme in settings
-        const customTheme = currentSettings.customThemes && currentSettings.customThemes.find(theme => theme.id === t);
-        if (customTheme) {
-            // Apply direct color values for custom themes
-            document.documentElement.style.setProperty('--all-background-color', customTheme.background);
-            document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
-            document.documentElement.style.setProperty('--text-color', customTheme.text);
-            document.documentElement.style.setProperty('--accent-color', customTheme.accent);
-            document.documentElement.style.setProperty('--primary-color', customTheme.primary);
+        if (t === 'custom') {
+            // Handle base custom theme using customColors
+            const customColors = currentSettings.customColors || {
+                primary: '#457b9d',
+                secondary: '#a8dadc',
+                accent: '#e63946',
+                text: '#1d3557',
+                background: '#f1faee'
+            };
+            
+            // Apply custom colors
+            document.documentElement.style.setProperty('--all-background-color', customColors.background);
+            document.documentElement.style.setProperty('--group-background-color', customColors.secondary);
+            document.documentElement.style.setProperty('--text-color', customColors.text);
+            document.documentElement.style.setProperty('--accent-color', customColors.accent);
+            document.documentElement.style.setProperty('--primary-color', customColors.primary);
             
             // Set contrast text color - white for dark themes, black for light themes
-            const isDarkBackground = isColorDark(customTheme.primary);
+            const isDarkBackground = isColorDark(customColors.primary);
             document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
         } else {
-            // Fallback to light theme if custom theme not found
-            document.documentElement.style.setProperty('--all-background-color', '#f1faee');
-            document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
-            document.documentElement.style.setProperty('--text-color', '#1d3557');
-            document.documentElement.style.setProperty('--accent-color', '#e63946');
-            document.documentElement.style.setProperty('--primary-color', '#457b9d');
-            document.documentElement.style.setProperty('--contrast-text-color', '#000000');
+            // Handle saved custom themes - find the custom theme in settings
+            const customTheme = currentSettings.customThemes && currentSettings.customThemes.find(theme => theme.id === t);
+            if (customTheme) {
+                // Apply direct color values for custom themes
+                document.documentElement.style.setProperty('--all-background-color', customTheme.background);
+                document.documentElement.style.setProperty('--group-background-color', customTheme.secondary);
+                document.documentElement.style.setProperty('--text-color', customTheme.text);
+                document.documentElement.style.setProperty('--accent-color', customTheme.accent);
+                document.documentElement.style.setProperty('--primary-color', customTheme.primary);
+                
+                // Set contrast text color - white for dark themes, black for light themes
+                const isDarkBackground = isColorDark(customTheme.primary);
+                document.documentElement.style.setProperty('--contrast-text-color', isDarkBackground ? '#ffffff' : '#000000');
+            } else {
+                // Fallback to light theme if custom theme not found
+                document.documentElement.style.setProperty('--all-background-color', '#f1faee');
+                document.documentElement.style.setProperty('--group-background-color', '#a8dadc');
+                document.documentElement.style.setProperty('--text-color', '#1d3557');
+                document.documentElement.style.setProperty('--accent-color', '#e63946');
+                document.documentElement.style.setProperty('--primary-color', '#457b9d');
+                document.documentElement.style.setProperty('--contrast-text-color', '#000000');
+            }
         }
     } else {
         // Handle built-in themes using CSS variables

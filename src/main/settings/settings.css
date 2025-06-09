@@ -37,7 +37,7 @@ body {
 .settings-container {
     max-width: var(--container-width);
     margin: 0 auto;
-    background-color: var(--group-background-color);
+    background-color: var(--secondary-color);
     backdrop-filter: blur(10px);
     padding: 30px;
     border-radius: var(--border-radius);
@@ -58,7 +58,7 @@ header {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background-color: var(--background-color);
+    background-color: var(--secondary-color);
     padding: 15px;
     backdrop-filter: blur(10px);
 }
@@ -202,7 +202,7 @@ h2 {
 .background-inputs {
     margin-top: 10px;
     padding: 15px;
-    background-color: var(--background-color);
+    background-color: var(--secondary-color);
     opacity: 0.8;
     border-radius: var(--border-radius);
     border: 1px solid var(--primary-color);
@@ -212,7 +212,7 @@ h2 {
 .settings-section {
     margin-bottom: 30px;
     padding: 20px;
-    background-color: var(--background-color);
+    background-color: var(--secondary-color);
     opacity: 0.9;
     border-radius: var(--border-radius);
     border: 1px solid var(--primary-color);
@@ -239,7 +239,7 @@ h2 {
     font-size: 14px;
     transition: border-color var(--transition-speed);
     color: var(--text-color);
-    background-color: var(--background-color);
+    background-color: var(--secondary-color);
 }
 
 .setting-control:focus {
@@ -265,11 +265,12 @@ h2 {
     flex-direction: column;
     align-items: center;
     padding: 10px;
-    background-color: var(--background-color);
+    background-color: var(--secondary-color);
     border-radius: var(--border-radius);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
 
     border: 1px solid var(--primary-color);
 }
@@ -309,6 +310,43 @@ h2 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Theme delete button */
+.theme-delete-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--accent-color);
+    color: var(--contrast-text-color);
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    opacity: 0;
+    z-index: 10;
+}
+
+.theme-card:hover .theme-delete-btn {
+    opacity: 1;
+}
+
+.theme-delete-btn:hover {
+    background-color: #d32f2f;
+    transform: scale(1.1);
+}
+
+/* Export/Import button styling */
+.setting-group button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* Color Picker Styling */
@@ -439,7 +477,7 @@ label.switch {
     width: 22px;
     left: 4px;
     bottom: 4px;
-    background-color: var(--all-background-color, white);
+    background-color: var(--background-color, white);
     transition: .4s;
 }
 
@@ -492,6 +530,41 @@ input:checked + .slider:before {
 @keyframes fadeInBg {
     from { opacity: 0; }
     to   { opacity: 1; }
+}
+
+/* Glass background effect */
+.glass-background {
+    background-color: rgba(128, 128, 128, 0.25) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dynamic glass background for different themes */
+.theme-light .glass-background,
+.theme-forest .glass-background,
+.theme-ocean .glass-background,
+.theme-sunset .glass-background,
+.theme-rose .glass-background,
+.theme-autumn .glass-background,
+.theme-pastel .glass-background,
+.theme-mono .glass-background {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.theme-dark .glass-background,
+.theme-midnight .glass-background,
+.theme-emerald .glass-background,
+.theme-slate .glass-background,
+.theme-deep .glass-background,
+.theme-nord .glass-background,
+.theme-cyber .glass-background,
+.theme-neon .glass-background {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+.theme-custom .glass-background {
+    background-color: rgba(128, 128, 128, 0.25) !important;
 }
 
 /* Responsive adjustments */

@@ -12,6 +12,13 @@ const defaultSettings = {
     groupScale: 100, // Global scaling factor
     useGlassBackground: true, // Default to true for glass background effect
     customThemes: [],
+    customColors: {
+        primary: '#457b9d',
+        secondary: '#a8dadc',
+        accent: '#e63946',
+        text: '#1d3557',
+        background: '#f1faee'
+    },
     shortcuts: [
         {
             title: 'Google',
@@ -119,6 +126,11 @@ const customText = document.getElementById('custom-text');
 const customBackground = document.getElementById('custom-background');
 const saveCustomThemeBtn = document.getElementById('save-custom-theme');
 
+// Export/Import elements
+const exportSettingsBtn = document.getElementById('export-settings');
+const importSettingsBtn = document.getElementById('import-settings');
+const importFileInput = document.getElementById('import-file');
+
 // Base themes
 const baseThemes = [
     { id: 'light', name: 'Light Minimal' },
@@ -148,6 +160,11 @@ saveButton.addEventListener('click', saveSettings);
 resetButton.addEventListener('click', resetSettings);
 resetNewtabButton.addEventListener('click', resetNewTab);
 
+// Export/Import event listeners
+exportSettingsBtn.addEventListener('click', exportSettings);
+importSettingsBtn.addEventListener('click', () => importFileInput.click());
+importFileInput.addEventListener('change', importSettings);
+
 // Background image handling
 useCustomBgToggle.addEventListener('change', toggleBackgroundInputs);
 bgFileButton.addEventListener('click', () => bgFileInput.click());
@@ -160,6 +177,13 @@ groupScaleSlider.addEventListener('input', updateGroupScaleDisplay);
 
 // Custom theme
 saveCustomThemeBtn.addEventListener('click', saveCustomTheme);
+
+// Custom color picker event listeners
+customPrimary.addEventListener('input', updateCustomThemePreview);
+customSecondary.addEventListener('input', updateCustomThemePreview);
+customAccent.addEventListener('input', updateCustomThemePreview);
+customText.addEventListener('input', updateCustomThemePreview);
+customBackground.addEventListener('input', updateCustomThemePreview);
 
 // Initialize color pickers with default values
 customPrimary.value = '#457b9d';
@@ -295,6 +319,23 @@ async function loadSettings() {
         groupScaleSlider.value = currentSettings.groupScale || 100;
         updateGroupScaleDisplay();
         
+        // Load custom theme colors into color pickers
+        if (currentSettings.customColors) {
+            customPrimary.value = currentSettings.customColors.primary || '#457b9d';
+            customSecondary.value = currentSettings.customColors.secondary || '#a8dadc';
+            customAccent.value = currentSettings.customColors.accent || '#e63946';
+            customText.value = currentSettings.customColors.text || '#1d3557';
+            customBackground.value = currentSettings.customColors.background || '#f1faee';
+        } else {
+            // Initialize with default values if not set
+            currentSettings.customColors = {
+                primary: '#457b9d',
+                secondary: '#a8dadc',
+                accent: '#e63946',
+                text: '#1d3557',
+                background: '#f1faee'
+            };
+        }
         
         // Generate theme grid
         generateThemeGrid();
@@ -336,7 +377,15 @@ async function saveSettings() {
             searchBarPosition: settingsCopy.searchBarPosition || { x: 10, y: 120 },
             fontSize: parseInt(fontSizeSlider.value) || 16,
             groupScale: parseInt(groupScaleSlider.value) || 100,
-            useGlassBackground: glassBackgroundToggle.checked
+            useGlassBackground: glassBackgroundToggle.checked,
+            // Save custom theme colors from color pickers
+            customColors: {
+                primary: customPrimary.value,
+                secondary: customSecondary.value,
+                accent: customAccent.value,
+                text: customText.value,
+                background: customBackground.value
+            }
         };
         
         // Ensure critical properties exist
@@ -574,6 +623,19 @@ function generateThemeGrid() {
         name.className = 'theme-name';
         name.textContent = theme.name;
         
+        // Add delete button for saved custom themes (not the base 'custom' theme)
+        if (theme.id.startsWith('custom-')) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'theme-delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.title = 'Delete custom theme';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent theme selection
+                deleteCustomTheme(theme.id);
+            });
+            card.appendChild(deleteBtn);
+        }
+        
         // Add click handler to select theme
         card.addEventListener('click', () => {
             // Remove active class from all cards
@@ -596,6 +658,49 @@ function generateThemeGrid() {
         card.appendChild(name);
         themeGrid.appendChild(card);
     });
+}
+
+// Delete a custom theme
+function deleteCustomTheme(themeId) {
+    if (!confirm('Are you sure you want to delete this custom theme?')) {
+        return;
+    }
+    
+    // Remove the theme from customThemes array
+    currentSettings.customThemes = currentSettings.customThemes.filter(theme => theme.id !== themeId);
+    
+    // If the deleted theme is currently active, switch to light theme
+    if (currentSettings.theme === themeId) {
+        currentSettings.theme = 'light';
+        applyThemeToPage('light');
+    }
+    
+    // Regenerate theme grid
+    generateThemeGrid();
+    
+    // Show success message
+    console.log(`Custom theme ${themeId} deleted successfully`);
+}
+
+// Update custom theme preview when color pickers change
+function updateCustomThemePreview() {
+    // Update current settings custom colors
+    currentSettings.customColors = {
+        primary: customPrimary.value,
+        secondary: customSecondary.value,
+        accent: customAccent.value,
+        text: customText.value,
+        background: customBackground.value
+    };
+    
+    // If the current theme is 'custom', apply the changes immediately
+    const activeThemeCard = document.querySelector('.theme-card.active');
+    if (activeThemeCard && activeThemeCard.dataset.themeId === 'custom') {
+        applyThemeToPage('custom');
+    }
+    
+    // Regenerate theme grid to update the custom theme preview
+    generateThemeGrid();
 }
 
 // Save custom theme
@@ -702,30 +807,71 @@ function applyGlassBackgroundToSettings() {
             header.classList.remove('glass-background');
         }
     }
+    
+    // Apply to all settings sections
+    const settingsSections = document.querySelectorAll('.settings-section');
+    settingsSections.forEach(section => {
+        if (useGlass) {
+            section.classList.add('glass-background');
+        } else {
+            section.classList.remove('glass-background');
+        }
+    });
+    
+    // Apply to background inputs container
+    const bgInputContainer = document.querySelector('.background-inputs');
+    if (bgInputContainer) {
+        if (useGlass) {
+            bgInputContainer.classList.add('glass-background');
+        } else {
+            bgInputContainer.classList.remove('glass-background');
+        }
+    }
+    
+    // Apply to custom theme section
+    const customThemeSection = document.querySelector('.custom-theme-section');
+    if (customThemeSection) {
+        if (useGlass) {
+            customThemeSection.classList.add('glass-background');
+        } else {
+            customThemeSection.classList.remove('glass-background');
+        }
+    }
 }
 
 // Apply theme to the settings page
 function applyThemeToPage(themeId) {
     // Check if it's a custom theme
-    const isCustomTheme = themeId.startsWith('custom-');
+    const isCustomTheme = themeId.startsWith('custom-') || themeId === 'custom';
     let themeColors = {};
     
     if (isCustomTheme) {
-        // Find the custom theme in settings
-        const customTheme = currentSettings.customThemes.find(t => t.id === themeId);
-        if (customTheme) {
+        if (themeId === 'custom') {
+            // For base custom theme, use color picker values or stored custom colors
             themeColors = {
-                primary: customTheme.primary,
-                secondary: customTheme.secondary,
-                accent: customTheme.accent,
-                text: customTheme.text,
-                background: customTheme.background
+                primary: currentSettings.customColors?.primary || customPrimary.value,
+                secondary: currentSettings.customColors?.secondary || customSecondary.value,
+                accent: currentSettings.customColors?.accent || customAccent.value,
+                text: currentSettings.customColors?.text || customText.value,
+                background: currentSettings.customColors?.background || customBackground.value
             };
+        } else {
+            // Find the saved custom theme in settings
+            const customTheme = currentSettings.customThemes.find(t => t.id === themeId);
+            if (customTheme) {
+                themeColors = {
+                    primary: customTheme.primary,
+                    secondary: customTheme.secondary,
+                    accent: customTheme.accent,
+                    text: customTheme.text,
+                    background: customTheme.background
+                };
+            }
         }
     }
     
     // Set CSS variables based on theme
-    if (isCustomTheme) {
+    if (isCustomTheme && themeColors.primary) {
         // Directly set color values for custom themes
         document.documentElement.style.setProperty('--primary-color', themeColors.primary);
         document.documentElement.style.setProperty('--secondary-color', themeColors.secondary);
@@ -747,14 +893,17 @@ function applyThemeToPage(themeId) {
         // Set contrast text color appropriately based on theme
         let isDarkTheme = false;
         if (themeId === 'dark' || themeId === 'midnight' || themeId === 'emerald' || 
-            themeId === 'slate' || themeId === 'deep' || themeId === 'nord' || themeId === 'cyber') {
+            themeId === 'slate' || themeId === 'deep' || themeId === 'nord' || themeId === 'cyber' || themeId === 'neon') {
             isDarkTheme = true;
         }
         document.documentElement.style.setProperty('--contrast-text-color', isDarkTheme ? '#ffffff' : '#000000');
     }
     
-    // Set body background color while preserving inline style attribute
-    document.body.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color');
+    // Ensure body background color is properly set
+    const bodyBgColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color').trim();
+    if (bodyBgColor && bodyBgColor !== '') {
+        document.body.style.backgroundColor = bodyBgColor;
+    }
     
     // Apply custom background if enabled
     if (currentSettings.useCustomBackground) {
@@ -817,5 +966,190 @@ function updateGroupScaleDisplay() {
     
     // Adjust some spacing to account for scaling
     document.documentElement.style.setProperty('--spacing-multiplier', value / 100);
+}
+
+// Export all settings to a JSON file
+async function exportSettings() {
+    try {
+        exportSettingsBtn.textContent = 'Exporting...';
+        exportSettingsBtn.disabled = true;
+        
+        // Gather all data from different sources
+        const exportData = {
+            timestamp: new Date().toISOString(),
+            version: '3.0',
+            settings: currentSettings,
+            groups: null,
+            backgroundImage: null
+        };
+        
+        // Get groups/widgets data
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            try {
+                // Check sync storage first
+                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
+                
+                if (syncData.groupsLocation === 'local') {
+                    // Groups are in local storage
+                    const localData = await chrome.storage.local.get(['groups']);
+                    exportData.groups = localData.groups || [];
+                } else {
+                    // Groups are in sync storage
+                    exportData.groups = syncData.groups || [];
+                }
+                
+                // Get background image from local storage
+                const localBgData = await chrome.storage.local.get(['backgroundImage']);
+                exportData.backgroundImage = localBgData.backgroundImage || null;
+                
+            } catch (error) {
+                console.warn('Error accessing Chrome storage:', error);
+                // Fallback to localStorage
+                exportData.groups = JSON.parse(localStorage.getItem('groups') || '[]');
+                exportData.backgroundImage = localStorage.getItem('backgroundImage') || null;
+            }
+        } else {
+            // Use localStorage
+            exportData.groups = JSON.parse(localStorage.getItem('groups') || '[]');
+            exportData.backgroundImage = localStorage.getItem('backgroundImage') || null;
+        }
+        
+        // Create and download the file
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `newtab-settings-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show success message
+        exportSettingsBtn.textContent = 'Exported!';
+        setTimeout(() => {
+            exportSettingsBtn.textContent = 'Export Settings';
+            exportSettingsBtn.disabled = false;
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error exporting settings:', error);
+        alert('Error exporting settings. Please try again.');
+        exportSettingsBtn.textContent = 'Export Settings';
+        exportSettingsBtn.disabled = false;
+    }
+}
+
+// Import settings from a JSON file
+async function importSettings(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    try {
+        // Show confirmation dialog
+        const confirmMessage = `This will import settings from "${file.name}" and:\n\n` +
+            '• Replace all current settings, themes, and preferences\n' +
+            '• Add imported link groups and widgets to your existing ones\n' +
+            '• Replace your background image if one is included\n\n' +
+            'This action cannot be undone. Do you want to continue?';
+        
+        if (!confirm(confirmMessage)) {
+            // Reset the file input
+            importFileInput.value = '';
+            return;
+        }
+        
+        importSettingsBtn.textContent = 'Importing...';
+        importSettingsBtn.disabled = true;
+        
+        // Read the file
+        const fileText = await file.text();
+        const importData = JSON.parse(fileText);
+        
+        // Validate the import data
+        if (!importData.settings) {
+            throw new Error('Invalid settings file: missing settings data');
+        }
+        
+        // Get current groups to merge with imported ones
+        let currentGroups = [];
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            try {
+                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
+                if (syncData.groupsLocation === 'local') {
+                    const localData = await chrome.storage.local.get(['groups']);
+                    currentGroups = localData.groups || [];
+                } else {
+                    currentGroups = syncData.groups || [];
+                }
+            } catch (error) {
+                currentGroups = JSON.parse(localStorage.getItem('groups') || '[]');
+            }
+        } else {
+            currentGroups = JSON.parse(localStorage.getItem('groups') || '[]');
+        }
+        
+        // Merge groups (add imported groups to existing ones)
+        const mergedGroups = [...currentGroups];
+        if (importData.groups && Array.isArray(importData.groups)) {
+            mergedGroups.push(...importData.groups);
+        }
+        
+        // Update current settings with imported settings
+        currentSettings = {
+            ...defaultSettings,
+            ...importData.settings
+        };
+        
+        // Save everything
+        if (typeof chrome !== 'undefined' && chrome.storage) {
+            try {
+                // Save main settings to sync storage
+                const settingsToSave = { ...currentSettings };
+                delete settingsToSave.backgroundImage; // Don't put image in sync storage
+                
+                await chrome.storage.sync.set({ 
+                    settings: settingsToSave,
+                    groups: mergedGroups
+                });
+                
+                // Save background image to local storage if provided
+                if (importData.backgroundImage) {
+                    await chrome.storage.local.set({ backgroundImage: importData.backgroundImage });
+                    currentSettings.backgroundImage = importData.backgroundImage;
+                }
+                
+            } catch (error) {
+                console.warn('Error saving to Chrome storage, using localStorage:', error);
+                localStorage.setItem('settings', JSON.stringify(currentSettings));
+                localStorage.setItem('groups', JSON.stringify(mergedGroups));
+                if (importData.backgroundImage) {
+                    localStorage.setItem('backgroundImage', importData.backgroundImage);
+                }
+            }
+        } else {
+            // Use localStorage
+            localStorage.setItem('settings', JSON.stringify(currentSettings));
+            localStorage.setItem('groups', JSON.stringify(mergedGroups));
+            if (importData.backgroundImage) {
+                localStorage.setItem('backgroundImage', importData.backgroundImage);
+            }
+        }
+        
+        // Show success message and reload page
+        importSettingsBtn.textContent = 'Import Successful!';
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error importing settings:', error);
+        alert(`Error importing settings: ${error.message}. Please check the file format and try again.`);
+        importSettingsBtn.textContent = 'Import Settings';
+        importSettingsBtn.disabled = false;
+    }
+    
+    // Reset the file input
+    importFileInput.value = '';
 }
 
