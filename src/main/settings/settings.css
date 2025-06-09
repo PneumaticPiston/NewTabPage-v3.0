@@ -406,7 +406,7 @@ h2 {
     -webkit-appearance: none;
     appearance: none;
     height: 8px;
-    background: var(--group-background-color, #ddd);
+    background: var(--primary-color, #ddd);
     border-radius: 5px;
     outline: none;
     margin-right: 10px;

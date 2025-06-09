@@ -149,6 +149,7 @@ const baseThemes = [
     { id: 'autumn', name: 'Autumn' },
     { id: 'pastel', name: 'Pastel' },
     { id: 'mono', name: 'Monochrome' },
+    { id: 'darkrose', name: 'Dark Rose' },
     { id: 'custom', name: 'Custom Theme' }
 ];
 

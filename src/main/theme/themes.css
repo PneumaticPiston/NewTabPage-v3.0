@@ -111,6 +111,13 @@
     --mono-text: #111111;
     --mono-accent: #bbbbbb;
     
+    /* NEW: Dark Rose Theme */
+    --darkrose-background: #1a1118;
+    --darkrose-primary: #2c1f26;
+    --darkrose-secondary: #4a3641;
+    --darkrose-text: #f2e9ed;
+    --darkrose-accent: #d64b8b;
+    
     /* Template Theme (Commented Out) - Use this as a template for creating your own theme
     --template-background: #000000;
     --template-primary: #000000;
