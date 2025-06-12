@@ -23,7 +23,6 @@ body {
     background-repeat: no-repeat;
     color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    transition: background-image 0.5s ease-in; /* Add transition for background fade-in */
 }
 
 .background-image {
@@ -142,6 +141,7 @@ body {
     display: none;
     z-index: 3;
     overflow-y: scroll;
+    background-color: rgba(var(--group-background-color), .25);
     color: var(--text-color);
 }
 
@@ -220,7 +220,7 @@ body {
 
 .glass-background {
     background-color: rgba(var(--group-background-color), 0.25) !important;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px) !important;
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
