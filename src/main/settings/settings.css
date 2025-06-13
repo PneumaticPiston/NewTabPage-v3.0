@@ -417,7 +417,7 @@ h2 {
     appearance: none;
     width: 20px;
     height: 20px;
-    background: var(--primary-color);
+    background: var(--secondary-color);
     cursor: pointer;
     border-radius: 50%;
 }
@@ -482,7 +482,7 @@ label.switch {
 }
 
 input:checked + .slider {
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color);
 }
 
 input:focus + .slider {
