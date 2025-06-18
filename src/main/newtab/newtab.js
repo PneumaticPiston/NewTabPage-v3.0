@@ -638,14 +638,7 @@ function applyTheme() {
     const bgColor = getComputedStyle(document.documentElement)
       .getPropertyValue('--all-background-color');
     document.body.style.backgroundColor = bgColor;
-  
-    // Background image is now handled separately at the end of the initialization process
-    // to improve performance. We only reset if necessary.
-    if (!currentSettings.useCustomBackground) {
-      // Only reset if there's no custom background
-      document.documentElement.style.setProperty('--background-image', 'none');
-      document.body.classList.remove('bg-loaded');
-    }
+
   
     // —————————————————————————————
     // 5) Add the new theme class
@@ -1005,7 +998,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
                     chrome.storage.local.get(['backgroundImage'], (localResult) => {
                         const bgUrl = localResult.backgroundImage || currentSettings.backgroundURL;
-                        
                         if (bgUrl) {
                             // Preload the background image for smooth transition
                             preloadBackgroundImage(bgUrl, (success, loadedUrl) => {
@@ -1041,6 +1033,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         });
                     }
                 }
+            } else {
+                document.getElementById('background-image').remove();
             }
         }, 200); // Delay of 200ms to ensure other elements are loaded and rendered first
     } catch (error) {
