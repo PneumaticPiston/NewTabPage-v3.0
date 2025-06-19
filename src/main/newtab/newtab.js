@@ -1034,6 +1034,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             } else {
+                // Remove the background image element if the user has disabled the custom background. 
                 document.getElementById('background-image').remove();
             }
         }, 200); // Delay of 200ms to ensure other elements are loaded and rendered first
