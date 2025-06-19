@@ -1111,6 +1111,11 @@ async function importSettings(e) {
                 
                 await chrome.storage.sync.set({ 
                     settings: settingsToSave,
+                    groupsLocation: 'local'
+                });
+                
+                // Save groups to local storage (following the system's storage strategy)
+                await chrome.storage.local.set({ 
                     groups: mergedGroups
                 });
                 

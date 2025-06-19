@@ -10,3 +10,5 @@ src/**/compressed/
 src/main/.claude/settings.local.json
 src/compressed/main/
 src/compressed/temp/
+CLAUDE.md
+TODO.md
