@@ -304,8 +304,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // First, try to load settings from sync storage
             let syncData = {};
-            if (chrome.storage.sync) {
-                syncData = await chrome.storage.sync.get(['settings', 'groupsLocation', 'groups', 'scaling']);
+            if (chrome.storage.local) {
+                syncData = await chrome.storage.local.get(['settings', 'groupsLocation', 'groups', 'scaling']);
             }
             
             // Load settings
@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 Debugger.log('Groups loaded from Chrome local storage');
             } else {
                 // Try to get groups from sync storage first
-                if (chrome.storage.sync && syncData.groups && syncData.groups.length > 0) {
+                if (chrome.storage.local && syncData.groups && syncData.groups.length > 0) {
                     currentGroups = syncData.groups;
                     Debugger.log('Groups loaded from Chrome sync storage');
                 } else {
@@ -1556,7 +1556,7 @@ saveChangesBtn.addEventListener('click', async () => {
             const sanitizedGroups = sanitizeGroupLinks(currentGroups);
             
             // 2. Store groups and settings separately to avoid hitting quota limit
-            if (chrome.storage.sync) {
+            if (chrome.storage.local) {
                 try {
                     // Make a copy of current settings for sync storage
                     // This is important to prevent modifying the original settings object
@@ -1573,7 +1573,7 @@ saveChangesBtn.addEventListener('click', async () => {
                     }
                     
                     // Try to save settings to sync storage (without the background image)
-                    await chrome.storage.sync.set({ settings: settingsForSync });
+                    await chrome.storage.local.set({ settings: settingsForSync });
                     
                     // Save groups to local storage to avoid quota issues
                     await chrome.storage.local.set({ groups: sanitizedGroups });
@@ -1584,7 +1584,7 @@ saveChangesBtn.addEventListener('click', async () => {
                     }
                     
                     // Save a reference in sync storage that groups are in local storage
-                    await chrome.storage.sync.set({ groupsLocation: 'local' });
+                    await chrome.storage.local.set({ groupsLocation: 'local' });
                     
                     Debugger.log('Data successfully saved to Chrome storage (split between sync and local)');
                 } catch (syncError) {
@@ -2708,7 +2708,7 @@ async function saveGroupsToStorage() {
     const sanitizedGroups = sanitizeGroupLinks(currentGroups);
     // Save sanitizedGroups instead of currentGroups
     if (typeof chrome !== 'undefined' && chrome.storage) {
-        await chrome.storage.sync.set({ groups: sanitizedGroups });
+        await chrome.storage.local.set({ groups: sanitizedGroups });
     } else {
         localStorage.setItem('groups', JSON.stringify(sanitizedGroups));
     }

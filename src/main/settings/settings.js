@@ -250,7 +250,7 @@ async function loadSettings() {
         // Try to load from Chrome storage or use localStorage as fallback
         if (typeof chrome !== 'undefined' && chrome.storage) {
             // Load main settings from sync storage
-            const syncResult = await chrome.storage.sync.get(['settings']);
+            const syncResult = await chrome.storage.local.get(['settings']);
             currentSettings = syncResult.settings || {...defaultSettings};
             
             // Load background image from local storage if available
@@ -413,7 +413,7 @@ async function saveSettings() {
         if (typeof chrome !== 'undefined' && chrome.storage) {
             try {
                 // Save main settings to sync storage without the image
-                await chrome.storage.sync.set({ settings: settingsWithoutImage });
+                await chrome.storage.local.set({ settings: settingsWithoutImage });
                 console.log('Settings saved to Chrome sync storage');
                 
                 // If we have a background image, save it separately to local storage
@@ -533,8 +533,8 @@ async function resetNewTab() {
         currentSettings.searchBarPosition = { x: '50%', y: 120 };
         
         // Save changes
-        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-            await chrome.storage.sync.set({ 
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            await chrome.storage.local.set({ 
                 groups: defaultGroups,
                 settings: currentSettings 
             });
@@ -988,7 +988,7 @@ async function exportSettings() {
         if (typeof chrome !== 'undefined' && chrome.storage) {
             try {
                 // Check sync storage first
-                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
+                const syncData = await chrome.storage.local.get(['groups', 'groupsLocation']);
                 
                 if (syncData.groupsLocation === 'local') {
                     // Groups are in local storage
@@ -1076,7 +1076,7 @@ async function importSettings(e) {
         let currentGroups = [];
         if (typeof chrome !== 'undefined' && chrome.storage) {
             try {
-                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
+                const syncData = await chrome.storage.local.get(['groups', 'groupsLocation']);
                 if (syncData.groupsLocation === 'local') {
                     const localData = await chrome.storage.local.get(['groups']);
                     currentGroups = localData.groups || [];
@@ -1109,7 +1109,7 @@ async function importSettings(e) {
                 const settingsToSave = { ...currentSettings };
                 delete settingsToSave.backgroundImage; // Don't put image in sync storage
                 
-                await chrome.storage.sync.set({ 
+                await chrome.storage.local.set({ 
                     settings: settingsToSave,
                     groupsLocation: 'local'
                 });

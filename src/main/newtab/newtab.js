@@ -28,9 +28,9 @@ const Debugger = {
 // Debugger.debugging.enable(); // Enable debugging
 
 async function fetchSettingsAndGroups() {
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         Debugger.log('Using Chrome storage API');
-      const { settings, groups, groupsLocation } = await chrome.storage.sync.get(
+      const { settings, groups, groupsLocation } = await chrome.storage.local.get(
         ['settings', 'groups', 'groupsLocation']
       );
       let finalGroups = groups;
@@ -1135,8 +1135,8 @@ async function loadWidgets() {
             Debugger.log('Chrome storage API available');
             
             // First check if there's a reference to groups location in sync storage
-            if (chrome.storage.sync) {
-                const syncData = await chrome.storage.sync.get(['groups', 'groupsLocation']);
+            if (chrome.storage.local) {
+                const syncData = await chrome.storage.local.get(['groups', 'groupsLocation']);
                 
                 // If groupsLocation is 'local', get groups from local storage
                 if (syncData.groupsLocation === 'local') {
