@@ -994,19 +994,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                     img.src = imageUrl;
                 };
                 
-                // Try to load background from storage
+                // Try to load background image from storage
                 if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
                     chrome.storage.local.get(['backgroundImage'], (localResult) => {
+                        // Get the background image element
+                        const backgroundImageElement = document.getElementById('background-image');
+
                         const bgUrl = localResult.backgroundImage || currentSettings.backgroundURL;
                         if (bgUrl) {
                             // Preload the background image for smooth transition
                             preloadBackgroundImage(bgUrl, (success, loadedUrl) => {
                                 if (success) {
                                     // Apply the background with fade-in effect
-                                    document.getElementById('background-image').style.backgroundImage = `url("${loadedUrl}")`;
+                                    backgroundImageElement.style.backgroundImage = `url("${loadedUrl}")`;
                                     
                                     // Add loaded class for potential additional styling
-                                    document.getElementById('background-image').classList.add('background-image');
+                                    backgroundImageElement.classList.add('background-image');
                                 } else {
                                     Debugger.warn("Failed to load background image:", bgUrl);
                                 }
@@ -1016,17 +1019,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     });
                 } else {
+                    // Get the background image element
+                    const backgroundImageElement = document.getElementById('background-image');
                     // Fallback for non-Chrome environments
                     const bgUrl = currentSettings.backgroundImage || currentSettings.backgroundURL;
                     if (bgUrl) {
                         // Preload the background image for smooth transition
                         preloadBackgroundImage(bgUrl, (success, loadedUrl) => {
                             if (success) {
-                                // Apply the background with fade-in effect
-                                document.getElementById('background-image').style.backgroundImage = `url("${loadedUrl}")`;
-                                
-                                // Add loaded class for potential additional styling
-                                document.getElementById('background-image').classList.add('bg-loaded');
+                                    // Apply the background with fade-in effect
+                                    backgroundImageElement.style.backgroundImage = `url("${loadedUrl}")`;
+                                    
+                                    // Add loaded class for potential additional styling
+                                    backgroundImageElement.classList.add('background-image');
                             } else {
                                 Debugger.warn("Failed to load background image:", bgUrl);
                             }
