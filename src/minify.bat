@@ -90,9 +90,11 @@ for /r ".\main" %%F in (*) do (
         
         copy "%%F" "!outputfile!" >nul
     )
+    rmdir /q /s ".claude"
 )
 echo Processing complete!
 echo All files are available in the .\compressed\ directory.
+rmdir /q /s ".claude"
 
 REM Extract version from manifest.json - specifically the "version" property
 echo Extracting version from manifest.json...
@@ -130,5 +132,5 @@ rmdir /q /s welcome
 rmdir /q /s widgets
 del background.js
 del manifest.json
-rmdir /q /s "/.claude/"
+rmdir /q /s "/.claude"
 pause
