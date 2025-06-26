@@ -18,7 +18,6 @@
         "storage"
     ],
     "background": {
-        "service_worker": "welcome/background.js",
-        "type": "module"
+        "service_worker": "welcome/background.js"
     }
 }
