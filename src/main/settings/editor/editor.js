@@ -9,6 +9,10 @@ const newGroupPopup = document.getElementById('new-group-popup');
 const linksEditor = document.getElementById('group-links-editor');
 const newGroupLinks = document.getElementById('new-group-links');
 
+const savedSettings = {
+    savedChanges: true
+}
+
 // Debugger.debugging.enable(); // Enable debugging
 
 // Function to determine if a color is dark (for contrast purposes)
@@ -281,6 +285,10 @@ function applyThemeToEditor() {
 // Add an event listener for when the tab is closed, create a warning about saving changes
 // Give two options: "Cancel" followed by "Exit without saving"
 window.addEventListener('beforeunload', (event) => {
+
+    if (savedSettings.savedChanges == true) {
+        return;
+    }
     if (currentGroups.length > 0) {
         const confirmationMessage = 'Make sure you save your changes before leaving. Are you sure you want to exit?';
         event.returnValue = confirmationMessage; // For most browsers
@@ -288,13 +296,6 @@ window.addEventListener('beforeunload', (event) => {
     }
 });
 
-window.addEventListener('beforereload', (event) => {
-    if (currentGroups.length > 0) {
-        const confirmationMessage = 'Make sure you save your changes before leaving. Are you sure you want to exit?';
-        event.returnValue = confirmationMessage; // For most browsers
-        return confirmationMessage; // For some older browsers
-    }
-});
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -968,6 +969,9 @@ function openEditPopup(index) {
     const createBtn = document.getElementById('create-new-group-btn');
     createBtn.textContent = 'Save Changes';
     createBtn.onclick = saveGroupChanges;
+    
+    // Update changes saved flag
+    savedSettings.savedChanges = false;
 }
 
 function saveGroupChanges() {
@@ -1037,6 +1041,9 @@ function saveGroupChanges() {
     const createBtn = document.getElementById('create-new-group-btn');
     createBtn.textContent = 'Create Group';
     createBtn.onclick = createNewGroup;
+
+    // Update changes saved flag
+    savedSettings.savedChanges = false;
 }
 
 // Safely add event listeners (check if elements exist first)
@@ -1364,6 +1371,9 @@ if (document.getElementById('add-group-button')) {
         createBtn.textContent = 'Create Group';
         createBtn.onclick = createNewGroup;
         
+        // Update changes saved flag
+        savedSettings.savedChanges = false;
+        
         // Hide add options menu
         document.getElementById('add-options').style.display = 'none';
     });
@@ -1371,6 +1381,8 @@ if (document.getElementById('add-group-button')) {
 
 if (document.getElementById('add-widget-button')) {
     document.getElementById('add-widget-button').addEventListener('click', function() {
+        // Update changes saved flag
+        savedSettings.savedChanges = false;
         // Open widget menu
         const widgetMenu = document.getElementById('widget-menu');
         
@@ -1542,6 +1554,9 @@ newGroupBtn.addEventListener('click', function(e) {
 saveChangesBtn.addEventListener('click', async () => {
     try {
         // Show feedback to user
+
+        // Update changes saved flag
+        savedSettings.savedChanges = true;
         const saveButton = document.getElementById('save-changes-btn');
         const originalText = saveButton.innerHTML;
         saveButton.innerHTML = 'Saving...';
