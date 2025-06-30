@@ -28,7 +28,12 @@
   - [ ] Merge with analog clock and give the user the option of 'Clock'
   - [ ] Users can chose anolog or digital clocks and the timezone(s)
 - [ ] To Do List - Does not save the to do list items to storage
-
+- Google Services
+  - [ ] Google Drive - Shows recently modified files
+    - [ ] I need to find out if this is even possible
+    - [ ] A '+' button will allow the user to create a new document
+    - [ ] A search button will let the user search for a file and then open it
+  - [ ] GMail - Shows recent emails from the user's inbox. 
 
 ## User Interface & User Experience Improvements
 - [ ] Fix themes making text difficult to read
