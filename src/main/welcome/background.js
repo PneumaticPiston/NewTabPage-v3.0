@@ -44,7 +44,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
                 backgroundImage: null,
                 showSearch: true,
                 searchEngine: 'google',
-                searchBarPosition: { x: 540, y: 360 }, // Assumes that the display is at least 1080x720
+                searchBarPosition: { x: '50%', y: '50%' }, // Assumes that the display is at least 1080x720
                 useGlassBackground: true, // Default to true for glass background effect
                 fontSize: 16,
                 groupScale: 100, // Global scaling factor
@@ -108,10 +108,12 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         // Set default groups if they don't exist
         if (!hasGroups) {
             const defaultGroup = {
-                type: 'stack',
+                type: 'grid',
+                rows: 1,
+                columns: 4,
                 title: 'Google Apps',
-                x: '10%',
-                y: '10%',
+                x: '50%',
+                y: '60%',
                 links: [
                     { title: 'Gmail', url: 'https://mail.google.com' },
                     { title: 'Google Docs', url: 'https://docs.google.com' },
