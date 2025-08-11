@@ -3,6 +3,10 @@
 ## Critical Bugs
 - [x] None that I can see
 
+## Important Features
+- [ ] Storage sync options
+  - Users chose what settings they want to sync within their browser vs keep local on device
+
 ### Widgets
 - [ ] ALL - When a widget is selected another menu should appear for the user to chose the size and other settings of the widget (i.e. the clock widget can be set to a time zone and have its style changed)
 - [ ] Try to make adding and midifying widgets easier
