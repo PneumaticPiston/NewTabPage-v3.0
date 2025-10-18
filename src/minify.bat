@@ -132,5 +132,6 @@ rmdir /q /s welcome
 rmdir /q /s widgets
 del background.js
 del manifest.json
-rmdir /q /s "/.claude"
+rmdir /q /s "./.claude"
+rmdir /q /s "./temp/"
 pause
