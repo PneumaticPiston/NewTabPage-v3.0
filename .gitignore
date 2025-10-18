@@ -5,7 +5,7 @@
 src/main/assets/*api-keys*.js
 
 # Ignore common temp or compressed folders
-src/**/temp/
+src/temp/
 src/main/.claude/settings.local.json
 src/compressed/main/
 src/compressed/temp/

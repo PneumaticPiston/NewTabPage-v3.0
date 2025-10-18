@@ -252,7 +252,8 @@ body {
     font-size: 14px;
     font-weight: bold;
     padding: 5px 10px;
-    color: var(--text-color);
+    mix-blend-mode: difference;
+    color: white;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     margin-bottom: 5px;
     width: auto; /* Let it size to content without extending beyond container */
@@ -302,6 +303,8 @@ body {
 
 .grid-link-title {
     font-weight: 400;
+    mix-blend-mode: difference;
+    color: white;
 }
 
 .stack {
