@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Custom New Tab Page",
-    "version": "1.11",
+    "version": "1.12",
     "description": "Add more links and widgets to your new tab page as well as customize coloring.",
     "icons": {
         "16": "assets/iconx16.png",
@@ -19,11 +19,5 @@
     ],
     "background": {
         "service_worker": "welcome/background.js"
-    },
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "your-extension@example.com",
-            "strict_min_version": "109.0"
-        }
     }
 }

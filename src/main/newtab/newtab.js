@@ -1346,7 +1346,7 @@ function getFavicon(url) {
         }
         
         // For non-special cases, use Google's favicon service
-        const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
         
         // Cache the result for future use
         window.faviconCache.set(domain, faviconUrl);
